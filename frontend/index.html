@@ -3,43 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tổng Quan & Tiến Độ - HueIC IMP</title>
+    <title>Cổng Điều Hành Toàn Trường - HueIC Master Executive Portal</title>
+    
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
-    <!-- Google Fonts Manrope & Inter for Modern Executive Typography -->
+    <!-- Google Fonts Manrope & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
 
-    <!-- React 18 & Recharts 2 & Babel Standalone -->
-    <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prop-types@15.8.1/prop-types.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/recharts@2.12.7/umd/Recharts.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.24.0/babel.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #F6F5F1; color: #16233D; }
+        .font-manrope { font-family: 'Manrope', sans-serif; }
+        
+        .nav-link { color: #8B96AC; transition: all 0.15s ease-in-out; }
+        .nav-link:hover { background: #1E2C4A; color: #FFFFFF; }
+        #nav-dashboard { background: #0E7C7B !important; color: #FFFFFF !important; font-weight: 700; }
+
+        .portal-card {
+            background: #FFFFFF;
+            border: 1px solid #E4E1D8;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(22, 35, 61, 0.03);
+            transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+        }
+        .portal-card:hover {
+            box-shadow: 0 4px 12px rgba(22, 35, 61, 0.06);
+            border-color: #C7C2B4;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-thumb { background: #C7C2B4; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #5B6472; }
+    </style>
 </head>
-<body class="bg-[#F6F5F1] font-sans text-slate-800 antialiased">
+<body class="bg-[#F6F5F1] font-sans text-[#16233D] antialiased">
     <div class="flex h-screen overflow-hidden">
         
         <!-- MOBILE BACKDROP -->
         <div id="sidebarBackdrop" onclick="Common.toggleSidebar(false)" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-30 hidden md:hidden transition-opacity"></div>
 
-        <!-- SIDEBAR (RESPONSIVE DRAWER ON MOBILE) -->
-        <aside id="mainSidebar" class="fixed inset-y-0 left-0 z-40 w-64 bg-slate-900 text-white flex flex-col flex-shrink-0 shadow-2xl md:shadow-xl md:static transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+        <!-- SIDEBAR -->
+        <aside id="mainSidebar" class="fixed inset-y-0 left-0 z-40 w-64 bg-[#16233D] text-white flex flex-col flex-shrink-0 shadow-2xl md:shadow-xl md:static transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
             <!-- Brand -->
-            <div class="h-16 flex items-center justify-between px-5 bg-slate-950/60 border-b border-slate-800/80">
+            <div class="h-16 flex items-center justify-between px-5 bg-[#0F192C] border-b border-[#1E2C4A] shrink-0">
                 <div class="flex items-center space-x-3">
-                    <div class="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-white shadow-md">
+                    <div class="w-8 h-8 rounded-lg bg-[#0E7C7B] flex items-center justify-center font-bold text-white shadow-md font-manrope">
                         <i class="fa-solid fa-graduation-cap"></i>
                     </div>
                     <div>
-                        <h1 class="font-black text-base tracking-wide text-white leading-tight">HueIC IMP</h1>
-                        <p class="text-[10px] text-blue-400 font-semibold tracking-wider uppercase">Internal Portal</p>
+                        <h1 class="font-manrope font-extrabold text-base tracking-wide text-white leading-tight">HueIC IMP</h1>
+                        <p class="text-[10px] text-[#0E7C7B] font-semibold tracking-wider uppercase">Executive Portal</p>
                     </div>
                 </div>
-                <!-- Close Button on Mobile -->
                 <button onclick="Common.toggleSidebar(false)" class="md:hidden text-slate-400 hover:text-white p-2">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
@@ -47,130 +66,391 @@
 
             <!-- Navigation Links -->
             <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-                <div class="text-[10px] font-bold uppercase text-slate-400 px-3 mb-2 tracking-wider">Điều Hành</div>
+                <div class="text-[10.5px] font-bold uppercase text-[#7D8AA3] px-3 mb-2 tracking-wider">Điều Hành Toàn Trường</div>
                 
                 <a href="index.html" id="nav-dashboard"
-                    class="nav-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition duration-150">
-                    <i class="fa-solid fa-chart-pie w-5 mr-3 text-center"></i>
-                    <span>Tổng Quan (Dashboard)</span>
+                    class="nav-link flex items-center px-3 py-2.5 rounded-lg text-xs font-bold bg-[#0E7C7B] text-white shadow transition">
+                    <i class="fa-solid fa-chart-pie w-5 mr-2.5 text-center text-xs"></i>
+                    <span>Cổng Tổng Quan (Executive)</span>
                 </a>
 
                 <a href="tasks.html" id="nav-tasks"
-                    class="nav-link flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition duration-150">
+                    class="nav-link flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium text-[#B9C2D4] hover:bg-[#1E2C4A] hover:text-white transition">
                     <div class="flex items-center">
-                        <i class="fa-solid fa-list-check w-5 mr-3 text-center"></i>
+                        <i class="fa-solid fa-list-check w-5 mr-2.5 text-center text-xs"></i>
                         <span>Quản Lý Công Việc</span>
                     </div>
-                    <span id="navBadgeTasks" class="hidden text-[10px] bg-red-600 text-white font-bold px-2 py-0.5 rounded-full shadow-xs">0</span>
+                    <span id="navBadgeTasks" class="hidden text-[10px] bg-[#B3261E] text-white font-bold px-1.5 py-0.2 rounded-full shadow-xs">0</span>
                 </a>
 
                 <a href="calendar.html" id="nav-calendar"
-                    class="nav-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition duration-150">
-                    <i class="fa-solid fa-calendar-days w-5 mr-3 text-center"></i>
+                    class="nav-link flex items-center px-3 py-2.5 rounded-lg text-xs font-medium text-[#B9C2D4] hover:bg-[#1E2C4A] hover:text-white transition">
+                    <i class="fa-solid fa-calendar-days w-5 mr-2.5 text-center text-xs"></i>
                     <span>Lịch Công Tác</span>
                 </a>
 
-                <div class="text-[10px] font-bold uppercase text-slate-400 px-3 mt-5 mb-2 tracking-wider">Quản Trị</div>
+                <div class="text-[10.5px] font-bold uppercase text-[#7D8AA3] px-3 mt-5 mb-2 tracking-wider">Quản Trị</div>
 
                 <a href="settings.html" id="nav-settings"
-                    class="nav-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition duration-150">
-                    <i class="fa-solid fa-sliders w-5 mr-3 text-center"></i>
+                    class="nav-link flex items-center px-3 py-2.5 rounded-lg text-xs font-medium text-[#B9C2D4] hover:bg-[#1E2C4A] hover:text-white transition">
+                    <i class="fa-solid fa-sliders w-5 mr-2.5 text-center text-xs"></i>
                     <span>Thiết Lập Hệ Thống</span>
                 </a>
 
                 <a href="assets.html" id="nav-assets"
-                    class="nav-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition duration-150">
-                    <i class="fa-solid fa-boxes-stacked w-5 mr-3 text-center"></i>
+                    class="nav-link flex items-center px-3 py-2.5 rounded-lg text-xs font-medium text-[#B9C2D4] hover:bg-[#1E2C4A] hover:text-white transition">
+                    <i class="fa-solid fa-boxes-stacked w-5 mr-2.5 text-center text-xs"></i>
                     <span>Quản Lý Tài Sản</span>
-                    <span class="ml-auto text-[9px] bg-slate-800 text-amber-400 font-bold px-1.5 py-0.5 rounded">Sắp mở</span>
+                    <span class="ml-auto text-[9px] bg-[#1E2C4A] text-[#C17817] font-bold px-1.5 py-0.5 rounded">Sắp mở</span>
                 </a>
 
-                <div class="text-[10px] font-bold uppercase text-slate-400 px-3 mt-5 mb-2 tracking-wider">Hồ Sơ</div>
+                <div class="text-[10.5px] font-bold uppercase text-[#7D8AA3] px-3 mt-5 mb-2 tracking-wider">Hồ Sơ</div>
 
                 <a href="documents.html" id="nav-documents"
-                    class="nav-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition duration-150">
-                    <i class="fa-solid fa-file-signature w-5 mr-3 text-center"></i>
+                    class="nav-link flex items-center px-3 py-2.5 rounded-lg text-xs font-medium text-[#B9C2D4] hover:bg-[#1E2C4A] hover:text-white transition">
+                    <i class="fa-solid fa-file-signature w-5 mr-2.5 text-center text-xs"></i>
                     <span>Văn Bản & Hồ Sơ</span>
-                    <span class="ml-auto text-[9px] bg-slate-800 text-amber-400 font-bold px-1.5 py-0.5 rounded">Sắp mở</span>
+                    <span class="ml-auto text-[9px] bg-[#1E2C4A] text-[#C17817] font-bold px-1.5 py-0.5 rounded">Sắp mở</span>
                 </a>
             </nav>
 
-            <!-- Bottom System Info -->
-            <div class="p-3 bg-slate-950/80 border-t border-slate-800/80 text-xs">
-                <div class="flex items-center space-x-2 text-slate-400 mb-1">
-                    <span class="w-2 h-2 rounded-full bg-green-400"></span>
-                    <span class="font-mono text-[11px]">Ports: 8880 | 8881 | 8882</span>
+            <!-- Bottom System Info & Credits -->
+            <div class="p-3 bg-[#0F192C] border-t border-[#1E2C4A] text-[11px] leading-relaxed text-slate-400">
+                <div class="text-slate-300 font-medium">
+                    © 09/2026 <span class="font-bold text-white">HueIC-IMP</span>
                 </div>
-                <a href="/docs" target="_blank" class="text-blue-400 hover:underline text-[11px] flex items-center space-x-1">
-                    <i class="fa-solid fa-book-bookmark text-[10px]"></i>
-                    <span>FastAPI Swagger UI Docs</span>
-                </a>
+                <div class="text-[10px] text-slate-400 mt-0.5">
+                    Idea & Direction by <span class="text-[#0E7C7B] font-medium">Nguyen Dinh Le Trung</span>
+                </div>
+                <div class="text-[9.5px] text-[#7D8AA3] flex items-center gap-1 mt-0.5">
+                    <i class="fa-solid fa-wand-magic-sparkles text-[#C17817] text-[8.5px]"></i>
+                    <span>Built with AI Assistance.</span>
+                </div>
             </div>
         </aside>
 
         <!-- MAIN CONTENT WRAPPER -->
         <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
             
-            <!-- HEADER BAR (MOBILE OPTIMIZED) -->
-            <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 z-10">
+            <!-- HEADER BAR -->
+            <header class="h-16 bg-[#FFFFFF] border-b border-[#E4E1D8] flex items-center justify-between px-4 sm:px-6 z-10">
                 <div class="flex items-center space-x-2 sm:space-x-3">
-                    <!-- Mobile Hamburger Button -->
-                    <button onclick="Common.toggleSidebar(true)" class="md:hidden p-2 text-slate-600 hover:text-blue-800 rounded-lg hover:bg-slate-100 focus:outline-none">
+                    <button onclick="Common.toggleSidebar(true)" class="md:hidden p-2 text-[#5B6472] hover:text-[#16233D] rounded-lg hover:bg-[#F1F0EB] focus:outline-none">
                         <i class="fa-solid fa-bars text-lg"></i>
                     </button>
-
-                    <div class="flex items-center space-x-2">
-                        <span class="text-xs sm:text-sm font-bold text-slate-800 truncate">HueIC IMP</span>
-                        <span class="hidden sm:inline text-slate-300">|</span>
-                        <span class="hidden sm:inline text-xs text-slate-500 font-medium">Trung Tâm Điều Hành & Giám Sát Tiến Độ</span>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span class="font-manrope font-extrabold text-sm sm:text-base text-[#16233D]">Cổng Giám Sát & Điều Hành Toàn Trường</span>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#E4F1F0] text-[#0E7C7B] font-mono">Executive Hub v2.6.0</span>
+                        </div>
                     </div>
                 </div>
 
                 <div class="flex items-center space-x-2 sm:space-x-4">
                     <div class="flex items-center space-x-2 sm:space-x-3 text-right">
                         <div class="hidden sm:block">
-                            <div id="headerUserName" class="text-xs font-bold text-slate-800">Admin</div>
-                            <div id="headerUserRole" class="text-[10px] text-slate-500 font-medium">Quản trị viên</div>
+                            <div id="headerUserName" class="text-xs font-bold text-[#16233D]">Admin</div>
+                            <div id="headerUserRole" class="text-[10px] text-[#5B6472] font-medium">Ban Giám Hiệu / Quản trị</div>
                         </div>
-                        <div id="headerUserAvatar" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-blue-800 text-white flex items-center justify-center font-bold text-xs sm:text-sm shadow">
+                        <div id="headerUserAvatar" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#16233D] text-white flex items-center justify-center font-bold text-xs sm:text-sm shadow">
                             A
                         </div>
                     </div>
-                    <button onclick="API.logout()" class="p-2 text-slate-400 hover:text-red-600 hover:bg-slate-100 rounded-lg text-sm transition" title="Đăng xuất">
+                    <button onclick="API.logout()" class="p-2 text-[#5B6472] hover:text-[#B3261E] hover:bg-[#F1F0EB] rounded-lg text-sm transition" title="Đăng xuất">
                         <i class="fa-solid fa-arrow-right-from-bracket"></i>
                     </button>
                 </div>
             </header>
 
-            <!-- MAIN REACT DASHBOARD APPLICATION MOUNT -->
-            <main id="mainContent" class="flex-1 overflow-y-auto" style="background: #F6F5F1;">
-                <div id="react-dashboard-root">
-                    <div class="p-16 text-center text-slate-400 text-sm">
-                        <i class="fa-solid fa-circle-notch fa-spin text-3xl mb-3 text-slate-600"></i>
-                        <div class="font-bold text-slate-700">Đang khởi tạo Executive Dashboard React & Recharts...</div>
+            <!-- MASTER EXECUTIVE PORTAL MAIN VIEW -->
+            <main class="flex-1 overflow-y-auto p-4 sm:p-6 pb-20 md:pb-6 bg-[#F6F5F1] space-y-5">
+                
+                <!-- 0. Scope Selector & Quick Action Bar -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#FFFFFF] p-3.5 rounded-xl border border-[#E4E1D8] shadow-xs">
+                    <div class="flex items-center space-x-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-[#E4F1F0] text-[#0E7C7B] flex items-center justify-center font-bold text-xs shrink-0">
+                            <i class="fa-solid fa-compass"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-xs text-[#16233D] flex items-center space-x-1.5">
+                                <span>Phạm Vi Điều Hành:</span>
+                                <span id="portalScopeText" class="text-[#0E7C7B] font-bold bg-[#E4F1F0] px-2 py-0.5 rounded text-[11px]">Cấp Toàn Trường (12 Đơn vị)</span>
+                            </h4>
+                            <p class="text-[10.5px] text-[#5B6472]">Giám sát liên phân hệ: Công việc, Lịch trình, Tài sản & Văn bản</p>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2 text-xs">
+                        <select id="portalDeptFilter" onchange="DashboardHub.handleScopeChange()" class="bg-[#FFFFFF] border border-[#E4E1D8] rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[#16233D] focus:outline-none cursor-pointer">
+                            <option value="">🏢 Toàn Trường (12 Đơn vị)</option>
+                        </select>
+                        <button onclick="DashboardHub.loadData()" class="px-3 py-1.5 bg-[#FFFFFF] hover:bg-[#F8FBFB] border border-[#E4E1D8] text-[#16233D] text-xs font-bold rounded-lg transition flex items-center space-x-1.5 shadow-xs">
+                            <i class="fa-solid fa-rotate-right text-[#0E7C7B]"></i>
+                            <span>Làm mới</span>
+                        </button>
+                        <a href="tasks.html" class="px-3.5 py-1.5 bg-[#16233D] hover:bg-[#1E2C4A] text-white text-xs font-semibold rounded-lg shadow transition flex items-center space-x-1.5">
+                            <i class="fa-solid fa-plus text-[10px]"></i>
+                            <span>Giao Việc Mới</span>
+                        </a>
                     </div>
                 </div>
+
+                <!-- 1. MACRO SUMMARY STRIP (4 Cột Tổng Thể Toàn Trường) -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+                    <!-- Phân Hệ Công Việc -->
+                    <a href="tasks.html" class="portal-card p-4 block text-inherit no-underline">
+                        <div class="flex items-center justify-between text-[#5B6472] text-[11px] font-bold uppercase mb-1">
+                            <span>1. Tiến Độ Công Việc</span>
+                            <div class="w-7 h-7 rounded-lg bg-[#E4F1F0] text-[#0E7C7B] flex items-center justify-center text-xs">
+                                <i class="fa-solid fa-list-check"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-baseline space-x-2">
+                            <span id="statTotalTasks" class="font-manrope font-extrabold text-2xl text-[#16233D]">0</span>
+                            <span class="text-xs text-[#5B6472]">nhiệm vụ</span>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] mt-2 pt-2 border-t border-[#E4E1D8]">
+                            <span class="text-[#0E7C7B] font-bold"><span id="statRate">0%</span> hoàn thành</span>
+                            <span id="statOverdueBadge" class="text-[#B3261E] font-bold">0 trễ hạn</span>
+                        </div>
+                    </a>
+
+                    <!-- Phân Hệ Lịch Công Tác -->
+                    <a href="calendar.html" class="portal-card p-4 block text-inherit no-underline">
+                        <div class="flex items-center justify-between text-[#5B6472] text-[11px] font-bold uppercase mb-1">
+                            <span>2. Lịch Công Tác</span>
+                            <div class="w-7 h-7 rounded-lg bg-[#E4F1F0] text-[#0E7C7B] flex items-center justify-center text-xs">
+                                <i class="fa-solid fa-calendar-days"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-baseline space-x-2">
+                            <span id="statTodayEvents" class="font-manrope font-extrabold text-2xl text-[#16233D]">0</span>
+                            <span class="text-xs text-[#5B6472]">sự kiện hôm nay</span>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] mt-2 pt-2 border-t border-[#E4E1D8]">
+                            <span class="text-[#5B6472]">Trong 7 ngày tới</span>
+                            <span id="statWeekEvents" class="text-[#0E7C7B] font-bold">0 lịch trình</span>
+                        </div>
+                    </a>
+
+                    <!-- Phân Hệ Quản Trị Tài Sản -->
+                    <a href="assets.html" class="portal-card p-4 block text-inherit no-underline">
+                        <div class="flex items-center justify-between text-[#5B6472] text-[11px] font-bold uppercase mb-1">
+                            <span>3. Quản Trị Tài Sản</span>
+                            <div class="w-7 h-7 rounded-lg bg-[#FBF0DF] text-[#C17817] flex items-center justify-center text-xs">
+                                <i class="fa-solid fa-boxes-stacked"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-baseline space-x-2">
+                            <span class="font-manrope font-extrabold text-2xl text-[#16233D]">12/12</span>
+                            <span class="text-xs text-[#5B6472]">phòng/xưởng mở</span>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] mt-2 pt-2 border-t border-[#E4E1D8]">
+                            <span class="text-[#3B8B6E] font-semibold">Vận hành 100%</span>
+                            <span class="text-[#C17817] font-bold">1 đề xuất bảo trì</span>
+                        </div>
+                    </a>
+
+                    <!-- Phân Hệ Văn Bản & Hồ Sơ -->
+                    <a href="documents.html" class="portal-card p-4 block text-inherit no-underline">
+                        <div class="flex items-center justify-between text-[#5B6472] text-[11px] font-bold uppercase mb-1">
+                            <span>4. Văn Bản & Hồ Sơ</span>
+                            <div class="w-7 h-7 rounded-lg bg-[#EFEBF6] text-[#6B5B95] flex items-center justify-center text-xs">
+                                <i class="fa-solid fa-file-signature"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-baseline space-x-2">
+                            <span class="font-manrope font-extrabold text-2xl text-[#16233D]">24</span>
+                            <span class="text-xs text-[#5B6472]">văn bản lưu trữ</span>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] mt-2 pt-2 border-t border-[#E4E1D8]">
+                            <span class="text-[#6B5B95] font-semibold">2 công văn đến</span>
+                            <span class="text-[#3B8B6E] font-bold">1 tờ trình đã duyệt</span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- 2. PHÂN HỆ TRỌNG TÂM: CÔNG VIỆC (60%) & LỊCH TRÌNH (40%) -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                    
+                    <!-- Khối A: PHÂN HỆ CÔNG VIỆC & ĐIỂM NGHẼN (7/12) -->
+                    <div class="lg:col-span-7 portal-card p-5 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between pb-3 border-b border-[#E4E1D8] mb-3">
+                                <div>
+                                    <h3 class="font-manrope font-bold text-sm text-[#16233D] flex items-center gap-2">
+                                        <i class="fa-solid fa-bolt-lightning text-[#C17817]"></i>
+                                        <span>Phân Hệ Công Việc & Điểm Nghẽn Tiến Độ</span>
+                                    </h3>
+                                    <p class="text-[11px] text-[#5B6472] mt-0.5">Giám sát các nhiệm vụ trễ hạn, chờ duyệt và tiến độ 12 đơn vị HueIC</p>
+                                </div>
+                                <a href="tasks.html" class="text-xs font-bold text-[#0E7C7B] hover:underline flex items-center gap-1">
+                                    <span>Vào phân hệ</span>
+                                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                                </a>
+                            </div>
+
+                            <!-- Action Queue Items -->
+                            <div id="portalActionQueue" class="space-y-2.5 mb-4">
+                                <div class="p-4 text-center text-xs text-[#5B6472] italic">Đang tải điểm nghẽn...</div>
+                            </div>
+
+                            <!-- Top 5 Active Units Progress -->
+                            <div>
+                                <div class="text-xs font-bold text-[#16233D] mb-2">Tiến độ thực hiện theo đơn vị tiêu biểu:</div>
+                                <div id="portalDeptProgress" class="space-y-2 text-xs">
+                                    <!-- Dynamic Progress Rows -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="pt-3 border-t border-[#E4E1D8] mt-4 flex items-center justify-between text-xs">
+                            <span class="text-[#5B6472] text-[11px]">Bấm xem đầy đủ Dashboard & Bảng Kanban tại Phân hệ Công việc</span>
+                            <a href="tasks.html" class="font-bold text-[#0E7C7B] hover:text-[#0b6362] flex items-center gap-1.5">
+                                <span>Xem báo cáo chi tiết 12 đơn vị</span>
+                                <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Khối B: PHÂN HỆ LỊCH CÔNG TÁC TRỌNG TÂM (5/12) -->
+                    <div class="lg:col-span-5 portal-card p-5 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between pb-3 border-b border-[#E4E1D8] mb-3">
+                                <div>
+                                    <h3 class="font-manrope font-bold text-sm text-[#16233D] flex items-center gap-2">
+                                        <i class="fa-solid fa-calendar-check text-[#0E7C7B]"></i>
+                                        <span>Phân Hệ Lịch Công Tác Trọng Tâm</span>
+                                    </h3>
+                                    <p class="text-[11px] text-[#5B6472] mt-0.5">Sự kiện, cuộc họp và thời hạn nhiệm vụ trong tuần</p>
+                                </div>
+                                <a href="calendar.html" class="text-xs font-bold text-[#0E7C7B] hover:underline flex items-center gap-1">
+                                    <span>Xem lịch</span>
+                                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                                </a>
+                            </div>
+
+                            <!-- Upcoming Events List -->
+                            <div id="portalUpcomingEvents" class="space-y-2.5">
+                                <div class="p-4 text-center text-xs text-[#5B6472] italic">Đang nạp lịch công tác...</div>
+                            </div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="pt-3 border-t border-[#E4E1D8] mt-4 flex items-center justify-between text-xs">
+                            <span class="text-[#5B6472] text-[11px]">Hỗ trợ 4 chế độ xem: Tháng / Tuần / Ngày / Danh sách</span>
+                            <a href="calendar.html" class="font-bold text-[#0E7C7B] hover:text-[#0b6362] flex items-center gap-1.5">
+                                <span>Mở Lịch toàn màn hình</span>
+                                <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. PHÂN HỆ MỞ RỘNG: TÀI SẢN & VĂN BẢN (2 Cột 50% : 50%) -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                    
+                    <!-- Khối C: PHÂN HỆ QUẢN TRỊ TÀI SẢN & CSVC -->
+                    <div class="portal-card p-5 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between pb-3 border-b border-[#E4E1D8] mb-3">
+                                <div>
+                                    <h3 class="font-manrope font-bold text-sm text-[#16233D] flex items-center gap-2">
+                                        <i class="fa-solid fa-boxes-stacked text-[#C17817]"></i>
+                                        <span>Phân Hệ Quản Trị Tài Sản & CSVC</span>
+                                        <span class="text-[9.5px] font-bold px-2 py-0.5 rounded bg-[#FBF0DF] text-[#C17817]">Sắp mở</span>
+                                    </h3>
+                                    <p class="text-[11px] text-[#5B6472] mt-0.5">Giám sát hiện trạng phòng máy, xưởng cơ khí và đề xuất vật tư</p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-2.5 my-3 text-center">
+                                <div class="p-3 bg-[#FBFAF7] rounded-lg border border-[#E4E1D8]">
+                                    <div class="font-manrope font-extrabold text-base text-[#16233D]">12</div>
+                                    <div class="text-[10.5px] text-[#5B6472]">Khu thực hành</div>
+                                </div>
+                                <div class="p-3 bg-[#FBFAF7] rounded-lg border border-[#E4E1D8]">
+                                    <div class="font-manrope font-extrabold text-base text-[#3B8B6E]">98.2%</div>
+                                    <div class="text-[10.5px] text-[#5B6472]">Sẵn sàng vận hành</div>
+                                </div>
+                                <div class="p-3 bg-[#FBFAF7] rounded-lg border border-[#E4E1D8]">
+                                    <div class="font-manrope font-extrabold text-base text-[#C17817]">1</div>
+                                    <div class="text-[10.5px] text-[#5B6472]">Cần bảo dưỡng</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-3 border-t border-[#E4E1D8] flex items-center justify-between text-xs">
+                            <span class="text-[#5B6472] text-[11px]">Tự động đồng bộ với SOP mua sắm & sửa chữa</span>
+                            <a href="assets.html" class="font-bold text-[#C17817] hover:underline flex items-center gap-1">
+                                <span>Khám phá phân hệ</span>
+                                <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Khối D: PHÂN HỆ VĂN BẢN & HỒ SƠ -->
+                    <div class="portal-card p-5 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between pb-3 border-b border-[#E4E1D8] mb-3">
+                                <div>
+                                    <h3 class="font-manrope font-bold text-sm text-[#16233D] flex items-center gap-2">
+                                        <i class="fa-solid fa-file-signature text-[#6B5B95]"></i>
+                                        <span>Phân Hệ Văn Bản & Hồ Sơ Điều Hành</span>
+                                        <span class="text-[9.5px] font-bold px-2 py-0.5 rounded bg-[#EFEBF6] text-[#6B5B95]">Sắp mở</span>
+                                    </h3>
+                                    <p class="text-[11px] text-[#5B6472] mt-0.5">Theo dõi công văn đến, tờ trình các khoa/phòng và quy chế nội bộ</p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-2.5 my-3 text-center">
+                                <div class="p-3 bg-[#FBFAF7] rounded-lg border border-[#E4E1D8]">
+                                    <div class="font-manrope font-extrabold text-base text-[#16233D]">2</div>
+                                    <div class="text-[10.5px] text-[#5B6472]">Công văn đến</div>
+                                </div>
+                                <div class="p-3 bg-[#FBFAF7] rounded-lg border border-[#E4E1D8]">
+                                    <div class="font-manrope font-extrabold text-base text-[#6B5B95]">1</div>
+                                    <div class="text-[10.5px] text-[#5B6472]">Tờ trình chờ ký</div>
+                                </div>
+                                <div class="p-3 bg-[#FBFAF7] rounded-lg border border-[#E4E1D8]">
+                                    <div class="font-manrope font-extrabold text-base text-[#3B8B6E]">21</div>
+                                    <div class="text-[10.5px] text-[#5B6472]">Văn bản ban hành</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-3 border-t border-[#E4E1D8] flex items-center justify-between text-xs">
+                            <span class="text-[#5B6472] text-[11px]">Ký số & phê duyệt điện tử tích hợp luồng PDCA</span>
+                            <a href="documents.html" class="font-bold text-[#6B5B95] hover:underline flex items-center gap-1">
+                                <span>Khám phá phân hệ</span>
+                                <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
             </main>
 
             <!-- MOBILE BOTTOM QUICK NAVIGATION BAR -->
-            <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 py-1.5 px-3 z-30 flex items-center justify-around shadow-lg">
-                <a href="index.html" class="flex flex-col items-center py-1 px-3 rounded-lg text-xs font-bold text-blue-900">
+            <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-[#FFFFFF] border-t border-[#E4E1D8] py-1.5 px-3 z-30 flex items-center justify-around shadow-lg">
+                <a href="index.html" class="flex flex-col items-center py-1 px-3 rounded-lg text-xs font-bold text-[#0E7C7B]">
                     <i class="fa-solid fa-chart-pie text-base mb-0.5"></i>
                     <span class="text-[10px]">Tổng Quan</span>
                 </a>
-                <a href="tasks.html" class="flex flex-col items-center py-1 px-3 rounded-lg text-xs font-semibold text-slate-500 hover:text-blue-900">
+                <a href="tasks.html" class="flex flex-col items-center py-1 px-3 rounded-lg text-xs font-semibold text-[#5B6472] hover:text-[#0E7C7B]">
                     <i class="fa-solid fa-list-check text-base mb-0.5"></i>
                     <span class="text-[10px]">Công Việc</span>
                 </a>
-                <a href="calendar.html" class="flex flex-col items-center py-1 px-3 rounded-lg text-xs font-semibold text-slate-500 hover:text-blue-900">
+                <a href="calendar.html" class="flex flex-col items-center py-1 px-3 rounded-lg text-xs font-semibold text-[#5B6472] hover:text-[#0E7C7B]">
                     <i class="fa-solid fa-calendar-days text-base mb-0.5"></i>
                     <span class="text-[10px]">Lịch Trình</span>
                 </a>
-                <a href="settings.html" class="flex flex-col items-center py-1 px-3 rounded-lg text-xs font-semibold text-slate-500 hover:text-blue-900">
+                <a href="settings.html" class="flex flex-col items-center py-1 px-3 rounded-lg text-xs font-semibold text-[#5B6472] hover:text-[#0E7C7B]">
                     <i class="fa-solid fa-sliders text-base mb-0.5"></i>
                     <span class="text-[10px]">Thiết Lập</span>
                 </a>
-                <button onclick="Common.toggleSidebar(true)" class="flex flex-col items-center py-1 px-3 rounded-lg text-xs font-bold text-slate-500 hover:text-blue-900">
+                <button onclick="Common.toggleSidebar(true)" class="flex flex-col items-center py-1 px-3 rounded-lg text-xs font-bold text-[#5B6472] hover:text-[#0E7C7B]">
                     <i class="fa-solid fa-bars text-base mb-0.5"></i>
                     <span class="text-[10px]">Thêm</span>
                 </button>
@@ -181,6 +461,6 @@
     <!-- Scripts -->
     <script src="assets/js/api.js"></script>
     <script src="assets/js/common.js"></script>
-    <script type="text/babel" src="assets/js/dashboard.js"></script>
+    <script src="assets/js/dashboard.js"></script>
 </body>
 </html>

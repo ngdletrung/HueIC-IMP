@@ -17,3 +17,256 @@
 [2026-08-31 03:24:51] [INFO] [hueic_imp:52] 🚀 [HueIC IMP] Hệ thống Logging tập trung đã được kích hoạt thành công!
 [2026-08-31 03:24:51] [WARNING] [hueic_imp:22] 🚨 [SECURITY WARNING] Bạn đang sử dụng SECRET_KEY mặc định! Hãy tạo SECRET_KEY ngẫu nhiên mới trong file .env trước khi đưa vào môi trường Production.
 [2026-08-31 03:24:51] [INFO] [hueic_imp:28] ✅ [HueIC IMP] Cơ sở dữ liệu và dữ liệu khởi tạo đã sẵn sàng!
+[2026-08-31 03:31:49] [INFO] [hueic_imp.auth:143] ✅ [AUTH SUCCESS] Người dùng 'admin' (Quản Trị Viên Hệ Thống HueIC) đăng nhập JSON thành công.
+[2026-08-31 04:18:11] [INFO] [hueic_imp:52] 🚀 [HueIC IMP] Hệ thống Logging tập trung đã được kích hoạt thành công!
+[2026-08-31 04:18:11] [WARNING] [hueic_imp:22] 🚨 [SECURITY WARNING] Bạn đang sử dụng SECRET_KEY mặc định! Hãy tạo SECRET_KEY ngẫu nhiên mới trong file .env trước khi đưa vào môi trường Production.
+[2026-08-31 04:18:11] [INFO] [hueic_imp:28] ✅ [HueIC IMP] Cơ sở dữ liệu và dữ liệu khởi tạo đã sẵn sàng!
+[2026-08-31 06:05:26] [INFO] [hueic_imp:52] 🚀 [HueIC IMP] Hệ thống Logging tập trung đã được kích hoạt thành công!
+[2026-08-31 06:05:26] [WARNING] [hueic_imp:22] 🚨 [SECURITY WARNING] Bạn đang sử dụng SECRET_KEY mặc định! Hãy tạo SECRET_KEY ngẫu nhiên mới trong file .env trước khi đưa vào môi trường Production.
+[2026-08-31 06:05:26] [INFO] [hueic_imp:28] ✅ [HueIC IMP] Cơ sở dữ liệu và dữ liệu khởi tạo đã sẵn sàng!
+[2026-08-31 06:26:44] [INFO] [hueic_imp:52] 🚀 [HueIC IMP] Hệ thống Logging tập trung đã được kích hoạt thành công!
+[2026-08-31 06:26:44] [WARNING] [hueic_imp:22] 🚨 [SECURITY WARNING] Bạn đang sử dụng SECRET_KEY mặc định! Hãy tạo SECRET_KEY ngẫu nhiên mới trong file .env trước khi đưa vào môi trường Production.
+[2026-08-31 06:26:44] [INFO] [hueic_imp:28] ✅ [HueIC IMP] Cơ sở dữ liệu và dữ liệu khởi tạo đã sẵn sàng!
+[2026-08-31 11:42:48] [INFO] [hueic_imp:52] 🚀 [HueIC IMP] Hệ thống Logging tập trung đã được kích hoạt thành công!
+[2026-08-31 11:42:48] [WARNING] [hueic_imp:22] 🚨 [SECURITY WARNING] Bạn đang sử dụng SECRET_KEY mặc định! Hãy tạo SECRET_KEY ngẫu nhiên mới trong file .env trước khi đưa vào môi trường Production.
+[2026-08-31 11:42:48] [INFO] [hueic_imp:28] ✅ [HueIC IMP] Cơ sở dữ liệu và dữ liệu khởi tạo đã sẵn sàng!
+[2026-08-31 11:44:54] [INFO] [hueic_imp.auth:143] ✅ [AUTH SUCCESS] Người dùng 'admin' (Quản Trị Viên Hệ Thống HueIC) đăng nhập JSON thành công.
+[2026-08-31 12:33:26] [INFO] [hueic_imp:52] 🚀 [HueIC IMP] Hệ thống Logging tập trung đã được kích hoạt thành công!
+[2026-08-31 12:33:26] [WARNING] [hueic_imp:22] 🚨 [SECURITY WARNING] Bạn đang sử dụng SECRET_KEY mặc định! Hãy tạo SECRET_KEY ngẫu nhiên mới trong file .env trước khi đưa vào môi trường Production.
+[2026-08-31 12:33:26] [ERROR] [hueic_imp:30] ⚠️ [HueIC IMP] Lỗi khởi tạo DB: (psycopg2.errors.UndefinedColumn) column tasks.type does not exist
+LINE 2: ...ks_title, tasks.description AS tasks_description, tasks.type...
+                                                             ^
+
+[SQL: SELECT count(*) AS count_1 
+FROM (SELECT tasks.id AS tasks_id, tasks.title AS tasks_title, tasks.description AS tasks_description, tasks.type AS tasks_type, tasks.visibility AS tasks_visibility, tasks.priority AS tasks_priority, tasks.status AS tasks_status, tasks.parent_id AS tasks_parent_id, tasks.workflow_template_id AS tasks_workflow_template_id, tasks.workflow_name AS tasks_workflow_name, tasks.workflow_steps AS tasks_workflow_steps, tasks.progress_percent AS tasks_progress_percent, tasks.weight AS tasks_weight, tasks.progress_rule AS tasks_progress_rule, tasks.series_id AS tasks_series_id, tasks.escalation_level AS tasks_escalation_level, tasks.received_at AS tasks_received_at, tasks.leading_dept_id AS tasks_leading_dept_id, tasks.assisting_dept_id AS tasks_assisting_dept_id, tasks.assignee_id AS tasks_assignee_id, tasks.created_by_id AS tasks_created_by_id, tasks.start_date AS tasks_start_date, tasks.due_date AS tasks_due_date, tasks.completed_at AS tasks_completed_at, tasks.created_at AS tasks_created_at, tasks.updated_at AS tasks_updated_at 
+FROM tasks) AS anon_1]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedColumn: column tasks.type does not exist
+LINE 2: ...ks_title, tasks.description AS tasks_description, tasks.type...
+                                                             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/app/main.py", line 27, in lifespan
+    init_db(db)
+  File "/app/app/db/init_db.py", line 123, in init_db
+    existing_tasks = db.query(Task).count()
+                     ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 3153, in count
+    self._legacy_from_self(col).enable_eagerloads(False).scalar()
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 2842, in scalar
+    ret = self.one()
+          ^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 2815, in one
+    return self._iter().one()  # type: ignore
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 2864, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+                                                  ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2373, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2271, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1421, in execute
+    return meth(
+           ^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1643, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1848, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1988, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2365, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedColumn) column tasks.type does not exist
+LINE 2: ...ks_title, tasks.description AS tasks_description, tasks.type...
+                                                             ^
+
+[SQL: SELECT count(*) AS count_1 
+FROM (SELECT tasks.id AS tasks_id, tasks.title AS tasks_title, tasks.description AS tasks_description, tasks.type AS tasks_type, tasks.visibility AS tasks_visibility, tasks.priority AS tasks_priority, tasks.status AS tasks_status, tasks.parent_id AS tasks_parent_id, tasks.workflow_template_id AS tasks_workflow_template_id, tasks.workflow_name AS tasks_workflow_name, tasks.workflow_steps AS tasks_workflow_steps, tasks.progress_percent AS tasks_progress_percent, tasks.weight AS tasks_weight, tasks.progress_rule AS tasks_progress_rule, tasks.series_id AS tasks_series_id, tasks.escalation_level AS tasks_escalation_level, tasks.received_at AS tasks_received_at, tasks.leading_dept_id AS tasks_leading_dept_id, tasks.assisting_dept_id AS tasks_assisting_dept_id, tasks.assignee_id AS tasks_assignee_id, tasks.created_by_id AS tasks_created_by_id, tasks.start_date AS tasks_start_date, tasks.due_date AS tasks_due_date, tasks.completed_at AS tasks_completed_at, tasks.created_at AS tasks_created_at, tasks.updated_at AS tasks_updated_at 
+FROM tasks) AS anon_1]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[2026-08-31 12:33:32] [INFO] [hueic_imp:52] 🚀 [HueIC IMP] Hệ thống Logging tập trung đã được kích hoạt thành công!
+[2026-08-31 12:33:32] [WARNING] [hueic_imp:22] 🚨 [SECURITY WARNING] Bạn đang sử dụng SECRET_KEY mặc định! Hãy tạo SECRET_KEY ngẫu nhiên mới trong file .env trước khi đưa vào môi trường Production.
+[2026-08-31 12:33:32] [ERROR] [hueic_imp:30] ⚠️ [HueIC IMP] Lỗi khởi tạo DB: (psycopg2.errors.UndefinedColumn) column tasks.type does not exist
+LINE 2: ...ks_title, tasks.description AS tasks_description, tasks.type...
+                                                             ^
+
+[SQL: SELECT count(*) AS count_1 
+FROM (SELECT tasks.id AS tasks_id, tasks.title AS tasks_title, tasks.description AS tasks_description, tasks.type AS tasks_type, tasks.visibility AS tasks_visibility, tasks.priority AS tasks_priority, tasks.status AS tasks_status, tasks.parent_id AS tasks_parent_id, tasks.workflow_template_id AS tasks_workflow_template_id, tasks.workflow_name AS tasks_workflow_name, tasks.workflow_steps AS tasks_workflow_steps, tasks.progress_percent AS tasks_progress_percent, tasks.weight AS tasks_weight, tasks.progress_rule AS tasks_progress_rule, tasks.series_id AS tasks_series_id, tasks.escalation_level AS tasks_escalation_level, tasks.received_at AS tasks_received_at, tasks.leading_dept_id AS tasks_leading_dept_id, tasks.assisting_dept_id AS tasks_assisting_dept_id, tasks.assignee_id AS tasks_assignee_id, tasks.created_by_id AS tasks_created_by_id, tasks.start_date AS tasks_start_date, tasks.due_date AS tasks_due_date, tasks.completed_at AS tasks_completed_at, tasks.created_at AS tasks_created_at, tasks.updated_at AS tasks_updated_at 
+FROM tasks) AS anon_1]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedColumn: column tasks.type does not exist
+LINE 2: ...ks_title, tasks.description AS tasks_description, tasks.type...
+                                                             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/app/main.py", line 27, in lifespan
+    init_db(db)
+  File "/app/app/db/init_db.py", line 123, in init_db
+    existing_tasks = db.query(Task).count()
+                     ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 3153, in count
+    self._legacy_from_self(col).enable_eagerloads(False).scalar()
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 2842, in scalar
+    ret = self.one()
+          ^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 2815, in one
+    return self._iter().one()  # type: ignore
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 2864, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+                                                  ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2373, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2271, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1421, in execute
+    return meth(
+           ^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1643, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1848, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1988, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2365, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedColumn) column tasks.type does not exist
+LINE 2: ...ks_title, tasks.description AS tasks_description, tasks.type...
+                                                             ^
+
+[SQL: SELECT count(*) AS count_1 
+FROM (SELECT tasks.id AS tasks_id, tasks.title AS tasks_title, tasks.description AS tasks_description, tasks.type AS tasks_type, tasks.visibility AS tasks_visibility, tasks.priority AS tasks_priority, tasks.status AS tasks_status, tasks.parent_id AS tasks_parent_id, tasks.workflow_template_id AS tasks_workflow_template_id, tasks.workflow_name AS tasks_workflow_name, tasks.workflow_steps AS tasks_workflow_steps, tasks.progress_percent AS tasks_progress_percent, tasks.weight AS tasks_weight, tasks.progress_rule AS tasks_progress_rule, tasks.series_id AS tasks_series_id, tasks.escalation_level AS tasks_escalation_level, tasks.received_at AS tasks_received_at, tasks.leading_dept_id AS tasks_leading_dept_id, tasks.assisting_dept_id AS tasks_assisting_dept_id, tasks.assignee_id AS tasks_assignee_id, tasks.created_by_id AS tasks_created_by_id, tasks.start_date AS tasks_start_date, tasks.due_date AS tasks_due_date, tasks.completed_at AS tasks_completed_at, tasks.created_at AS tasks_created_at, tasks.updated_at AS tasks_updated_at 
+FROM tasks) AS anon_1]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[2026-08-31 12:33:39] [INFO] [hueic_imp:52] 🚀 [HueIC IMP] Hệ thống Logging tập trung đã được kích hoạt thành công!
+[2026-08-31 12:33:39] [WARNING] [hueic_imp:22] 🚨 [SECURITY WARNING] Bạn đang sử dụng SECRET_KEY mặc định! Hãy tạo SECRET_KEY ngẫu nhiên mới trong file .env trước khi đưa vào môi trường Production.
+[2026-08-31 12:33:39] [ERROR] [hueic_imp:30] ⚠️ [HueIC IMP] Lỗi khởi tạo DB: (psycopg2.errors.UndefinedColumn) column tasks.type does not exist
+LINE 2: ...ks_title, tasks.description AS tasks_description, tasks.type...
+                                                             ^
+
+[SQL: SELECT count(*) AS count_1 
+FROM (SELECT tasks.id AS tasks_id, tasks.title AS tasks_title, tasks.description AS tasks_description, tasks.type AS tasks_type, tasks.visibility AS tasks_visibility, tasks.priority AS tasks_priority, tasks.status AS tasks_status, tasks.parent_id AS tasks_parent_id, tasks.workflow_template_id AS tasks_workflow_template_id, tasks.workflow_name AS tasks_workflow_name, tasks.workflow_steps AS tasks_workflow_steps, tasks.progress_percent AS tasks_progress_percent, tasks.weight AS tasks_weight, tasks.progress_rule AS tasks_progress_rule, tasks.series_id AS tasks_series_id, tasks.escalation_level AS tasks_escalation_level, tasks.received_at AS tasks_received_at, tasks.leading_dept_id AS tasks_leading_dept_id, tasks.assisting_dept_id AS tasks_assisting_dept_id, tasks.assignee_id AS tasks_assignee_id, tasks.created_by_id AS tasks_created_by_id, tasks.start_date AS tasks_start_date, tasks.due_date AS tasks_due_date, tasks.completed_at AS tasks_completed_at, tasks.created_at AS tasks_created_at, tasks.updated_at AS tasks_updated_at 
+FROM tasks) AS anon_1]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedColumn: column tasks.type does not exist
+LINE 2: ...ks_title, tasks.description AS tasks_description, tasks.type...
+                                                             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/app/main.py", line 27, in lifespan
+    init_db(db)
+  File "/app/app/db/init_db.py", line 123, in init_db
+    existing_tasks = db.query(Task).count()
+                     ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 3153, in count
+    self._legacy_from_self(col).enable_eagerloads(False).scalar()
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 2842, in scalar
+    ret = self.one()
+          ^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 2815, in one
+    return self._iter().one()  # type: ignore
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 2864, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+                                                  ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2373, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2271, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1421, in execute
+    return meth(
+           ^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1643, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1848, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1988, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2365, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedColumn) column tasks.type does not exist
+LINE 2: ...ks_title, tasks.description AS tasks_description, tasks.type...
+                                                             ^
+
+[SQL: SELECT count(*) AS count_1 
+FROM (SELECT tasks.id AS tasks_id, tasks.title AS tasks_title, tasks.description AS tasks_description, tasks.type AS tasks_type, tasks.visibility AS tasks_visibility, tasks.priority AS tasks_priority, tasks.status AS tasks_status, tasks.parent_id AS tasks_parent_id, tasks.workflow_template_id AS tasks_workflow_template_id, tasks.workflow_name AS tasks_workflow_name, tasks.workflow_steps AS tasks_workflow_steps, tasks.progress_percent AS tasks_progress_percent, tasks.weight AS tasks_weight, tasks.progress_rule AS tasks_progress_rule, tasks.series_id AS tasks_series_id, tasks.escalation_level AS tasks_escalation_level, tasks.received_at AS tasks_received_at, tasks.leading_dept_id AS tasks_leading_dept_id, tasks.assisting_dept_id AS tasks_assisting_dept_id, tasks.assignee_id AS tasks_assignee_id, tasks.created_by_id AS tasks_created_by_id, tasks.start_date AS tasks_start_date, tasks.due_date AS tasks_due_date, tasks.completed_at AS tasks_completed_at, tasks.created_at AS tasks_created_at, tasks.updated_at AS tasks_updated_at 
+FROM tasks) AS anon_1]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[2026-08-31 12:33:46] [INFO] [hueic_imp:52] 🚀 [HueIC IMP] Hệ thống Logging tập trung đã được kích hoạt thành công!
+[2026-08-31 12:33:46] [WARNING] [hueic_imp:22] 🚨 [SECURITY WARNING] Bạn đang sử dụng SECRET_KEY mặc định! Hãy tạo SECRET_KEY ngẫu nhiên mới trong file .env trước khi đưa vào môi trường Production.
+[2026-08-31 12:33:46] [INFO] [hueic_imp:28] ✅ [HueIC IMP] Cơ sở dữ liệu và dữ liệu khởi tạo đã sẵn sàng!
+[2026-08-31 12:34:05] [INFO] [hueic_imp:52] 🚀 [HueIC IMP] Hệ thống Logging tập trung đã được kích hoạt thành công!
+[2026-08-31 12:34:05] [WARNING] [hueic_imp:22] 🚨 [SECURITY WARNING] Bạn đang sử dụng SECRET_KEY mặc định! Hãy tạo SECRET_KEY ngẫu nhiên mới trong file .env trước khi đưa vào môi trường Production.
+[2026-08-31 12:34:05] [INFO] [hueic_imp:28] ✅ [HueIC IMP] Cơ sở dữ liệu và dữ liệu khởi tạo đã sẵn sàng!
+[2026-08-31 12:34:10] [INFO] [hueic_imp:52] 🚀 [HueIC IMP] Hệ thống Logging tập trung đã được kích hoạt thành công!
+[2026-08-31 12:34:10] [WARNING] [hueic_imp:22] 🚨 [SECURITY WARNING] Bạn đang sử dụng SECRET_KEY mặc định! Hãy tạo SECRET_KEY ngẫu nhiên mới trong file .env trước khi đưa vào môi trường Production.
+[2026-08-31 12:34:10] [INFO] [hueic_imp:28] ✅ [HueIC IMP] Cơ sở dữ liệu và dữ liệu khởi tạo đã sẵn sàng!
+[2026-08-31 12:37:31] [INFO] [hueic_imp.auth:96] ✅ [AUTH SUCCESS] Người dùng 'admin' (Quản Trị Viên Hệ Thống HueIC) đăng nhập thành công.
+[2026-08-31 12:37:36] [INFO] [hueic_imp.auth:96] ✅ [AUTH SUCCESS] Người dùng 'admin' (Quản Trị Viên Hệ Thống HueIC) đăng nhập thành công.

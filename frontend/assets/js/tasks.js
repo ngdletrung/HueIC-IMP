@@ -10,14 +10,22 @@ const TasksPage = {
     currentSelectedWorkflowName: null,
     
     // Multi-View & Filtering State
-    currentView: 'list', // 'list' | 'kanban' | 'calendar'
+    currentView: 'report', // 'report' (Default Tab 1) | 'list' | 'kanban'
     currentQuickFilter: 'all', // 'all' | 'overdue' | 'duesoon' | 'my_tasks' | 'urgent'
     calendarCurrentDate: new Date(),
     suggestedWorkflow: null,
     draggedTaskId: null,
 
     async init() {
+        const isTasksListPage = window.location.pathname.includes('tasks-list.html');
         Common.init('tasks');
+
+        const hash = window.location.hash.replace('#', '');
+        if (isTasksListPage) {
+            this.currentView = (hash === 'kanban') ? 'kanban' : 'list';
+        } else {
+            this.currentView = 'report';
+        }
 
         try {
             const [depts, users, workflows] = await Promise.all([
@@ -32,22 +40,526 @@ const TasksPage = {
             this.populateSelectOptions();
             this.applyUrlFilters();
             await this.loadTasks();
+            this.switchView(this.currentView);
 
             // Tự động mở chi tiết nếu URL có task_id
             const taskIdParam = new URLSearchParams(window.location.search).get('task_id');
             if (taskIdParam) {
                 this.openTaskDetail(parseInt(taskIdParam));
             }
+
+            // Đóng custom dropdown khi click bên ngoài
+            document.addEventListener('click', (e) => {
+                const requesterWrapper = document.getElementById('requesterWrapper');
+                const menu = document.getElementById('requesterDropdownMenu');
+                if (requesterWrapper && menu && !requesterWrapper.contains(e.target)) {
+                    menu.classList.add('hidden');
+                }
+            });
+
+            // Phím tắt thông minh: Ctrl + Enter để lưu/giao việc nhanh, Esc để đóng Modal
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    const createModal = document.getElementById('modalCreateTask');
+                    if (createModal && !createModal.classList.contains('hidden')) {
+                        e.preventDefault();
+                        const form = document.getElementById('formCreateTask');
+                        if (form) form.requestSubmit();
+                    }
+                }
+                if (e.key === 'Escape') {
+                    const createModal = document.getElementById('modalCreateTask');
+                    if (createModal && !createModal.classList.contains('hidden')) {
+                        TasksPage.closeCreateTaskModal();
+                    }
+                }
+            });
         } catch (e) {
             console.error('Lỗi khởi tạo Trang Công Việc:', e);
             Common.showToast('Không thể nạp dữ liệu công việc', 'error');
         }
     },
 
+    filterByDept(deptId) {
+        window.location.href = `tasks-list.html?dept_id=${deptId}`;
+    },
+
+    switchView(viewName) {
+        const isTasksListPage = window.location.pathname.includes('tasks-list.html');
+
+        // If on tasks.html and clicked list or kanban -> Navigate to tasks-list.html
+        if (!isTasksListPage && (viewName === 'list' || viewName === 'kanban')) {
+            window.location.href = (viewName === 'kanban') ? 'tasks-list.html#kanban' : 'tasks-list.html';
+            return;
+        }
+
+        // If on tasks-list.html and clicked report -> Navigate to tasks.html
+        if (isTasksListPage && viewName === 'report') {
+            window.location.href = 'tasks.html';
+            return;
+        }
+
+        this.currentView = viewName;
+        window.location.hash = viewName;
+
+        const btnReport = document.getElementById('btnViewReport');
+        const btnList = document.getElementById('btnViewList');
+        const btnKanban = document.getElementById('btnViewKanban');
+
+        const viewReport = document.getElementById('viewReportContainer');
+        const viewList = document.getElementById('viewListContainer');
+        const viewKanban = document.getElementById('viewKanbanContainer');
+
+        const activeClass = ['bg-white', 'text-blue-900', 'shadow-xs'];
+        const inactiveClass = ['text-slate-600', 'hover:text-blue-900', 'hover:bg-white/50'];
+
+        [btnReport, btnList, btnKanban].forEach(btn => {
+            if (btn) {
+                btn.classList.remove(...activeClass);
+                btn.classList.add(...inactiveClass);
+                btn.querySelector('i')?.classList.remove('text-blue-700');
+            }
+        });
+
+        if (viewReport) {
+            viewReport.classList.toggle('hidden', viewName !== 'report');
+            viewReport.style.display = (viewName === 'report') ? 'block' : 'none';
+        }
+        if (viewList) {
+            viewList.classList.toggle('hidden', viewName !== 'list');
+            viewList.style.display = (viewName === 'list') ? 'block' : 'none';
+        }
+        if (viewKanban) {
+            viewKanban.classList.toggle('hidden', viewName !== 'kanban');
+            viewKanban.style.display = (viewName === 'kanban') ? 'block' : 'none';
+        }
+
+        if (viewName === 'report') {
+            btnReport?.classList.add(...activeClass);
+            btnReport?.classList.remove(...inactiveClass);
+            btnReport?.querySelector('i')?.classList.add('text-blue-700');
+            if (typeof mountTaskExecutiveDashboard === 'function') {
+                mountTaskExecutiveDashboard();
+            }
+        } else if (viewName === 'list') {
+            btnList?.classList.add(...activeClass);
+            btnList?.classList.remove(...inactiveClass);
+            btnList?.querySelector('i')?.classList.add('text-blue-700');
+            this.renderTasksTable();
+        } else if (viewName === 'kanban') {
+            btnKanban?.classList.add(...activeClass);
+            btnKanban?.classList.remove(...inactiveClass);
+            btnKanban?.querySelector('i')?.classList.add('text-blue-700');
+            this.renderKanbanView();
+        }
+
+        window.dispatchEvent(new CustomEvent('taskFiltersChanged'));
+    },
+
+    currentArchetype: 'workflow',
+
+    WORKFLOW_TEMPLATES: {
+        'pdca': {
+            name: 'Quy trình Quản trị chất lượng PDCA (4 bước)',
+            steps: [
+                'Lập kế hoạch mục tiêu & Khảo sát hiện trạng (Plan)',
+                'Triển khai thực hiện nhiệm vụ (Do)',
+                'Kiểm tra, giám sát & Đánh giá kết quả (Check)',
+                'Nghiệm thu, chuẩn hóa & Đề xuất cải tiến (Act)'
+            ]
+        },
+        'mua_sam': {
+            name: 'Mua sắm trang thiết bị & Nghiệm thu CSVC (4 bước)',
+            steps: [
+                'Khảo sát nhu cầu, lập dự toán & lấy báo giá (Bước 1)',
+                'Trình BGH thẩm định & phê duyệt phương án mua sắm (Bước 2)',
+                'Ký hợp đồng, giao nhận & lắp đặt thiết bị tại đơn vị (Bước 3)',
+                'Hội đồng kiểm tra, nghiệm thu kỹ thuật & quyết toán (Bước 4)'
+            ]
+        },
+        'su_kien': {
+            name: 'Tổ chức sự kiện, hội thao & lễ khai giảng (4 bước)',
+            steps: [
+                'Lập kế hoạch tổng thể, kịch bản & phân công nhân sự (Bước 1)',
+                'Chuẩn bị cơ sở vật chất, âm thanh, ánh sáng & ma-két (Bước 2)',
+                'Tổng duyệt chương trình & đón tiếp đại biểu (Bước 3)',
+                'Điều hành tổ chức sự kiện & họp rút kinh nghiệm (Bước 4)'
+            ]
+        },
+        'de_cuong': {
+            name: 'Biên soạn & Cập nhật đề cương CTĐT môn học (4 bước)',
+            steps: [
+                'Họp bộ môn rà soát ma trận chuẩn đầu ra và đề cương (Bước 1)',
+                'Biên soạn, cập nhật nội dung chi tiết và tài liệu học tập (Bước 2)',
+                'Hội đồng khoa thẩm định và phản biện chuyên môn (Bước 3)',
+                'Trình Hội đồng trường/BGH ban hành và áp dụng (Bước 4)'
+            ]
+        },
+        'bao_duong': {
+            name: 'Bảo dưỡng định kỳ & Kiểm kê thiết bị phòng máy (3 bước)',
+            steps: [
+                'Kiểm tra tình trạng kỹ thuật và lập biên bản hiện trạng (Bước 1)',
+                'Vệ sinh, bảo trì phần cứng và cập nhật phần mềm (Bước 2)',
+                'Bàn giao phòng máy hoạt động tốt cho cán bộ quản lý (Bước 3)'
+            ]
+        }
+    },
+
+    calculateUserWorkload(userId) {
+        if (!this.tasks) return { active: 0, overdue: 0 };
+        let active = 0, overdue = 0;
+        const now = new Date();
+        this.tasks.forEach(t => {
+            if (t.assignee_id === userId && t.status !== 'HOAN_THANH' && t.status !== 'HUY_BO') {
+                active++;
+                if (t.due_date && new Date(t.due_date) < now) overdue++;
+            }
+        });
+        return { active, overdue };
+    },
+
+    // ----------------------------------------------------
+    // PHÂN HỆ ĐIỀU PHỐI ĐỘNG THÍCH ỨNG THEO VAI TRÒ (ROLE-ADAPTIVE DISPATCH ENGINE)
+    // ----------------------------------------------------
+    currentDispatchRole: 'BGH', // 'BGH' | 'DEPT_HEAD' | 'STAFF'
+    staffTaskMode: 'todo',      // 'todo' | 'verbal' | 'proposal'
+
+    setDispatchRole(role) {
+        this.currentDispatchRole = role;
+
+        // 1. Cập nhật Pills trên Header Modal
+        ['BGH', 'DEPT_HEAD', 'STAFF'].forEach(r => {
+            const pill = document.getElementById(`role-pill-${r}`);
+            if (pill) {
+                if (r === role) {
+                    pill.className = 'px-2.5 py-1 rounded-md bg-white text-blue-950 font-bold shadow-xs transition';
+                } else {
+                    pill.className = 'px-2.5 py-1 rounded-md text-slate-500 hover:text-slate-900 font-semibold transition';
+                }
+            }
+        });
+
+        // 2. DOM Elements
+        const titleEl = document.getElementById('modalCreateTaskTitle');
+        const subTitleEl = document.getElementById('modalCreateTaskSubTitle');
+        const iconWrapper = document.getElementById('modalCreateTaskIcon');
+        const staffToggle = document.getElementById('staffModeToggleWrapper');
+        const deptRow = document.getElementById('deptRowWrapper');
+        const leadingDeptSelect = document.getElementById('taskLeadingDept');
+        const assistingWrapper = document.getElementById('assistingDeptWrapper');
+        const assigneeWrapper = document.getElementById('assigneeWrapper');
+        const archetypeBar = document.getElementById('archetypeBarSection');
+        const descColWrapper = document.getElementById('descColWrapper');
+        const requesterWrapper = document.getElementById('requesterWrapper');
+
+        // Lấy đơn vị của người dùng hiện tại (nếu có)
+        const currentUser = Common.currentUser || API.getUser() || {};
+        const userDeptId = currentUser.department_id || (this.departments.length > 0 ? this.departments[0].id : null);
+
+        if (role === 'BGH') {
+            // VAI TRÒ 1: BAN GIÁM HIỆU (Giao việc & Chỉ đạo cấp trường)
+            if (titleEl) titleEl.innerText = 'Giao Nhiệm Vụ & Chỉ Đạo Cấp Trường';
+            if (subTitleEl) subTitleEl.innerText = 'Phân công đơn vị chủ trì, chỉ định đầu mối và gắn quy trình thực thi toàn trường';
+            if (iconWrapper) iconWrapper.className = 'w-7 h-7 rounded-lg bg-blue-800 text-white flex items-center justify-center text-xs';
+            if (staffToggle) staffToggle.classList.add('hidden');
+            if (deptRow) deptRow.classList.remove('hidden');
+            if (leadingDeptSelect) {
+                leadingDeptSelect.disabled = false;
+                leadingDeptSelect.className = 'w-full px-3 py-2 border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-blue-800 font-semibold text-slate-900';
+            }
+            if (assistingWrapper) assistingWrapper.classList.remove('hidden');
+            if (assigneeWrapper) assigneeWrapper.classList.remove('hidden');
+            if (archetypeBar) archetypeBar.classList.remove('hidden');
+            if (submitBtnText) submitBtnText.innerText = 'Giao Nhiệm Vụ (BGH)';
+
+            // Mô tả full dòng (3 cols), Ẩn Người giao việc
+            if (descColWrapper) descColWrapper.className = 'sm:col-span-3';
+            if (requesterWrapper) requesterWrapper.classList.add('hidden');
+
+            this.populateSelectOptions();
+
+        } else if (role === 'DEPT_HEAD') {
+            // VAI TRÒ 2: TRƯỞNG PHÒNG / TRƯỞNG KHOA / TỔ TRƯỞNG (Điều phối nội bộ)
+            const deptObj = this.departments.find(d => d.id === userDeptId) || this.departments[0];
+            const deptTag = deptObj ? `[${deptObj.code}] ${deptObj.name}` : 'Đơn vị';
+
+            if (titleEl) titleEl.innerText = `Phân Công Nhiệm Vụ Nội Bộ (${deptObj ? deptObj.code : ''})`;
+            if (subTitleEl) subTitleEl.innerText = `Điều phối công việc cho cán bộ, giảng viên trong ${deptTag}`;
+            if (iconWrapper) iconWrapper.className = 'w-7 h-7 rounded-lg bg-teal-700 text-white flex items-center justify-center text-xs';
+            if (staffToggle) staffToggle.classList.add('hidden');
+            if (deptRow) deptRow.classList.remove('hidden');
+            if (leadingDeptSelect) {
+                if (userDeptId) leadingDeptSelect.value = userDeptId;
+                leadingDeptSelect.disabled = true; // Khóa cứng đơn vị
+                leadingDeptSelect.className = 'w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-100 font-bold text-blue-900 cursor-not-allowed';
+            }
+            if (assistingWrapper) assistingWrapper.classList.remove('hidden');
+            if (assigneeWrapper) assigneeWrapper.classList.remove('hidden');
+            if (archetypeBar) archetypeBar.classList.remove('hidden');
+            if (submitBtnText) submitBtnText.innerText = 'Phân Công Nội Bộ';
+
+            // Mô tả full dòng (3 cols), Ẩn Người giao việc
+            if (descColWrapper) descColWrapper.className = 'sm:col-span-3';
+            if (requesterWrapper) requesterWrapper.classList.add('hidden');
+
+            this.populateWorkflowSelect(userDeptId);
+            this.filterAssigneesByDept(userDeptId);
+
+        } else if (role === 'STAFF') {
+            // VAI TRÒ 3: CÁ NHÂN / CÁN BỘ / GIẢNG VIÊN (Thực thi & Đề xuất)
+            if (titleEl) titleEl.innerText = 'Công Việc Cá Nhân & Đề Xuất Nhiệm Vụ';
+            if (subTitleEl) subTitleEl.innerText = 'Tự tạo danh sách việc cần làm (To-do) hoặc gửi đề xuất lên Trưởng phòng';
+            if (iconWrapper) iconWrapper.className = 'w-7 h-7 rounded-lg bg-indigo-700 text-white flex items-center justify-center text-xs';
+            if (staffToggle) staffToggle.classList.remove('hidden');
+            if (deptRow) deptRow.classList.add('hidden'); // Ẩn chọn đơn vị
+            if (assigneeWrapper) assigneeWrapper.classList.add('hidden'); // Ẩn chọn cán bộ (mặc định là chính mình)
+            if (archetypeBar) archetypeBar.classList.add('hidden');
+
+            // Mô tả 2 cols + Người giao việc 1 col
+            if (descColWrapper) descColWrapper.className = 'sm:col-span-2';
+            if (requesterWrapper) requesterWrapper.classList.remove('hidden');
+
+            this.setStaffTaskMode(this.staffTaskMode || 'todo');
+        }
+    },
+
+    showRequesterDropdown() {
+        const menu = document.getElementById('requesterDropdownMenu');
+        if (!menu) return;
+        const currentVal = document.getElementById('taskRequester')?.value || '';
+        this.filterRequesterDropdown(currentVal);
+    },
+
+    filterRequesterDropdown(query = '') {
+        const menu = document.getElementById('requesterDropdownMenu');
+        const clearBtn = document.getElementById('taskRequesterClearBtn');
+        if (!menu) return;
+
+        if (clearBtn) {
+            clearBtn.classList.toggle('hidden', !query.trim());
+        }
+
+        const q = (query || '').toLowerCase().trim();
+        let list = this.users || [];
+        if (q) {
+            list = list.filter(u => {
+                const name = (u.full_name || '').toLowerCase();
+                const dept = (u.department?.name || u.department?.code || '').toLowerCase();
+                const role = (u.role || '').toLowerCase();
+                return name.includes(q) || dept.includes(q) || role.includes(q);
+            });
+        }
+
+        if (list.length === 0) {
+            menu.innerHTML = `
+                <div class="p-3 text-center text-slate-400 text-xs">
+                    <p>Không tìm thấy nhân sự trùng khớp</p>
+                    <p class="text-[10px] text-slate-500 mt-0.5">Tên <b>"${query}"</b> sẽ được lưu dạng tự do</p>
+                </div>
+            `;
+            menu.classList.remove('hidden');
+            return;
+        }
+
+        menu.innerHTML = list.map(u => {
+            const isBGH = u.role === 'BGH' || u.role === 'SUPERADMIN';
+            const deptName = u.department ? u.department.name : (isBGH ? 'Ban Giám Hiệu' : 'HueIC');
+            const deptCode = u.department ? u.department.code : (isBGH ? 'BGH' : '');
+            const icon = isBGH ? '🏛️' : (u.role === 'DEPT_HEAD' ? '🏢' : '👤');
+            const safeName = (u.full_name || '').replace(/'/g, "\\'");
+            const safeDisplay = `${safeName} (${deptCode || deptName})`;
+
+            return `
+                <div onclick="TasksPage.selectRequester('${safeDisplay}')" 
+                    class="p-2 hover:bg-blue-50 cursor-pointer flex items-center justify-between transition group">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm shrink-0">${icon}</span>
+                        <div>
+                            <div class="font-bold text-slate-800 group-hover:text-blue-900 text-xs">${u.full_name}</div>
+                            <div class="text-[10px] text-slate-500">${deptName}</div>
+                        </div>
+                    </div>
+                    ${deptCode ? `<span class="px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-slate-100 text-slate-600 group-hover:bg-blue-100 group-hover:text-blue-900">${deptCode}</span>` : ''}
+                </div>
+            `;
+        }).join('');
+
+        menu.classList.remove('hidden');
+    },
+
+    selectRequester(nameWithDept) {
+        const input = document.getElementById('taskRequester');
+        const clearBtn = document.getElementById('taskRequesterClearBtn');
+        const menu = document.getElementById('requesterDropdownMenu');
+        if (input) input.value = nameWithDept;
+        if (clearBtn) clearBtn.classList.remove('hidden');
+        if (menu) menu.classList.add('hidden');
+    },
+
+    clearTaskRequester() {
+        const input = document.getElementById('taskRequester');
+        const clearBtn = document.getElementById('taskRequesterClearBtn');
+        if (input) {
+            input.value = '';
+            input.focus();
+        }
+        if (clearBtn) clearBtn.classList.add('hidden');
+        this.showRequesterDropdown();
+    },
+
+    setStaffTaskMode(mode) {
+        this.staffTaskMode = mode;
+        const btnTodo = document.getElementById('staffModeBtnTodo');
+        const btnProposal = document.getElementById('staffModeBtnProposal');
+        const submitBtnText = document.getElementById('btnSubmitTaskText');
+
+        if (mode === 'todo') {
+            if (btnTodo) btnTodo.className = 'flex-1 p-2 rounded-lg border-2 border-indigo-700 bg-white text-indigo-950 font-bold text-left transition text-xs shadow-xs';
+            if (btnProposal) btnProposal.className = 'flex-1 p-2 rounded-lg border border-slate-200 bg-white text-slate-600 font-semibold text-left hover:bg-slate-50 transition text-xs';
+            if (submitBtnText) submitBtnText.innerText = 'Lưu Việc Cá Nhân';
+        } else {
+            if (btnProposal) btnProposal.className = 'flex-1 p-2 rounded-lg border-2 border-amber-600 bg-amber-50/70 text-amber-950 font-bold text-left transition text-xs shadow-xs';
+            if (btnTodo) btnTodo.className = 'flex-1 p-2 rounded-lg border border-slate-200 bg-white text-slate-600 font-semibold text-left hover:bg-slate-50 transition text-xs';
+            if (submitBtnText) submitBtnText.innerText = 'Gửi Đề Xuất Cho Trưởng Phòng';
+        }
+    },
+
+    switchTaskArchetype(type) {
+        this.currentArchetype = type;
+        const btnTypes = ['quick', 'workflow', 'recurring', 'multi_dept'];
+        btnTypes.forEach(t => {
+            const btn = document.getElementById(`archetype-btn-${t}`);
+            if (btn) {
+                if (t === type) {
+                    btn.className = 'px-3 py-1.5 rounded-lg font-bold text-xs bg-blue-800 text-white shadow-xs transition flex items-center space-x-1.5';
+                } else {
+                    btn.className = 'px-3 py-1.5 rounded-lg font-semibold text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-slate-900 transition flex items-center space-x-1.5';
+                }
+            }
+        });
+
+        const workflowSec = document.getElementById('workflowBuilderSection');
+        const recurringSec = document.getElementById('recurringOptionsSection');
+
+        if (workflowSec) {
+            workflowSec.classList.toggle('hidden', type === 'quick');
+        }
+        if (recurringSec) {
+            recurringSec.classList.toggle('hidden', type !== 'recurring');
+        }
+
+        if (type === 'quick') {
+            this.clearWorkflowSteps();
+        }
+    },
+
+    // ----------------------------------------------------
+    // BỘ ĐIỀU KHIỂN MỨC ĐỘ ƯU TIÊN & THỜI HẠN THÔNG MINH (EXECUTIVE PRIORITY & DEADLINE CONTROLLER)
+    // ----------------------------------------------------
+    matchPriorityFromDays(days) {
+        if (days <= 1) return 'KHAN_CAP';
+        if (days <= 3) return 'CAO';
+        if (days <= 7) return 'TRUNG_BINH';
+        return 'THAP';
+    },
+
+    updatePriorityUIOnly(priority) {
+        const input = document.getElementById('taskPriority');
+        if (input) input.value = priority;
+
+        const priorities = [
+            { key: 'THAP', activeCls: 'border-slate-600 bg-slate-200/90 text-slate-950' },
+            { key: 'TRUNG_BINH', activeCls: 'border-blue-700 bg-blue-50/90 text-blue-950' },
+            { key: 'CAO', activeCls: 'border-amber-600 bg-amber-50/90 text-amber-950' },
+            { key: 'KHAN_CAP', activeCls: 'border-red-600 bg-red-50/90 text-red-950' }
+        ];
+
+        priorities.forEach(p => {
+            const btn = document.getElementById(`priority-btn-${p.key}`);
+            if (btn) {
+                if (p.key === priority) {
+                    btn.className = `py-1.5 px-1 rounded-md border-2 ${p.activeCls} font-bold text-xs shadow-xs transition text-center whitespace-nowrap`;
+                } else {
+                    btn.className = 'py-1.5 px-1 rounded-md bg-white border border-slate-200 text-slate-600 font-semibold text-xs hover:bg-slate-50 transition text-center whitespace-nowrap';
+                }
+            }
+        });
+    },
+
+    setTaskPriority(priority) {
+        this.updatePriorityUIOnly(priority);
+
+        let days = 7;
+        if (priority === 'KHAN_CAP') days = 1;
+        else if (priority === 'CAO') days = 3;
+        else if (priority === 'TRUNG_BINH') days = 7;
+        else if (priority === 'THAP') days = 14;
+
+        this.setTaskDurationAndDueDate(days);
+    },
+
+    handlePriorityChange(priority) {
+        this.setTaskPriority(priority);
+    },
+
+    stepDurationDays(delta) {
+        const input = document.getElementById('taskDurationDays');
+        if (!input) return;
+        const currentDays = parseInt(input.value) || 1;
+        const newDays = Math.max(1, currentDays + delta);
+        input.value = newDays;
+        this.handleDurationDaysInput(newDays);
+    },
+
+    handleDurationDaysInput(daysVal) {
+        const days = Math.max(1, parseInt(daysVal) || 1);
+        // Tự động nhảy Mức độ ưu tiên tương ứng theo số ngày
+        const autoPriority = this.matchPriorityFromDays(days);
+        this.updatePriorityUIOnly(autoPriority);
+        this.setTaskDurationAndDueDate(days, false);
+    },
+
+    handleDueDateChange(dateStr) {
+        if (dateStr) {
+            const targetDate = new Date(dateStr);
+            const now = new Date();
+            targetDate.setHours(0, 0, 0, 0);
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const diffTime = targetDate.getTime() - today.getTime();
+            const diffDays = Math.max(1, Math.round(diffTime / (1000 * 60 * 60 * 24)));
+            const durationInput = document.getElementById('taskDurationDays');
+            if (durationInput) durationInput.value = diffDays;
+            // Tự động nhảy Mức độ ưu tiên tương ứng theo khoảng ngày
+            const autoPriority = this.matchPriorityFromDays(diffDays);
+            this.updatePriorityUIOnly(autoPriority);
+        }
+        this.checkDeadlineSafety(dateStr);
+    },
+
+    setTaskDurationAndDueDate(days, updateDaysInput = true) {
+        const durationInput = document.getElementById('taskDurationDays');
+        const deadlineInput = document.getElementById('taskDueDate');
+
+        if (updateDaysInput && durationInput) durationInput.value = days;
+
+        if (deadlineInput) {
+            const target = new Date();
+            target.setDate(target.getDate() + days);
+            
+            // Format YYYY-MM-DD cho input date (bỏ giờ phút AM/PM cồng kềnh)
+            const year = target.getFullYear();
+            const month = String(target.getMonth() + 1).padStart(2, '0');
+            const day = String(target.getDate()).padStart(2, '0');
+            
+            const formatted = `${year}-${month}-${day}`;
+            deadlineInput.value = formatted;
+            this.checkDeadlineSafety(formatted);
+        }
+    },
+
     populateSelectOptions() {
         const leadingDeptSelect = document.getElementById('taskLeadingDept');
         const assistingDeptSelect = document.getElementById('taskAssistingDept');
-        const assigneeSelect = document.getElementById('taskAssignee');
         const filterDeptSelect = document.getElementById('filterDept');
 
         if (leadingDeptSelect) {
@@ -57,25 +569,139 @@ const TasksPage = {
             leadingDeptSelect.onchange = () => {
                 const deptId = leadingDeptSelect.value ? parseInt(leadingDeptSelect.value) : null;
                 this.populateWorkflowSelect(deptId);
+                this.filterAssigneesByDept(deptId);
             };
         }
 
         if (assistingDeptSelect) {
-            assistingDeptSelect.innerHTML = '<option value="">-- Chọn đơn vị phối hợp (nếu có) --</option>' +
+            assistingDeptSelect.innerHTML = '<option value="">-- Chọn đơn vị phối hợp (Tùy chọn) --</option>' +
                 this.departments.map(d => `<option value="${d.id}">${d.name} (${d.code})</option>`).join('');
         }
+
+        this.populateAssigneeSelect();
 
         if (filterDeptSelect) {
             filterDeptSelect.innerHTML = '<option value="">Tất cả đơn vị</option>' +
-                this.departments.map(d => `<option value="${d.id}">${d.name} (${d.code})</option>`).join('');
-        }
-
-        if (assigneeSelect) {
-            assigneeSelect.innerHTML = '<option value="">-- Chọn cán bộ phụ trách --</option>' +
-                this.users.map(u => `<option value="${u.id}">${u.full_name} (${u.position || u.role})</option>`).join('');
+                this.departments.map(d => `<option value="${d.id}">[${d.code}] ${d.name}</option>`).join('');
         }
 
         this.populateWorkflowSelect();
+    },
+
+    async populateAssigneeSelect(deptId = null) {
+        const assigneeSelect = document.getElementById('taskAssignee');
+        if (!assigneeSelect) return;
+
+        let userList = [...this.users];
+        if (deptId) {
+            userList = userList.filter(u => u.department_id === deptId || !u.department_id);
+        }
+
+        let workloadMap = {};
+        try {
+            if (API && API.getWorkload) {
+                const workloadData = await API.getWorkload(deptId);
+                if (Array.isArray(workloadData)) {
+                    workloadData.forEach(w => {
+                        workloadMap[w.user_id] = w;
+                    });
+                }
+            }
+        } catch (err) {
+            // fallback
+        }
+
+        // Calculate workload and sort idle users first
+        const usersWithWorkload = userList.map(u => {
+            const liveWl = workloadMap[u.id];
+            const activeCount = liveWl ? liveWl.in_progress_count : this.calculateUserWorkload(u.id).active;
+            const overdueCount = this.calculateUserWorkload(u.id).overdue;
+            return { ...u, activeCount, overdueCount };
+        }).sort((a, b) => a.activeCount - b.activeCount);
+
+        assigneeSelect.innerHTML = '<option value="">🏢 [Tập thể đơn vị tự điều phối]</option>' +
+            usersWithWorkload.map(u => {
+                let tag = `🟢 [Rảnh: 0 việc]`;
+                if (u.overdueCount > 0 || u.activeCount >= 5) {
+                    tag = `🔴 [⚠️ Quá tải: ${u.activeCount} việc${u.overdueCount > 0 ? `, ${u.overdueCount} trễ` : ''}]`;
+                } else if (u.activeCount >= 3) {
+                    tag = `🟡 [Vừa phải: ${u.activeCount} việc]`;
+                } else if (u.activeCount > 0) {
+                    tag = `🟢 [Tải nhẹ: ${u.activeCount} việc]`;
+                }
+                const deptCode = u.department ? u.department.code : 'HueIC';
+                return `<option value="${u.id}">${u.full_name} (${deptCode}) — ${tag}</option>`;
+            }).join('');
+    },
+
+    filterAssigneesByDept(deptId) {
+        this.populateAssigneeSelect(deptId);
+    },
+
+    checkDeadlineSafety(val) {
+        const warningEl = document.getElementById('deadlineSafetyWarning');
+        if (!val || !warningEl) return;
+
+        const date = new Date(val);
+        const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday
+        if (dayOfWeek === 0 || dayOfWeek === 6) {
+            const dayName = dayOfWeek === 0 ? 'Chủ Nhật' : 'Thứ 7';
+            // Calculate next Monday
+            const mondayDate = new Date(date);
+            const daysToAdd = dayOfWeek === 6 ? 2 : 1;
+            mondayDate.setDate(mondayDate.getDate() + daysToAdd);
+            
+            const monYear = mondayDate.getFullYear();
+            const monMonth = String(mondayDate.getMonth() + 1).padStart(2, '0');
+            const monDay = String(mondayDate.getDate()).padStart(2, '0');
+            const formattedMonday = `${monYear}-${monMonth}-${monDay}`;
+            const displayMonday = `${monDay}/${monMonth}/${monYear}`;
+
+            const oldYear = date.getFullYear();
+            const oldMonth = String(date.getMonth() + 1).padStart(2, '0');
+            const oldDay = String(date.getDate()).padStart(2, '0');
+            const displayOld = `${oldDay}/${oldMonth}/${oldYear}`;
+
+            warningEl.innerHTML = `
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-2.5 rounded-lg bg-amber-50 border border-amber-300 text-amber-950 text-xs shadow-xs animate-fade-in">
+                    <div class="flex items-center gap-2">
+                        <span class="text-base shrink-0">🛡️</span>
+                        <div>
+                            <b>Weekend Smart Shield:</b> Hạn chót rơi vào <b>${dayName} (${displayOld})</b> là ngày nghỉ cuối tuần.
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
+                        <button type="button" onclick="TasksPage.shiftDeadlineToMonday('${formattedMonday}')" class="px-2.5 py-1 rounded-md bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs transition shadow-xs flex items-center gap-1">
+                            <i class="fa-regular fa-calendar-check"></i> Dời sang Thứ Hai (${displayMonday})
+                        </button>
+                        <button type="button" onclick="TasksPage.dismissWeekendShield()" class="px-2 py-1 rounded-md bg-white border border-amber-300 hover:bg-amber-100 text-amber-900 font-semibold text-xs transition">
+                            ✕ Giữ nguyên
+                        </button>
+                    </div>
+                </div>
+            `;
+            warningEl.classList.remove('hidden');
+        } else {
+            warningEl.classList.add('hidden');
+        }
+    },
+
+    shiftDeadlineToMonday(mondayDateStr) {
+        const deadlineInput = document.getElementById('taskDueDate');
+        if (deadlineInput) {
+            deadlineInput.value = mondayDateStr;
+            this.handleDueDateChange(mondayDateStr);
+        }
+        const warningEl = document.getElementById('deadlineSafetyWarning');
+        if (warningEl) warningEl.classList.add('hidden');
+        if (window.Common && Common.showToast) {
+            Common.showToast('Đã tự động dời hạn chót sang Thứ Hai đầu tuần thành công!', 'success');
+        }
+    },
+
+    dismissWeekendShield() {
+        const warningEl = document.getElementById('deadlineSafetyWarning');
+        if (warningEl) warningEl.classList.add('hidden');
     },
 
     populateWorkflowSelect(deptId = null) {
@@ -87,17 +713,50 @@ const TasksPage = {
             available = this.workflows.filter(w => w.department_id === deptId || w.department_id === null);
         }
 
-        select.innerHTML = '<option value="">-- Chọn quy trình mẫu chuẩn (2 đến 8 bước) --</option>' +
-            available.map(w => {
+        let optionsHtml = '<option value="">-- Chọn quy trình mẫu từ danh mục chuẩn --</option>';
+        
+        // System presets
+        optionsHtml += '<optgroup label="📋 Mẫu Chuẩn Toàn Trường (HueIC Presets)">';
+        Object.entries(this.WORKFLOW_TEMPLATES).forEach(([k, t]) => {
+            optionsHtml += `<option value="preset:${k}">${t.name}</option>`;
+        });
+        optionsHtml += '</optgroup>';
+
+        if (available.length > 0) {
+            optionsHtml += '<optgroup label="🏢 Quy Trình Đơn Vị Đã Thiết Lập">';
+            optionsHtml += available.map(w => {
                 const deptTag = w.department ? `[${w.department.code}]` : '[Toàn trường]';
                 const stepCount = (w.steps || []).length;
                 return `<option value="${w.id}">${deptTag} ${w.name} (${stepCount} bước)</option>`;
             }).join('');
+            optionsHtml += '</optgroup>';
+        }
+
+        select.innerHTML = optionsHtml;
     },
 
-    handleSelectWorkflowTemplate(wfId) {
-        if (!wfId) return;
-        const wf = this.workflows.find(w => w.id === parseInt(wfId));
+    handleSelectWorkflowTemplate(wfVal, silent = false) {
+        if (!wfVal) return;
+        const strVal = String(wfVal).trim();
+
+        if (strVal.startsWith('preset:')) {
+            const presetKey = strVal.replace('preset:', '');
+            const preset = this.WORKFLOW_TEMPLATES[presetKey];
+            if (preset) {
+                this.currentSelectedWorkflowName = preset.name;
+                this.createWorkflowSteps = preset.steps.map((title, idx) => ({
+                    id: idx + 1,
+                    title,
+                    is_completed: false,
+                    note: ''
+                }));
+                this.renderCreateTaskSteps();
+                if (!silent) Common.showToast(`Đã áp dụng mẫu: ${preset.name}`, 'info');
+            }
+            return;
+        }
+
+        const wf = this.workflows.find(w => w.id === parseInt(strVal));
         if (!wf) return;
 
         this.currentSelectedWorkflowName = wf.name;
@@ -108,9 +767,8 @@ const TasksPage = {
             is_completed: false,
             note: ''
         }));
-
         this.renderCreateTaskSteps();
-        Common.showToast(`Đã nạp ${wf.name} (${steps.length} bước)!`, 'info');
+        if (!silent) Common.showToast(`Đã áp dụng quy trình: ${wf.name}`, 'info');
     },
 
     applyUrlFilters() {
@@ -120,6 +778,7 @@ const TasksPage = {
         const dept_id = params.get('dept_id');
         const user_id = params.get('user_id');
         const search = params.get('search');
+        const quickFilter = params.get('quick_filter') || params.get('filter');
 
         if (status && document.getElementById('filterStatus')) {
             document.getElementById('filterStatus').value = status;
@@ -133,8 +792,19 @@ const TasksPage = {
         if (search && document.getElementById('taskSearchInput')) {
             document.getElementById('taskSearchInput').value = search;
         }
+        if (quickFilter) {
+            this.currentQuickFilter = quickFilter;
+        }
 
-        if (status || priority || dept_id || user_id || search) {
+        if (params.get('action') === 'create') {
+            setTimeout(() => this.openCreateTaskModal(), 250);
+        }
+        if (params.get('task_id')) {
+            const tId = parseInt(params.get('task_id'));
+            if (tId) setTimeout(() => this.openTaskDetail(tId), 300);
+        }
+
+        if (status || priority || dept_id || user_id || search || quickFilter) {
             Common.showToast('Đã áp dụng bộ lọc từ Dashboard', 'info');
         }
     },
@@ -157,6 +827,7 @@ const TasksPage = {
         try {
             this.updateQuickFilterBadges();
             this.renderCurrentView();
+            window.dispatchEvent(new CustomEvent('taskFiltersChanged'));
         } catch (e) {
             console.error('[TasksPage] Lỗi render giao diện:', e);
             // Không show toast - hiển thị lỗi trong console để debug
@@ -164,49 +835,8 @@ const TasksPage = {
     },
 
     // ----------------------------------------------------
-    // MULTI-VIEW & QUICK FILTER CONTROLLERS
+    // QUICK FILTER CONTROLLERS
     // ----------------------------------------------------
-    switchView(viewName) {
-        this.currentView = viewName;
-
-        const btnList = document.getElementById('btnViewList');
-        const btnKanban = document.getElementById('btnViewKanban');
-        const btnCalendar = document.getElementById('btnViewCalendar');
-
-        const viewList = document.getElementById('viewListContainer');
-        const viewKanban = document.getElementById('viewKanbanContainer');
-        const viewCalendar = document.getElementById('viewCalendarContainer');
-
-        const activeClass = ['bg-white', 'text-blue-900', 'shadow-xs'];
-        const inactiveClass = ['text-slate-600', 'hover:text-blue-900', 'hover:bg-white/50'];
-
-        [btnList, btnKanban, btnCalendar].forEach(btn => {
-            if (btn) {
-                btn.classList.remove(...activeClass);
-                btn.classList.add(...inactiveClass);
-            }
-        });
-
-        if (viewList) viewList.classList.add('hidden');
-        if (viewKanban) viewKanban.classList.add('hidden');
-        if (viewCalendar) viewCalendar.classList.add('hidden');
-
-        if (viewName === 'list') {
-            btnList?.classList.add(...activeClass);
-            btnList?.classList.remove(...inactiveClass);
-            viewList?.classList.remove('hidden');
-        } else if (viewName === 'kanban') {
-            btnKanban?.classList.add(...activeClass);
-            btnKanban?.classList.remove(...inactiveClass);
-            viewKanban?.classList.remove('hidden');
-        } else if (viewName === 'calendar') {
-            btnCalendar?.classList.add(...activeClass);
-            btnCalendar?.classList.remove(...inactiveClass);
-            viewCalendar?.classList.remove('hidden');
-        }
-
-        this.renderCurrentView();
-    },
 
     setQuickFilter(filterType) {
         this.currentQuickFilter = filterType;
@@ -223,6 +853,7 @@ const TasksPage = {
         });
 
         this.renderCurrentView();
+        window.dispatchEvent(new CustomEvent('taskFiltersChanged'));
     },
 
     updateQuickFilterBadges() {
@@ -342,7 +973,7 @@ const TasksPage = {
                         </td>
                         <td class="px-4 py-3 whitespace-nowrap">
                             <div class="font-bold text-blue-900">${t.leading_department ? t.leading_department.code : '-'}</div>
-                            <div class="text-[10px] text-slate-500">${t.assignee ? t.assignee.full_name : '<span class="italic text-slate-400">Chưa gán</span>'}</div>
+                            <div class="text-[10px] text-slate-500">${t.assignee ? t.assignee.full_name : '<span class="font-semibold text-indigo-700">🏢 Tập thể đơn vị</span>'}</div>
                         </td>
                         <td class="px-4 py-3 whitespace-nowrap">
                             <span class="px-2 py-0.5 rounded-full text-[10px] ${deadlineInfo.badgeClass}">
@@ -406,8 +1037,8 @@ const TasksPage = {
 
                         <div class="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
                             <div>
-                                <span class="text-slate-400 text-[11px]">Ưu tiên:</span>
-                                <span class="ml-1">${priorityBadges[t.priority] || t.priority}</span>
+                                <span class="text-slate-400 text-[11px]">Người nhận:</span>
+                                <span class="ml-1 font-semibold text-slate-700">${t.assignee ? t.assignee.full_name : '<span class="text-indigo-700">🏢 Tập thể đơn vị</span>'}</span>
                             </div>
                             <div class="flex items-center space-x-1.5">
                                 <div class="w-16 bg-slate-200 rounded-full h-2 overflow-hidden">
@@ -499,11 +1130,11 @@ const TasksPage = {
 
                         <!-- Footer: Assignee & Action Buttons -->
                         <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-[11px]">
-                            <div class="flex items-center space-x-1.5 text-slate-600 truncate max-w-[120px]" title="${t.assignee ? t.assignee.full_name : 'Chưa gán'}">
-                                <div class="w-5 h-5 rounded-full bg-blue-800 text-white font-bold text-[9px] flex items-center justify-center shrink-0">
-                                    ${t.assignee ? t.assignee.full_name.charAt(0) : '?'}
+                            <div class="flex items-center space-x-1.5 text-slate-600 truncate max-w-[130px]" title="${t.assignee ? t.assignee.full_name : 'Tập thể đơn vị'}">
+                                <div class="w-5 h-5 rounded-full ${t.assignee ? 'bg-blue-800' : 'bg-indigo-700'} text-white font-bold text-[9px] flex items-center justify-center shrink-0">
+                                    ${t.assignee ? t.assignee.full_name.charAt(0) : '<i class="fa-solid fa-users text-[8px]"></i>'}
                                 </div>
-                                <span class="truncate text-[10px]">${t.assignee ? t.assignee.full_name : 'Chưa gán'}</span>
+                                <span class="truncate text-[10px] ${t.assignee ? '' : 'font-semibold text-indigo-700'}">${t.assignee ? t.assignee.full_name : 'Tập thể đơn vị'}</span>
                             </div>
                             <div class="flex items-center space-x-1">
                                 <button onclick="TasksPage.openUpdateModal(${t.id})" class="p-1 text-blue-700 hover:bg-blue-50 rounded" title="Cập nhật tiến độ">
@@ -741,24 +1372,42 @@ const TasksPage = {
     // PHÂN HỆ QUY TRÌNH BƯỚC MỐC TRONG FORM TẠO NHIỆM VỤ
     // ----------------------------------------------------
     openCreateTaskModal() {
-        document.getElementById('formCreateTask').reset();
-        this.createWorkflowSteps = [];
-        this.currentSelectedWorkflowName = null;
-        this.suggestedWorkflow = null;
-        document.getElementById('taskWorkflowSuggestionBox')?.classList.add('hidden');
-        this.populateWorkflowSelect();
+        try {
+            document.getElementById('formCreateTask')?.reset();
+            this.createWorkflowSteps = [];
+            this.currentSelectedWorkflowName = null;
+            this.suggestedWorkflow = null;
+            document.getElementById('taskWorkflowSuggestionBox')?.classList.add('hidden');
+            document.getElementById('deadlineSafetyWarning')?.classList.add('hidden');
+            this.switchTaskArchetype('workflow');
+            this.populateSelectOptions();
+            
+            // Nhận diện vai trò từ user hiện tại hoặc mặc định BGH
+            const user = Common.currentUser || API.getUser();
+            let initialRole = 'BGH';
+            if (user?.role === 'STAFF') initialRole = 'STAFF';
+            else if (user?.role === 'DEPT_HEAD') initialRole = 'DEPT_HEAD';
+            this.setDispatchRole(initialRole);
 
-        // Tự động nạp mẫu đầu tiên nếu có
-        if (this.workflows.length > 0) {
-            const defaultWf = this.workflows.find(w => w.code === 'QT_CHUNG_02') || this.workflows[0];
-            const select = document.getElementById('taskWorkflowSelect');
-            if (select) select.value = defaultWf.id;
-            this.handleSelectWorkflowTemplate(defaultWf.id);
-        } else {
-            this.addNewWorkflowStep();
+            // Khởi tạo mức ưu tiên & thời hạn mặc định (7 ngày)
+            const priSelect = document.getElementById('taskPriority');
+            if (priSelect) priSelect.value = 'TRUNG_BINH';
+            this.handlePriorityChange('TRUNG_BINH');
+
+            // Tự động nạp mẫu đầu tiên nếu có
+            if (this.workflows && this.workflows.length > 0) {
+                const defaultWf = this.workflows.find(w => w.code === 'QT_CHUNG_02') || this.workflows[0];
+                const select = document.getElementById('taskWorkflowSelect');
+                if (select) select.value = defaultWf.id;
+                this.handleSelectWorkflowTemplate(defaultWf.id, true);
+            } else {
+                this.addNewWorkflowStep();
+            }
+        } catch (err) {
+            console.error('Lỗi khởi tạo form Giao Nhiệm Vụ:', err);
+        } finally {
+            document.getElementById('modalCreateTask')?.classList.remove('hidden');
         }
-
-        document.getElementById('modalCreateTask').classList.remove('hidden');
     },
 
     closeCreateTaskModal() {
@@ -810,14 +1459,14 @@ const TasksPage = {
         }
 
         container.innerHTML = this.createWorkflowSteps.map((step, idx) => `
-            <div class="flex items-center space-x-2 bg-white p-2 rounded-lg border border-slate-200 shadow-2xs">
+            <div class="flex items-center space-x-2 bg-white p-2 rounded-lg border border-slate-200 shadow-2xs hover:border-blue-300 transition">
                 <span class="w-6 h-6 rounded-full bg-blue-100 text-blue-900 font-mono font-black text-xs flex items-center justify-center shrink-0">
                     ${step.id}
                 </span>
                 <input type="text" value="${step.title}" 
                     oninput="TasksPage.updateCreateStepTitle(${idx}, this.value)"
                     placeholder="Nhập tên bước thực hiện..."
-                    class="flex-1 px-2.5 py-1 text-xs border border-slate-200 rounded focus:outline-none focus:border-blue-800">
+                    class="flex-1 px-2.5 py-1 text-xs border border-slate-200 rounded focus:outline-none focus:border-blue-800 font-medium text-slate-800">
                 <button type="button" onclick="TasksPage.removeWorkflowStep(${idx})" class="text-slate-400 hover:text-red-600 p-1 transition" title="Xóa bước này">
                     <i class="fa-solid fa-trash-can text-xs"></i>
                 </button>
@@ -826,18 +1475,91 @@ const TasksPage = {
     },
 
     async handleCreateTask(e) {
-        e.preventDefault();
-        const title = document.getElementById('taskTitle').value.trim();
-        const description = document.getElementById('taskDescription').value.trim();
-        const leading_dept_id = parseInt(document.getElementById('taskLeadingDept').value);
-        const assisting_dept_id = document.getElementById('taskAssistingDept').value ? parseInt(document.getElementById('taskAssistingDept').value) : null;
-        const assignee_id = document.getElementById('taskAssignee').value ? parseInt(document.getElementById('taskAssignee').value) : null;
-        const priority = document.getElementById('taskPriority').value;
-        const due_date = document.getElementById('taskDueDate').value || null;
+        if (e && e.preventDefault) e.preventDefault();
+        const user = Common.currentUser || API.getUser() || {};
+        const title = document.getElementById('taskTitle')?.value?.trim();
+        const rawDescription = document.getElementById('taskDescription')?.value?.trim() || '';
+        const requester = document.getElementById('taskRequester')?.value?.trim();
+        
+        // 1. Validation Shield
+        if (!title) {
+            Common.showToast('Vui lòng nhập tên / tiêu đề nhiệm vụ!', 'error');
+            const titleInput = document.getElementById('taskTitle');
+            if (titleInput) {
+                titleInput.focus();
+                titleInput.classList.add('border-red-500', 'ring-2', 'ring-red-200');
+                setTimeout(() => titleInput.classList.remove('border-red-500', 'ring-2', 'ring-red-200'), 3000);
+            }
+            return;
+        }
+
+        let leading_dept_id = document.getElementById('taskLeadingDept')?.value ? parseInt(document.getElementById('taskLeadingDept').value) : null;
+        let assisting_dept_id = document.getElementById('taskAssistingDept')?.value ? parseInt(document.getElementById('taskAssistingDept').value) : null;
+        let assignee_id = document.getElementById('taskAssignee')?.value ? parseInt(document.getElementById('taskAssignee').value) : null;
+        
+        const priority = document.getElementById('taskPriority')?.value || 'TRUNG_BINH';
+        const due_date = document.getElementById('taskDueDate')?.value || null;
+        const recurrenceFreq = document.getElementById('taskRecurrenceFreq')?.value;
+        const recurrenceNote = document.getElementById('taskRecurrenceNote')?.value?.trim();
+
+        if (this.currentDispatchRole === 'BGH' && (!leading_dept_id || isNaN(leading_dept_id))) {
+            Common.showToast('Vui lòng chọn Đơn vị chủ trì thực hiện nhiệm vụ!', 'error');
+            const deptSelect = document.getElementById('taskLeadingDept');
+            if (deptSelect) {
+                deptSelect.focus();
+                deptSelect.classList.add('border-red-500', 'ring-2', 'ring-red-200');
+                setTimeout(() => deptSelect.classList.remove('border-red-500', 'ring-2', 'ring-red-200'), 3000);
+            }
+            return;
+        }
+
+        let description = rawDescription;
+        let successMessage = 'Đã giao nhiệm vụ thành công!';
+        let visibility = 'ORGANIZATIONAL';
+        let taskType = 'STRATEGIC';
+
+        if (this.currentDispatchRole === 'STAFF') {
+            leading_dept_id = user.department_id || (this.departments.length > 0 ? this.departments[0].id : 1);
+            assisting_dept_id = null;
+
+            if (requester) {
+                description = `[NGƯỜI GIAO VIỆC / YÊU CẦU: ${requester}]\n` + description;
+            }
+
+            if (this.staffTaskMode === 'todo') {
+                assignee_id = user.id || null;
+                description = `[VIỆC CÁ NHÂN - TO DO]\n` + description;
+                successMessage = 'Đã lưu việc cá nhân thành công!';
+                visibility = 'PRIVATE';
+                taskType = 'SELF';
+            } else {
+                assignee_id = null; // Đề xuất cho trưởng phòng duyệt
+                description = `[ĐỀ XUẤT NHIỆM VỤ TỪ CÁN BỘ: ${user.full_name || 'Cá nhân'}]\n` + description;
+                successMessage = 'Đã gửi đề xuất công việc lên Trưởng phòng phê duyệt!';
+                visibility = 'DEPARTMENT';
+                taskType = 'PROPOSAL';
+            }
+        } else if (this.currentDispatchRole === 'DEPT_HEAD') {
+            leading_dept_id = user.department_id || leading_dept_id;
+            successMessage = assignee_id ? 'Đã phân công nhiệm vụ cho cán bộ trong đơn vị!' : 'Đã phân công nhiệm vụ nội bộ!';
+            visibility = 'DEPARTMENT';
+            taskType = 'ROUTINE';
+        } else {
+            successMessage = assignee_id ? 'Đã giao nhiệm vụ cho cán bộ!' : 'Đã giao nhiệm vụ cho tập thể đơn vị!';
+            visibility = 'ORGANIZATIONAL';
+            taskType = 'STRATEGIC';
+        }
+
+        if (this.currentArchetype === 'recurring' && recurrenceFreq) {
+            description += `\n[Định kỳ: ${recurrenceFreq}${recurrenceNote ? ' - ' + recurrenceNote : ''}]`;
+        }
 
         const payload = {
             title,
             description,
+            type: taskType,
+            visibility,
+            progress_rule: 'AVERAGE',
             leading_dept_id,
             assisting_dept_id,
             assignee_id,
@@ -849,11 +1571,11 @@ const TasksPage = {
 
         try {
             await API.createTask(payload);
-            Common.showToast('Giao nhiệm vụ với quy trình các bước thành công!', 'success');
+            Common.showToast(successMessage, 'success');
             this.closeCreateTaskModal();
             this.loadTasks();
         } catch (err) {
-            Common.showToast(err.message || 'Lỗi khi giao nhiệm vụ', 'error');
+            Common.showToast(err.message || 'Lỗi khi tạo nhiệm vụ', 'error');
         }
     },
 
@@ -1076,27 +1798,96 @@ const TasksPage = {
     },
 
     // ----------------------------------------------------
-    // PHÂN HỆ XEM CHI TIẾT & STEPPER TIMELINE
+    // PHÂN HỆ XEM CHI TIẾT & STEPPER TIMELINE (BGH TRACEABILITY)
     // ----------------------------------------------------
     async openTaskDetail(taskId) {
         try {
             const task = await API.getTaskDetail(taskId);
+            this.currentDetailTask = task;
             document.getElementById('detailTaskIdInput').value = task.id;
             document.getElementById('detailTaskTitle').innerText = task.title;
             document.getElementById('detailTaskDesc').innerText = task.description || 'Không có mô tả chi tiết.';
             document.getElementById('detailStatus').innerText = task.status;
             document.getElementById('detailPriority').innerText = task.priority;
             document.getElementById('detailProgress').innerText = `${task.progress_percent}%`;
-            document.getElementById('detailLeadingDept').innerText = task.leading_department ? task.leading_department.name : '-';
-            document.getElementById('detailAssistingDept').innerText = task.assisting_department ? task.assisting_department.name : '-';
-            document.getElementById('detailAssignee').innerText = task.assignee ? `${task.assignee.full_name} (${task.assignee.position || task.assignee.role})` : 'Chưa phân công';
+            document.getElementById('detailLeadingDept').innerText = task.leading_department ? `${task.leading_department.name} (${task.leading_department.code})` : '-';
+            document.getElementById('detailAssistingDept').innerText = task.assisting_department ? `${task.assisting_department.name} (${task.assisting_department.code})` : '-';
+            document.getElementById('detailAssignee').innerText = task.assignee ? `${task.assignee.full_name} (${task.assignee.position || task.assignee.role})` : '🏢 [Tập thể đơn vị tự điều phối]';
+            document.getElementById('detailDueDate').innerText = task.due_date ? Common.formatDateTime(task.due_date) : 'Không đặt hạn';
+
+            // RACI Hierarchy Tree
+            this.renderDetailRaciTree(task);
 
             this.renderDetailWorkflowTimeline(task.workflow_steps || [], task.workflow_name);
             this.renderComments(task.comments || []);
             document.getElementById('modalTaskDetail').classList.remove('hidden');
         } catch (err) {
+            console.error('Lỗi mở chi tiết task:', err);
             Common.showToast('Lỗi nạp chi tiết công việc', 'error');
         }
+    },
+
+    renderDetailRaciTree(task) {
+        const container = document.getElementById('detailRaciTreeContainer');
+        if (!container) return;
+
+        const deptCode = task.leading_department ? task.leading_department.code : 'HueIC';
+        const steps = task.workflow_steps || [];
+        const assignedStaffs = [...new Set(steps.map(s => s.assignee_name).filter(Boolean))];
+
+        const staffPills = assignedStaffs.length > 0
+            ? assignedStaffs.map(name => `<span class="px-2 py-0.5 bg-blue-50 text-blue-900 border border-blue-200 rounded font-semibold text-[10.5px]">👤 ${name}</span>`).join('')
+            : (task.assignee ? `<span class="px-2 py-0.5 bg-blue-50 text-blue-900 border border-blue-200 rounded font-semibold text-[10.5px]">👤 ${task.assignee.full_name}</span>` : '<span class="text-slate-400 italic text-[10.5px]">Chưa phân công tiếp cho nhân viên</span>');
+
+        container.innerHTML = `
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2.5">
+                <div class="flex items-center justify-between">
+                    <span class="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center space-x-1.5">
+                        <i class="fa-solid fa-sitemap text-blue-800"></i>
+                        <span>Cây Phân Cấp Trách Nhiệm (RACI Hierarchy & Delegation Chain)</span>
+                    </span>
+                    <button type="button" onclick="TasksPage.openDelegateTaskModal(${task.id})" 
+                        class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-800 hover:text-white text-indigo-800 rounded-lg text-[11px] font-bold border border-indigo-200 transition flex items-center space-x-1">
+                        <i class="fa-solid fa-users text-[10px]"></i>
+                        <span>Phân công tiếp</span>
+                    </button>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2 text-xs">
+                    <!-- Level 1: Người giao việc (BGH / Lãnh đạo) -->
+                    <div class="flex items-center space-x-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs">
+                        <span class="w-5 h-5 rounded-full bg-slate-800 text-white font-bold text-[9px] flex items-center justify-center">🏛️</span>
+                        <div>
+                            <div class="text-[9.5px] text-slate-400 font-bold uppercase">Người giao việc</div>
+                            <div class="font-bold text-slate-900">Ban Giám Hiệu</div>
+                        </div>
+                    </div>
+
+                    <i class="fa-solid fa-arrow-right text-slate-400 text-xs"></i>
+
+                    <!-- Level 2: Trưởng đơn vị (Accountable) -->
+                    <div class="flex items-center space-x-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-amber-300 bg-amber-50/40 shadow-2xs">
+                        <span class="w-5 h-5 rounded-full bg-amber-600 text-white font-bold text-[9px] flex items-center justify-center">🏢</span>
+                        <div>
+                            <div class="text-[9.5px] text-amber-700 font-bold uppercase">Chịu trách nhiệm (Accountable)</div>
+                            <div class="font-bold text-slate-900">[${deptCode}] Trưởng đơn vị</div>
+                        </div>
+                    </div>
+
+                    <i class="fa-solid fa-arrow-right text-slate-400 text-xs"></i>
+
+                    <!-- Level 3: Nhân sự thực hiện từng bước (Responsible) -->
+                    <div class="flex-1 min-w-[200px] flex items-center space-x-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-blue-200 shadow-2xs">
+                        <div>
+                            <div class="text-[9.5px] text-blue-700 font-bold uppercase mb-1">Cán bộ thực thi (Responsible)</div>
+                            <div class="flex flex-wrap gap-1.5">
+                                ${staffPills}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
     },
 
     renderDetailWorkflowTimeline(steps, workflowName = null) {
@@ -1117,19 +1908,31 @@ const TasksPage = {
         }
 
         container.innerHTML = steps.map((s, idx) => `
-            <div class="flex items-start space-x-3 p-2.5 rounded-xl border ${s.is_completed ? 'bg-green-50/50 border-green-200' : (idx === done ? 'bg-blue-50 border-blue-200 ring-2 ring-blue-400/20' : 'bg-white border-slate-200')}">
+            <div class="flex items-start space-x-3 p-3 rounded-xl border ${s.is_completed ? 'bg-green-50/50 border-green-200' : (idx === done ? 'bg-blue-50 border-blue-200 ring-2 ring-blue-400/20' : 'bg-white border-slate-200')}">
                 <div class="w-7 h-7 rounded-full flex items-center justify-center shrink-0 font-mono font-black text-xs ${s.is_completed ? 'bg-green-600 text-white' : (idx === done ? 'bg-blue-800 text-white animate-pulse' : 'bg-slate-200 text-slate-600')}">
                     ${s.is_completed ? '<i class="fa-solid fa-check"></i>' : s.id}
                 </div>
-                <div class="flex-1">
-                    <div class="flex items-center justify-between">
+                <div class="flex-1 min-w-0">
+                    <div class="flex flex-wrap items-center justify-between gap-1">
                         <span class="font-bold text-xs ${s.is_completed ? 'text-green-900' : (idx === done ? 'text-blue-900' : 'text-slate-700')}">
                             Bước ${s.id}: ${s.title}
                         </span>
-                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${s.is_completed ? 'bg-green-100 text-green-800' : (idx === done ? 'bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-500')}">
-                            ${s.is_completed ? 'Đã hoàn thành' : (idx === done ? 'Đang thực hiện' : 'Chưa thực hiện')}
+                        <div class="flex items-center space-x-2">
+                            ${s.deadline ? `<span class="text-[10px] font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded"><i class="fa-regular fa-clock mr-1"></i>Hạn: ${s.deadline.split('T')[0]}</span>` : ''}
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${s.is_completed ? 'bg-green-100 text-green-800' : (idx === done ? 'bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-500')}">
+                                ${s.is_completed ? 'Đã hoàn thành' : (idx === done ? 'Đang thực hiện' : 'Chưa thực hiện')}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Step Assignee Delegation info -->
+                    <div class="mt-1 flex items-center space-x-2 text-[11px] text-slate-600">
+                        <span class="font-semibold text-blue-900 flex items-center space-x-1">
+                            <i class="fa-solid fa-user-tag text-blue-700"></i>
+                            <span>Thực hiện: ${s.assignee_name || (s.assignee ? s.assignee.full_name : 'Trưởng đơn vị tự điều phối')}</span>
                         </span>
                     </div>
+
                     ${s.note ? `<p class="text-[11px] text-slate-600 mt-1 bg-white p-2 rounded border border-slate-100"><i class="fa-solid fa-comment-dots mr-1 text-slate-400"></i>${s.note}</p>` : ''}
                     ${s.completed_at ? `<div class="text-[10px] text-slate-400 mt-0.5">Thời gian: ${Common.formatDateTime(s.completed_at)}</div>` : ''}
                 </div>
@@ -1139,6 +1942,216 @@ const TasksPage = {
 
     closeTaskDetailModal() {
         document.getElementById('modalTaskDetail').classList.add('hidden');
+    },
+
+    // ----------------------------------------------------
+    // PHÂN HỆ PHÂN CÔNG TIẾP TRONG ĐƠN VỊ (DELEGATION ENGINE)
+    // ----------------------------------------------------
+    currentDelegatingTask: null,
+    delegationMode: 'delegate', // 'self' | 'delegate'
+    delegationSteps: [],
+
+    async openDelegateTaskModal(taskId) {
+        let task = this.tasks.find(t => t.id === taskId);
+        if (!task) {
+            try {
+                task = await API.getTaskDetail(taskId);
+            } catch (e) {
+                Common.showToast('Không tìm thấy nhiệm vụ', 'error');
+                return;
+            }
+        }
+        this.currentDelegatingTask = task;
+        this.delegationMode = 'delegate';
+
+        // Context header
+        document.getElementById('delegateTaskTitle').innerText = task.title;
+        document.getElementById('delegateTaskDept').innerText = task.leading_department ? `[${task.leading_department.code}] ${task.leading_department.name}` : 'HueIC';
+        document.getElementById('delegateTaskDueDate').innerText = task.due_date ? task.due_date.split('T')[0] : 'Không có';
+
+        // Steps clone or fallback
+        if (task.workflow_steps && task.workflow_steps.length > 0) {
+            this.delegationSteps = JSON.parse(JSON.stringify(task.workflow_steps));
+        } else {
+            this.delegationSteps = [
+                { id: 1, title: 'Lập kế hoạch mục tiêu & Khảo sát hiện trạng (Plan)', assignee_id: null, assignee_name: '', deadline: task.due_date ? task.due_date.split('T')[0] : '' },
+                { id: 2, title: 'Triển khai thực hiện nhiệm vụ (Do)', assignee_id: null, assignee_name: '', deadline: task.due_date ? task.due_date.split('T')[0] : '' },
+                { id: 3, title: 'Kiểm tra, giám sát & Đánh giá kết quả (Check)', assignee_id: null, assignee_name: '', deadline: task.due_date ? task.due_date.split('T')[0] : '' },
+                { id: 4, title: 'Nghiệm thu, chuẩn hóa & Báo cáo BGH (Act)', assignee_id: null, assignee_name: '', deadline: task.due_date ? task.due_date.split('T')[0] : '' }
+            ];
+        }
+
+        this.switchDelegationMode('delegate');
+        this.renderDelegationSteps();
+        document.getElementById('modalDelegateTask').classList.remove('hidden');
+    },
+
+    closeDelegateTaskModal() {
+        document.getElementById('modalDelegateTask').classList.add('hidden');
+    },
+
+    switchDelegationMode(mode) {
+        this.delegationMode = mode;
+        const btnSelf = document.getElementById('delegateBtnSelf');
+        const btnDelegate = document.getElementById('delegateBtnDelegate');
+        const stepsContainer = document.getElementById('delegateStepsSection');
+
+        if (mode === 'self') {
+            btnSelf.className = 'flex-1 p-3 rounded-xl border-2 border-blue-800 bg-blue-50/70 text-blue-900 font-bold text-left transition';
+            btnDelegate.className = 'flex-1 p-3 rounded-xl border border-slate-200 bg-white text-slate-600 font-semibold text-left hover:bg-slate-50 transition';
+            if (stepsContainer) stepsContainer.classList.add('hidden');
+        } else {
+            btnDelegate.className = 'flex-1 p-3 rounded-xl border-2 border-blue-800 bg-blue-50/70 text-blue-900 font-bold text-left transition';
+            btnSelf.className = 'flex-1 p-3 rounded-xl border border-slate-200 bg-white text-slate-600 font-semibold text-left hover:bg-slate-50 transition';
+            if (stepsContainer) stepsContainer.classList.remove('hidden');
+        }
+    },
+
+    renderDelegationSteps() {
+        const container = document.getElementById('delegationStepsContainer');
+        const warningBox = document.getElementById('delegationUnassignedWarning');
+        if (!container) return;
+
+        const deptId = this.currentDelegatingTask.leading_department_id;
+        const parentDeadline = this.currentDelegatingTask.due_date ? this.currentDelegatingTask.due_date.split('T')[0] : '';
+
+        // Staff list in this department with workload
+        let unitUsers = this.users.filter(u => u.department_id === deptId || !u.department_id);
+        const usersWithWorkload = unitUsers.map(u => {
+            const wl = this.calculateUserWorkload(u.id);
+            return { ...u, workload: wl };
+        }).sort((a, b) => a.workload.active - b.workload.active);
+
+        let unassignedCount = 0;
+
+        container.innerHTML = this.delegationSteps.map((step, idx) => {
+            if (!step.assignee_id && !step.assignee_name) unassignedCount++;
+
+            const isTight = (step.deadline && step.deadline === parentDeadline);
+
+            return `
+                <div class="p-3 bg-white rounded-xl border border-slate-200 space-y-2.5 shadow-2xs">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-6 h-6 rounded-full bg-blue-100 text-blue-900 font-mono font-black text-xs flex items-center justify-center shrink-0">
+                            ${idx + 1}
+                        </span>
+                        <input type="text" value="${step.title}" 
+                            oninput="TasksPage.updateDelegationStepTitle(${idx}, this.value)"
+                            placeholder="Tên bước thực hiện..."
+                            class="flex-1 px-2.5 py-1 text-xs font-bold text-slate-900 border border-slate-200 rounded focus:outline-none focus:border-blue-800">
+                        <button type="button" onclick="TasksPage.removeDelegationStep(${idx})" class="text-slate-400 hover:text-red-600 p-1 transition" title="Xóa bước">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-8">
+                        <div>
+                            <select onchange="TasksPage.updateDelegationStepAssignee(${idx}, this.value, this.options[this.selectedIndex].text)"
+                                class="w-full px-2.5 py-1.5 text-xs font-semibold border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-blue-800 text-slate-800">
+                                <option value="">-- Chọn cán bộ thực hiện --</option>
+                                ${usersWithWorkload.map(u => {
+                                    const wl = u.workload;
+                                    let tag = `🟢 [Rảnh: 0 việc]`;
+                                    if (wl.overdue > 0 || wl.active >= 4) {
+                                        tag = `🔴 [⚠️ Quá tải: ${wl.active} việc, ${wl.overdue} trễ]`;
+                                    } else if (wl.active > 0) {
+                                        tag = `🟡 [Đang làm: ${wl.active} việc]`;
+                                    }
+                                    const isSelected = (step.assignee_id === u.id || step.assignee_name === u.full_name);
+                                    return `<option value="${u.id}" ${isSelected ? 'selected' : ''}>${u.full_name} (${u.role || 'Cán bộ'}) — ${tag}</option>`;
+                                }).join('')}
+                            </select>
+                        </div>
+                        <div>
+                            <input type="date" value="${step.deadline ? step.deadline.split('T')[0] : ''}" 
+                                max="${parentDeadline}"
+                                onchange="TasksPage.updateDelegationStepDeadline(${idx}, this.value)"
+                                class="w-full px-2.5 py-1.5 text-xs font-mono border border-slate-300 rounded-lg focus:outline-none focus:border-blue-800 text-slate-800">
+                            ${isTight ? `<div class="text-[10px] text-amber-700 font-semibold mt-0.5 flex items-center"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Trùng hạn gốc BGH — nên lùi 1-2 ngày để Trưởng phòng kiểm tra</div>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        if (warningBox) {
+            if (unassignedCount > 0) {
+                warningBox.innerHTML = `⚠️ <b>Lưu ý:</b> Còn <b>${unassignedCount}</b> bước chưa gán cán bộ thực hiện cụ thể.`;
+                warningBox.classList.remove('hidden');
+            } else {
+                warningBox.classList.add('hidden');
+            }
+        }
+    },
+
+    updateDelegationStepTitle(idx, title) {
+        if (this.delegationSteps[idx]) this.delegationSteps[idx].title = title;
+    },
+
+    updateDelegationStepAssignee(idx, userId, userText) {
+        if (this.delegationSteps[idx]) {
+            this.delegationSteps[idx].assignee_id = userId ? parseInt(userId) : null;
+            // Strip workload suffix for clean name
+            this.delegationSteps[idx].assignee_name = userText ? userText.split('(')[0].trim() : '';
+        }
+        this.renderDelegationSteps();
+    },
+
+    updateDelegationStepDeadline(idx, deadline) {
+        if (this.delegationSteps[idx]) {
+            this.delegationSteps[idx].deadline = deadline;
+        }
+        this.renderDelegationSteps();
+    },
+
+    addDelegationStep() {
+        const nextId = this.delegationSteps.length + 1;
+        const parentDeadline = this.currentDelegatingTask.due_date ? this.currentDelegatingTask.due_date.split('T')[0] : '';
+        this.delegationSteps.push({
+            id: nextId,
+            title: `Bước ${nextId}: Nội dung công việc`,
+            assignee_id: null,
+            assignee_name: '',
+            deadline: parentDeadline,
+            is_completed: false,
+            note: ''
+        });
+        this.renderDelegationSteps();
+    },
+
+    removeDelegationStep(idx) {
+        this.delegationSteps.splice(idx, 1);
+        this.delegationSteps.forEach((s, i) => s.id = i + 1);
+        this.renderDelegationSteps();
+    },
+
+    async handleSaveDelegation(e) {
+        e.preventDefault();
+        if (!this.currentDelegatingTask) return;
+
+        const taskId = this.currentDelegatingTask.id;
+
+        try {
+            if (this.delegationMode === 'self') {
+                await API.updateTaskProgress(taskId, {
+                    comment: `[Điều phối nội bộ] Trưởng đơn vị xác nhận tự trực tiếp thực hiện toàn bộ nhiệm vụ.`
+                });
+                Common.showToast('Đã xác nhận tự thực hiện nhiệm vụ!', 'success');
+            } else {
+                await API.updateTaskProgress(taskId, {
+                    workflow_steps: this.delegationSteps,
+                    comment: `[Điều phối nội bộ] Trưởng đơn vị đã phân công chi tiết ${this.delegationSteps.length} bước cho cán bộ thực thi.`
+                });
+                Common.showToast('Đã lưu phân công nhiệm vụ cho nhân viên thành công!', 'success');
+            }
+            this.closeDelegateTaskModal();
+            this.loadTasks();
+            if (this.currentDetailTask && this.currentDetailTask.id === taskId) {
+                this.openTaskDetail(taskId);
+            }
+        } catch (err) {
+            Common.showToast(err.message || 'Lỗi khi lưu phân công', 'error');
+        }
     },
 
     renderComments(comments) {
@@ -1183,3 +2196,4 @@ const TasksPage = {
 document.addEventListener('DOMContentLoaded', () => {
     TasksPage.init();
 });
+

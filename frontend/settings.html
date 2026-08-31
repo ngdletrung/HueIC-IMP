@@ -82,16 +82,18 @@
                 </a>
             </nav>
 
-            <!-- Bottom System Info -->
-            <div class="p-3 bg-slate-950/80 border-t border-slate-800/80 text-xs">
-                <div class="flex items-center space-x-2 text-slate-400 mb-1">
-                    <span class="w-2 h-2 rounded-full bg-green-400"></span>
-                    <span class="font-mono text-[11px]">Ports: 8880 | 8881 | 8882</span>
+            <!-- Bottom Credits -->
+            <div class="p-3 bg-slate-950/80 border-t border-slate-800/80 text-[11px] leading-relaxed text-slate-400">
+                <div class="text-slate-300 font-medium">
+                    © 09/2026 <span class="font-bold text-white">HueIC-IMP</span>
                 </div>
-                <a href="/docs" target="_blank" class="text-blue-400 hover:underline text-[11px] flex items-center space-x-1">
-                    <i class="fa-solid fa-book-bookmark text-[10px]"></i>
-                    <span>FastAPI Swagger UI Docs</span>
-                </a>
+                <div class="text-[10px] text-slate-400 mt-0.5">
+                    Idea & Direction by <span class="text-blue-400 font-medium">Nguyen Dinh Le Trung</span>
+                </div>
+                <div class="text-[9.5px] text-slate-500 flex items-center gap-1 mt-0.5">
+                    <i class="fa-solid fa-wand-magic-sparkles text-amber-400 text-[8.5px]"></i>
+                    <span>Built with AI Assistance.</span>
+                </div>
             </div>
         </aside>
 
@@ -158,6 +160,11 @@
                         class="settings-subnav px-3.5 py-2 rounded-lg transition whitespace-nowrap text-slate-600 hover:text-slate-900 flex items-center space-x-1.5">
                         <i class="fa-solid fa-route"></i>
                         <span>Quy Trình Mẫu (Workflows)</span>
+                    </button>
+                    <button onclick="SettingsPage.switchSubTab('themes')" id="subnav-themes"
+                        class="settings-subnav px-3.5 py-2 rounded-lg transition whitespace-nowrap text-slate-600 hover:text-slate-900 flex items-center space-x-1.5">
+                        <i class="fa-solid fa-palette text-amber-600"></i>
+                        <span>Màu Sắc &amp; Trạng Thái</span>
                     </button>
                 </div>
 
@@ -345,6 +352,54 @@
                     <!-- Workflows Cards Grid -->
                     <div id="workflowsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <!-- Dynamic Workflow Cards -->
+                    </div>
+                </div>
+
+                <!-- SUBPANE 5: CẤU HÌNH MÀU SẮC & THỨ TỰ TRẠNG THÁI (SYSTEM STATUS META) -->
+                <div id="subpane-themes" class="settings-subpane space-y-5 hidden">
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                                <i class="fa-solid fa-palette text-blue-700"></i>
+                                <span>Cấu Hình Quy Chuẩn Màu Sắc, Trạng Thái &amp; Mức Độ Ưu Tiên</span>
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Tùy biến tên hiển thị, mã màu và thứ tự sắp xếp trên Dashboard, Bảng công việc và Lịch trình.</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="SettingsPage.resetThemesDefault()" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition flex items-center space-x-1.5">
+                                <i class="fa-solid fa-rotate-left"></i>
+                                <span>Khôi phục chuẩn mặc định</span>
+                            </button>
+                            <button onclick="SettingsPage.saveThemesConfig()" class="px-4 py-2 bg-blue-800 hover:bg-blue-900 text-white text-xs font-bold rounded-lg shadow transition flex items-center space-x-1.5">
+                                <i class="fa-solid fa-floppy-disk"></i>
+                                <span>Lưu cấu hình hệ thống</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 2 Sections: Statuses & Priorities -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                        <!-- Left: Statuses Config -->
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-xs space-y-3">
+                            <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+                                <span class="font-bold text-xs text-slate-900 uppercase">1. Quy chuẩn Trạng thái công việc (Status)</span>
+                                <span class="text-[11px] text-slate-500">6 trạng thái chuẩn</span>
+                            </div>
+                            <div id="statusConfigList" class="space-y-2.5">
+                                <!-- Dynamic Status Rows -->
+                            </div>
+                        </div>
+
+                        <!-- Right: Priorities Config -->
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-xs space-y-3">
+                            <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+                                <span class="font-bold text-xs text-slate-900 uppercase">2. Quy chuẩn Mức độ ưu tiên (Priority)</span>
+                                <span class="text-[11px] text-slate-500">4 cấp độ chuẩn</span>
+                            </div>
+                            <div id="priorityConfigList" class="space-y-2.5">
+                                <!-- Dynamic Priority Rows -->
+                            </div>
+                        </div>
                     </div>
                 </div>
 

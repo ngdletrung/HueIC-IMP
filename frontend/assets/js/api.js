@@ -136,6 +136,10 @@ const API = {
         }
         return res;
     },
+    getWorkload(department_id = null) {
+        const url = department_id ? `/tasks/workload?department_id=${department_id}` : '/tasks/workload';
+        return this.request(url);
+    },
     deleteTask(id) {
         return this.request(`/tasks/${id}`, { method: 'DELETE' });
     },

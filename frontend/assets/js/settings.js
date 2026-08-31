@@ -71,6 +71,7 @@ const SettingsPage = {
         if (subTabId === 'users') this.loadUsersTable();
         if (subTabId === 'permissions') this.loadPermissionsView();
         if (subTabId === 'workflows') this.loadWorkflows();
+        if (subTabId === 'themes') this.renderThemesConfig();
     },
 
     // 1. Department Logic
@@ -859,6 +860,93 @@ const SettingsPage = {
         } catch (err) {
             Common.showToast(err.message || 'Lỗi khi xóa quy trình', 'error');
         }
+    },
+
+    // 5. System Themes & Status Meta Config
+    renderThemesConfig() {
+        const statuses = Common.getStatusConfig();
+        const priorities = Common.getPriorityConfig();
+
+        const statusContainer = document.getElementById('statusConfigList');
+        if (statusContainer) {
+            statusContainer.innerHTML = statuses.sort((a, b) => (a.order || 0) - (b.order || 0)).map((s, idx) => `
+                <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between gap-3">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-6 h-6 rounded bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center">${s.order || idx + 1}</span>
+                        <div>
+                            <div class="font-bold text-xs text-slate-800">${s.label}</div>
+                            <span class="text-[10px] text-slate-400 font-mono">${s.code}</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="flex items-center space-x-1.5">
+                            <label class="text-[11px] font-medium text-slate-500">Màu:</label>
+                            <input type="color" id="statusColor_${s.code}" value="${s.color}" class="w-7 h-7 p-0 border border-slate-300 rounded cursor-pointer">
+                        </div>
+                        <div class="flex items-center space-x-1.5">
+                            <label class="text-[11px] font-medium text-slate-500">Thứ tự:</label>
+                            <input type="number" id="statusOrder_${s.code}" value="${s.order || idx + 1}" min="1" max="10" class="w-12 px-1.5 py-1 border border-slate-300 rounded text-center text-xs font-bold">
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        const priorityContainer = document.getElementById('priorityConfigList');
+        if (priorityContainer) {
+            priorityContainer.innerHTML = priorities.sort((a, b) => (a.order || 0) - (b.order || 0)).map((p, idx) => `
+                <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between gap-3">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-6 h-6 rounded bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center">${p.order || idx + 1}</span>
+                        <div>
+                            <div class="font-bold text-xs text-slate-800">${p.label}</div>
+                            <span class="text-[10px] text-slate-400 font-mono">${p.code}</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="flex items-center space-x-1.5">
+                            <label class="text-[11px] font-medium text-slate-500">Màu:</label>
+                            <input type="color" id="priorityColor_${p.code}" value="${p.color}" class="w-7 h-7 p-0 border border-slate-300 rounded cursor-pointer">
+                        </div>
+                        <div class="flex items-center space-x-1.5">
+                            <label class="text-[11px] font-medium text-slate-500">Thứ tự:</label>
+                            <input type="number" id="priorityOrder_${p.code}" value="${p.order || idx + 1}" min="1" max="10" class="w-12 px-1.5 py-1 border border-slate-300 rounded text-center text-xs font-bold">
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+    },
+
+    saveThemesConfig() {
+        const statuses = Common.getStatusConfig();
+        const priorities = Common.getPriorityConfig();
+
+        statuses.forEach(s => {
+            const colInput = document.getElementById(`statusColor_${s.code}`);
+            const ordInput = document.getElementById(`statusOrder_${s.code}`);
+            if (colInput) s.color = colInput.value;
+            if (ordInput) s.order = parseInt(ordInput.value) || s.order;
+        });
+
+        priorities.forEach(p => {
+            const colInput = document.getElementById(`priorityColor_${p.code}`);
+            const ordInput = document.getElementById(`priorityOrder_${p.code}`);
+            if (colInput) p.color = colInput.value;
+            if (ordInput) p.order = parseInt(ordInput.value) || p.order;
+        });
+
+        Common.saveStatusConfig(statuses);
+        Common.savePriorityConfig(priorities);
+        Common.showToast('Đã lưu cấu hình quy chuẩn màu sắc & trạng thái thành công!', 'success');
+        this.renderThemesConfig();
+    },
+
+    resetThemesDefault() {
+        if (!confirm('Bạn có chắc chắn muốn khôi phục toàn bộ bảng màu và thứ tự về chuẩn mặc định của HueIC IMP?')) return;
+        Common.resetDefaultStatusPriorityConfig();
+        Common.showToast('Đã khôi phục cài đặt mặc định thành công!', 'success');
+        this.renderThemesConfig();
     }
 };
 

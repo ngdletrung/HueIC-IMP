@@ -607,6 +607,327 @@ Tài liệu này ghi lại chi tiết toàn bộ các phiên bản, mốc thời
   - `[MODIFY] .keywork.md` (Bổ sung Section 17)
   - `[MODIFY] HISTORY.md`
 
+---
+
+## 📌 [Phiên bản 2.5.0] - 31/08/2026: Tái Thiết Kế Toàn Diện Lịch Công Tác (Modern Work Calendar Redesign)
+- **Đồng Bộ Design System Warm Editorial**:
+  - Toàn bộ trang `calendar.html` và `calendar.js` được chuẩn hóa theo bảng màu `#F6F5F1`, `#16233D`, `#E4E1D8` cùng bộ font `Manrope` & `Inter`.
+- **Giải Quyết Triệt Để 7 Điểm Nghẽn UX Trên Lịch**:
+  - **Ô ngày co giãn theo nội dung**: Giảm min-height ngày trống xuống 64px, co giãn tự nhiên ~92px+ khi có việc, không còn khối trắng khổng lồ.
+  - **Tên sự kiện đa dòng & Tooltip**: Hỗ trợ 2 dòng (`line-clamp-2`) kèm `title` hiển thị trọn vẹn tên nhiệm vụ và mã đơn vị.
+  - **Điểm nhấn "Hôm nay" sắc nét**: Viền Teal 2px kèm badge nhỏ "Hôm nay".
+  - **Tách biệt 2 hệ màu ngày nghỉ & trạng thái**: Cuối tuần chỉ dùng màu chữ dịu `#B7756F` (không tô hồng nền), nhường màu nổi bật cho các trạng thái (Teal, Red, Amber, Green, Purple).
+  - **Chỉ số Top Bar có nhãn rõ**: `Quá hạn · X`, `Sắp hạn · Y`, `Nhắc nhở · Z`.
+  - **Mini Calendar Sidebar thông minh**: Có chấm nhỏ hổ phách đánh dấu ngày có sự kiện.
+  - **Duy trì đầy đủ 4 chế độ xem**: Tháng (Month), Tuần (Week), Ngày (Day), Danh sách (Agenda) mượt mà.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/calendar.html`
+  - `[MODIFY] frontend/assets/js/calendar.js`
+  - `[MODIFY] .keywork.md` (Bổ sung Section 18)
+  - `[MODIFY] HISTORY.md`
+
+---
+
+## 📌 [Phiên bản 2.5.1] - 31/08/2026: Tối Ưu Hóa Kích Thước Toàn Màn Hình & Trực Quan Hóa Đa Nhiệm Vụ Trên Lịch
+- **Mở Rộng Kích Thước Khung Lưới Toàn Màn Hình (Full-Height Viewport Layout)**:
+  - Loại bỏ khoảng trống thừa bên dưới bằng cách cho khung lưới Tháng (`cal-grid-wrapper`) tự động co giãn và lấp đầy 100% chiều cao vùng làm việc (`flex-1 h-full min-h-0`).
+  - Chiều cao các ô ngày được nâng lên mức lý tưởng (~110px - 140px/hàng trên PC), mang lại bố cục cân đối, thoáng đãng chuẩn mực Google Calendar / Notion Planner.
+- **Xử Lý Nhiều Công Việc Trong Ngày (Multi-Event Day Handling)**:
+  - Tự động hiển thị 2-3 chip công việc với 2 dòng tiêu đề, mã phòng ban và tiến độ.
+  - Khi một ngày có từ 4 công việc trở lên, thanh cuộn nội bộ mượt mà cùng nút pill `+X việc khác` sẽ xuất hiện.
+  - Tích hợp **Quick Day Modal**: Bấm vào bất kỳ ô ngày nào hoặc bấm nút `+X việc khác` sẽ mở ngay bảng xem nhanh danh sách toàn bộ nhiệm vụ trong ngày và hỗ trợ giao việc trực tiếp cho ngày đó.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/calendar.html`
+  - `[MODIFY] frontend/assets/js/calendar.js`
+  - `[MODIFY] HISTORY.md`
+
+---
+
+## 📌 [Phiên bản 2.6.0] - 31/08/2026: Tái Cơ Cấu Kiến Trúc Master Executive Portal & Phân Hệ Công Việc Chuyên Sâu
+- **Chuyển Đổi `index.html` Thành Master Executive Portal**:
+  - Tái thiết kế trang chủ thành **Cổng Giám Sát & Điều Hành Toàn Trường** tập hợp 4 phân hệ ngang:
+    1. *Phân Hệ Công Việc*: 4 Macro KPI strip, Action Queue (Quá hạn 🚨, Chờ duyệt 🟡) và thanh mini tiến độ 12 đơn vị.
+    2. *Phân Hệ Lịch Trình*: Lịch công tác trọng tâm hôm nay & 7 ngày tới, chuyển ngày nhanh.
+    3. *Phân Hệ Quản Trị Tài Sản*: Trạng thái khu thực hành, xưởng máy, thiết bị bảo dưỡng.
+    4. *Phân Hệ Văn Bản & Hồ Sơ*: Thống kê công văn đến, tờ trình chờ ký, quy chế ban hành.
+  - Tích hợp Dropdown lọc phạm vi (Toàn trường vs Từng đơn vị) cập nhật dữ liệu tự động.
+- **Tích Hợp React 18 + Recharts 2 Vào Phân Hệ Công Việc (`tasks.html`)**:
+  - Đưa toàn bộ Dashboard đồ họa số liệu chuyên sâu thành **Tab 1: Báo Cáo & Tiến Độ 12 Đơn Vị** của `tasks.html`.
+  - Hỗ trợ chuyển đổi mượt mà giữa các chế độ xem: `[📊 Báo Cáo & Tiến Độ]` ↔ `[📋 Danh Sách Việc]` ↔ `[📌 Bảng Kanban]` ↔ `[📅 Lịch Trình]`.
+  - Hỗ trợ deep link từ Bảng 12 đơn vị `[Xem việc →]` lọc trực tiếp danh sách nhiệm vụ của đơn vị đó.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/index.html`
+  - `[MODIFY] frontend/assets/js/dashboard.js`
+  - `[MODIFY] frontend/tasks.html`
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[NEW] frontend/assets/js/tasks_dashboard.js` (Bản JSX React 18 + Recharts 2 đầy đủ với Babel Standalone)
+  - `[MODIFY] .keywork.md` (Bổ sung Section 19)
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.6.1] - 31/08/2026: Khắc Phục Khớp Dữ Liệu 12 Đơn Vị & Cấu Hình Quy Chuẩn Màu Sắc / Trạng Thái
+- **Khắc Phục Khớp Dữ Liệu 12 Đơn Vị Trên Dashboard**:
+  - Sửa lỗi trích xuất `leading_dept_id` / `leading_department.id` từ API tasks giúp biểu đồ Recharts và Bảng chi tiết tiến độ nhận diện chính xác các đơn vị đang phát sinh công việc (Phòng ĐT, Phòng QTĐT...).
+- **Quy Chuẩn Thứ Tự & Màu Sắc Toàn Hệ Thống**:
+  - Sắp xếp thứ tự chuẩn cho Trạng thái: *Chưa bắt đầu ➡️ Đang làm ➡️ Chờ duyệt ➡️ Quá hạn ➡️ Hoàn thành ➡️ Tạm dừng*.
+  - Sắp xếp thứ tự chuẩn cho Mức độ ưu tiên: *Khẩn cấp ➡️ Mức độ cao ➡️ Trung bình ➡️ Mức độ thấp*.
+- **Tích Hợp Tab Cấu Hình Màu Sắc & Trạng Thái Vào `settings.html`**:
+  - Thêm Tab 5 `[🎨 Màu Sắc & Trạng Thái]` trong Thiết Lập Hệ Thống.
+  - Cho phép người dùng tùy biến mã màu (Color Picker), thứ tự hiển thị của từng Trạng thái / Mức độ ưu tiên.
+  - Bổ sung nút **"Khôi phục chuẩn mặc định" (Reset to Default)** giúp quay lại cấu hình mẫu ban đầu của HueIC IMP bất cứ lúc nào.
+- **Loại Bỏ Hoàn Toàn Babel CDN Khỏi Runtime (Zero-Babel Pure React)**:
+  - Chuyển đổi toàn bộ `tasks_dashboard.js` sang cấu trúc `React.createElement` thuần giúp mã nguồn thực thi đồng bộ tức thì (`synchronous loading`), triệt tiêu 100% độ trễ bất đồng bộ của Babel CDN và đảm bảo Tab Báo Cáo & Tiến Độ luôn render ngay lập tức khi mở trang.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/assets/js/common.js`
+  - `[MODIFY] frontend/assets/js/tasks_dashboard.js`
+  - `[MODIFY] frontend/tasks.html`
+  - `[MODIFY] frontend/settings.html`
+  - `[MODIFY] frontend/assets/js/settings.js`
+  - `[MODIFY] .keywork.md` (Bổ sung Section 20, 21, 22: Bộ Nguyên Tắc Kỹ Thuật Lập Trình & Viết Mã Sạch)
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.6.2] - 31/08/2026: Phản Ứng Động Thời Gian Thực Khi Chọn Phòng Ban / Tiêu Chí Lọc Trên Dashboard
+- **Đồng Bộ Hóa Bộ Lọc Phạm Vi Toàn Diện (Full Reactive Scope Filtering)**:
+  - Khi người dùng chọn một Phòng ban cụ thể (hoặc lọc theo Trạng thái, Ưu tiên, Tìm kiếm từ khóa, Quick filter):
+    1. *Dải 5 Thẻ KPI*: Tự động tính toán lại số lượng chỉ thuộc phạm vi đơn vị đó.
+    2. *Cơ Cấu Trạng Thái & Phân Bổ Ưu Tiên*: Tự động cập nhật biểu đồ phân đoạn và số lượng của riêng đơn vị.
+    3. *Biểu Đồ Cột Đứng & Bảng Chi Tiết (Drill-down Mode)*: Tự động chuyển từ hiển thị 12 đơn vị sang hiển thị tiến độ của **từng Cán bộ / Nhiệm vụ thực thi trong đơn vị đó**.
+    4. *Nút "Xem toàn trường"*: Xuất hiện tức thì để người dùng 1-click quay lại phạm vi 12 đơn vị toàn trường.
+- **Tương Tác Điều Hướng 1-Click Toàn Diện (Interactive 1-Click Drill-Down Navigation)**:
+  - Bấm vào bất kỳ thẻ nào trong **5 Thẻ KPI Strip** (*Tổng công việc, Đang thực hiện, Chờ nghiệm thu, Quá hạn tiến độ, Đã hoàn thành*): Hệ thống tự động chuyển sang tab `[📋 Danh Sách Việc]` và thiết lập ngay bộ lọc tương ứng với số liệu của thẻ đó.
+  - Bấm vào bất kỳ dòng nào trong **Cơ Cấu Trạng Thái** hoặc **Phân Bổ Ưu Tiên**: Tự động chuyển sang danh sách việc và lọc chính xác theo trạng thái / mức độ ưu tiên đã chọn.
+  - Thêm hiệu ứng hover nâng card (`translateY(-3px)`), bóng đổ và nhãn gợi ý `Xem →` trực quan.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/assets/js/tasks_dashboard.js`
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.7.1] - 31/08/2026: Tích Hợp Thanh Bộ Lọc & Tìm Kiếm Theo Phòng Ban Vào Trang Báo Cáo
+- **Bổ Sung Thanh Bộ Lọc & Tìm Kiếm Đa Tiêu Chí Vào `tasks.html`**:
+  - Tích hợp thanh công cụ gồm: Dropdown *Tất cả trạng thái*, Dropdown *Tất cả mức độ*, Dropdown *Tất cả đơn vị (12 phòng ban HueIC)* và ô *Tìm kiếm theo tiêu đề*.
+  - Khi người dùng chọn 1 phòng ban cụ thể (ví dụ `QTĐT` hoặc `ĐT`) hoặc nhập từ khóa tìm kiếm:
+    - Toàn bộ 5 thẻ KPI tự động tính toán lại chính xác theo phạm vi phòng ban đó.
+    - Biểu đồ Recharts và Bảng chi tiết tự động Drill-Down vào từng Cán bộ / Nhiệm vụ của đơn vị đó.
+## 📌 [Phiên bản 2.7.5] - 31/08/2026: Tách Biệt Lịch Công Việc Phân Hệ & Lịch Toàn Hệ Thống (Module Calendar Scoping)
+- **Tạo Mới Trang Lịch Chuyên Biệt Cho Module Quản Lý Công Việc (`tasks-calendar.html`)**:
+  - Khi đang làm việc trong Module Quản Lý Công Việc (`tasks.html`, `tasks-list.html`), bấm tab `[📅 Lịch Công Tác]` trên thanh Sub-nav sẽ mở **`tasks-calendar.html`** — hiển thị đúng 100% deadline/nhiệm vụ trong phân hệ công việc với đầy đủ thanh điều hướng 4 tab và bộ lọc 12 phòng ban.
+  - Khi bấm mục **`[📅 Lịch Công Tác]` ở Menu dọc bên trái (`calendar.html`)**: Mở **Lịch Tổng Thể Toàn Hệ Thống (Master System Calendar)** tổng hợp mọi sự kiện, cuộc họp và công việc toàn trường.
+- **Files Chỉnh Sửa & Thêm Mới**:
+## 📌 [Phiên bản 2.8.0] - 31/08/2026: Nâng Cấp Form Giao Nhiệm Vụ Thông Minh (Smart Task Dispatch Center)
+- **Phân Công Linh Hoạt Cho Cả Phòng Ban (Tập Thể) Hoặc Cán Bộ Đích Danh**:
+  - Hỗ trợ giao việc cho `🏢 [Tập thể đơn vị tự điều phối]` (khi BGH giao chung cho cả đơn vị).
+  - Hiển thị nhãn `🏢 [Mã ĐV] Tập thể đơn vị` rõ nét trên Bảng dữ liệu, Mobile Cards và Bảng thẻ Kanban.
+- **Bộ Chọn 5 Hình Thái Nhiệm Vụ (Task Archetypes Selector)**:
+  - `⚡ Việc Nhanh`: Tinh giản form còn 4 trường, ẩn khối quy trình, giao việc trong 5 giây.
+  - `🔄 Quy Trình Chuẩn`: Mở Pipeline và 5 Mẫu quy trình chuẩn của trường.
+  - `🔁 Lặp Lại Định Kỳ`: Thiết lập tần suất lặp lại (Hàng tuần, Hàng tháng, Hàng quý, Học kỳ).
+  - `🏢 Liên Đơn Vị`: Hỗ trợ phối hợp nhiều phòng ban.
+  - `🚨 Khẩn Cấp`: Tự động nâng ưu tiên cao nhất `KHAN_CAP`, mặc định deadline trong 24h-48h.
+- **Chỉ Số Cân Bằng Tải Cán Bộ (Workload Balance Indicator)**:
+  - Dropdown Cán bộ phụ trách tự động tính toán task tồn và phân loại `🟢 Rảnh: 0 việc` (đẩy lên đầu), `🟡 Đang làm: X việc`, `🔴 Quá tải: X việc, Y trễ`.
+- **Thư Viện Mẫu Quy Trình Chuẩn & Cảnh Báo An Toàn Deadline**:
+  - Tích hợp 5 mẫu quy trình chuẩn HueIC: *Mua sắm CSVC, Tổ chức sự kiện, Đề cương CTĐT, Bảo dưỡng thiết bị, PDCA toàn trường*.
+  - Cảnh báo vàng nếu Deadline người dùng chọn rơi vào Thứ 7 hoặc Chủ Nhật.
+## 📌 [Phiên bản 2.8.1] - 31/08/2026: Cơ Chế Phân Công Tiếp Đa Cấp (Hierarchical RACI Delegation & Step Ownership)
+- **Modal Phân Công Tiếp Trong Đơn Vị (`modalDelegateTask`)**:
+  - Khi nhiệm vụ được giao ở cấp đơn vị, Trưởng đơn vị có quyền mở modal điều phối nội bộ:
+    - *Chế độ 1*: `Tự thực hiện` — Trưởng đơn vị trực tiếp xử lý toàn bộ.
+    - *Chế độ 2*: `Phân công cho nhân viên` — Chia từng bước quy trình PDCA cho chuyên viên/kỹ thuật viên trong đơn vị kèm deadline con (`sub-deadline`).
+  - Gắn kèm **Chỉ số cân bằng tải nhân sự** và **Cảnh báo deadline con sát/trùng deadline gốc của BGH** (để dành thời gian cho Trưởng đơn vị kiểm tra trước khi báo cáo).
+- **Cây Trách Nhiệm Phân Cấp & Nhật Ký Truy Vết (RACI Hierarchy & Delegation Chain)**:
+  - Tích hợp Sơ đồ cây trực quan trong màn hình Chi tiết nhiệm vụ: `🏛️ Người giao (BGH)` ➡️ `🏢 Trưởng đơn vị (Accountable - Giải trình)` ➡️ `👥 Cán bộ thực thi (Responsible)`.
+  - Giúp BGH xóa bỏ hoàn toàn "hộp đen" và thấy rõ ai đang chịu trách nhiệm cho từng bước mốc cụ thể.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] frontend/tasks.html`
+  - `[MODIFY] frontend/tasks-list.html`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.8.3] - 31/08/2026: Tinh Chỉnh Tab Hình Thái & Bộ Điều Khiển Thời Hạn (Smart Duration & Dual Deadline Controller)
+- **Tinh Giản Thanh Chọn Hình Thái**:
+  - Xóa bỏ nhãn thừa `"Hình thái:"` giúp thanh tab rộng rãi, hiện đại.
+  - Xóa bỏ nút `[🚨 Khẩn Cấp]` ở đầu form để tránh trùng lặp với dropdown Mức độ ưu tiên.
+  - Giữ 4 hình thái cốt lõi: `[⚡ Việc Nhanh]`, `[🔄 Quy Trình Chuẩn]`, `[🔁 Lặp Lại Định Kỳ]`, `[🏢 Liên Đơn Vị]`.
+- **Bộ Điều Khiển Thời Hạn Thực Hiện Thông Minh (Dual Duration & Deadline Controller)**:
+  - Chọn mức độ ưu tiên tự động tính toán thời hạn phù hợp:
+    - `🔥 Khẩn cấp`: 1 ngày
+    - `Cao`: 3 ngày
+    - `Trung bình`: 7 ngày
+    - `Thấp`: 14 ngày
+  - **Liên kết 2 chiều thông minh**: Người dùng có thể trực tiếp nhập/sửa ô **Số ngày thực hiện** (ví dụ: `[ 5 ] ngày`) hoặc chọn ngày giờ trên **Calendar Date Picker**. Khi thay đổi bên nào thì bên kia tự động tính toán và cập nhật lại đồng bộ.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] frontend/tasks.html`
+## 📌 [Phiên bản 2.8.4] - 31/08/2026: Biểu Mẫu Giao Việc Động Thích Ứng Theo 3 Nhóm Vai Trò (Role-Adaptive Dynamic Dispatch Engine)
+- **1 Form Khung Dùng Chung - 3 Trải Nghiệm Khác Biệt Theo Ngữ Cảnh**:
+  - `🏛️ Ban Giám Hiệu`: Toàn quyền chỉ đạo 12 đơn vị, chọn đơn vị phối hợp, gán quy trình mốc toàn trường và phân công cán bộ/tập thể.
+  - `🏢 Trưởng Đơn Vị`: Đơn vị chủ trì bị khóa cứng theo đơn vị của mình, lọc danh sách cán bộ cấp dưới kèm chỉ số tải việc, gửi yêu cầu phối hợp.
+  - `👤 Cá Nhân / Cán Bộ`: Tối giản tuyệt đối với 2 chế độ:
+    - *📝 Việc Cá Nhân (My To-Do)*: Ẩn đơn vị & phân công (tự gán chính mình).
+    - *💡 Đề Xuất Cho Trưởng Phòng*: Gửi đề xuất nhiệm vụ lên cấp trên phê duyệt.
+- **Thanh Chuyển Đổi Vai Trò Nhanh Trên Modal (Role Switcher Pills)**:
+  - Cho phép người dùng chuyển đổi mô phỏng trực tiếp giữa `[🏛️ BGH]`, `[🏢 Trưởng Đơn Vị]`, `[👤 Cá Nhân]` để kiểm thử và trải nghiệm ngay trên giao diện.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] frontend/tasks.html`
+  - `[MODIFY] frontend/tasks-list.html`
+  - `[MODIFY] .keywork.md`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.8.5] - 31/08/2026: Tự Động Đồng Bộ Giờ Phút Hạn Chót Theo Thời Điểm Giao Việc (Exact Real-Time Deadline Sync)
+- **Bỏ Giờ Cố Định 17:00 (05:00 PM)**:
+  - Khi người dùng chọn Mức độ ưu tiên hoặc nhập số ngày thực hiện, hệ thống tự động bảo lưu chính xác **Giờ và Phút tại thời điểm giao việc** (`now.getHours()`, `now.getMinutes()`).
+  - Đảm bảo thời lượng thực hiện luôn tròn đúng 24h/ngày tính từ lúc giao việc thay vì bị lệch về 17:00 chiều.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.8.6] - 31/08/2026: Tái Cấu Trúc Bố Cục Form Gọn Gàng, Không Mở Rộng (Compact Non-Expanding Form Layout)
+- **Bố Cục Mới Không Bị Tràn Vỡ**:
+  - Di chuyển "Phân công thực hiện" lên cùng hàng với "Đơn vị chủ trì" — tiết kiệm 1 hàng chiều dọc.
+  - Tách "Số ngày làm" thành cột riêng (5 | 3 | 4 cols), không nhét chung vào ô Deadline co bóp.
+  - Ô `datetime-local` "Hạn chót (Deadline)" chiếm toàn width cột, hiển thị ngày giờ đầy đủ, không bị cắt ngắn.
+## 📌 [Phiên bản 2.8.7] - 31/08/2026: Bổ Sung Chế Độ Giao Miệng Cho Cá Nhân & Bộ Điều Khiển Mức Ưu Tiên Chuẩn Executive (Executive Priority & Deadline Controller)
+- **Bổ Sung Chế Độ "Việc Giao Miệng" Cho Cá Nhân**:
+  - Cá nhân được chọn giữa 3 chế độ:
+    1. `📝 Việc Cá Nhân (To-Do)`: Tự quản lý việc cá nhân (ẩn số hiệu văn bản để form tối giản).
+    2. `🗣️ Việc Giao Miệng`: Mở trường `Người giao việc / Người yêu cầu *` (VD: Thầy Hiệu trưởng, Thầy Khoa...).
+    3. `💡 Đề Xuất Lên Cấp Trên`: Gửi ý kiến/nhiệm vụ lên Trưởng phòng duyệt.
+- **Nâng Cấp Widget Mức Độ Ưu Tiên & Hạn Chót Chuẩn Executive**:
+  - Loại bỏ dropdown thô sơ và sự lặp lại từ "7 ngày" vô nghĩa 3 lần.
+  - Sử dụng **Segmented Pill Selector (4 Mức)**: `[⚪ Thấp (14d)] [🔵 Trung bình (7d)] [🟡 Cao (3d)] [🔥 Khẩn cấp (1d)]` - 1 chạm đổi màu sắc nét.
+  - Tích hợp **Bộ đếm ngày Stepper `[-] [ X ngày ] [+]`** tăng giảm ngày cực nhanh.
+  - Ô chọn Deadline ngày giờ thực tế rộng rãi, có badge tổng kết `Thời hạn: X ngày` trên header widget.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] frontend/tasks.html`
+  - `[MODIFY] frontend/tasks-list.html`
+  - `[MODIFY] .keywork.md`
+## 📌 [Phiên bản 2.8.8] - 31/08/2026: Tinh Gọn Khối Ưu Tiên & Deadline Về Đúng 1 Dòng Duy Nhất (Single-Row Priority & Deadline Bar)
+- **Tối Ưu Chiều Dọc Tuyệt Đối**:
+  - Gộp toàn bộ 3 thành phần: *Mức độ ưu tiên (4 nút pill 1 chạm)*, *Số ngày làm*, *Hạn chót (Deadline)* vào đúng **1 hàng ngang duy nhất** (`sm:grid-cols-12: 6cols | 2cols | 4cols`).
+  - Tiết kiệm hơn 60% chiều cao form, giải quyết dứt điểm tình trạng form bị dài trang và phải cuộn nhiều.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] frontend/tasks.html`
+  - `[MODIFY] frontend/tasks-list.html`
+## 📌 [Phiên bản 2.8.9] - 31/08/2026: Tối Ưu Hạn Chót Chỉ Ngày (Loại Bỏ Giờ Phút AM/PM Cồng Kềnh)
+- **Chuẩn Hóa Ô Hạn Chót (Deadline)**:
+  - Chuyển trường Hạn chót từ `datetime-local` sang `type="date"` (định dạng `YYYY-MM-DD`).
+  - Loại bỏ hoàn toàn giờ phút giây AM/PM cồng kềnh, tránh việc vỡ dòng chữ.
+  - Tỉ lệ phân chia 1 dòng hoàn hảo: `[Ưu tiên (5 cols)] [Số ngày (3 cols)] [Hạn chót (4 cols)]` hiển thị rộng rãi, vừa vặn, không bị quấn dòng.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] frontend/tasks.html`
+## 📌 [Phiên bản 2.8.10] - 31/08/2026: Tích Hợp Ô "Người Giao Việc" Có Tìm Kiếm Nhanh Cho Cá Nhân & Tối Giản Chế Độ Staff
+- **Tối Giản Chế Độ Staff**:
+  - Gọn gàng với 2 nút chuyển đổi trực quan: `📝 Việc Cá Nhân (My To-Do)` và `💡 Đề Xuất Cho Trưởng Phòng`.
+- **Thêm Trường "Người Giao Việc / Người Yêu Cầu" (Searchable Datalist)**:
+  - Tự động nạp danh sách cán bộ, giảng viên, Ban Giám hiệu toàn trường vào `<datalist id="assignerList">`.
+  - Hỗ trợ gõ tìm kiếm nhanh theo tên hoặc đơn vị/chức vụ tức thì, đồng thời cho phép nhập tự do.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] frontend/tasks.html`
+## 📌 [Phiên bản 2.8.11] - 31/08/2026: Điều Chỉnh Tỉ Lệ Cột Ưu Tiên Rộng Rãi (Chống Che Chữ Truncate)
+- **Khắc Phục Hoàn Toàn Lỗi Bị Cắt Chữ `...`**:
+  - Tăng độ rộng cột Mức ưu tiên lên **7 cột** (`sm:col-span-7`), điều chỉnh Số ngày về **2 cột** (`sm:col-span-2`), Hạn chót về **3 cột** (`sm:col-span-3`).
+  - Sử dụng nhãn chuẩn: `⚪ Thấp` • `🔵 T.Bình` • `🟡 Cao` • `🔥 Khẩn`, loại bỏ thuộc tính `truncate` và thêm `whitespace-nowrap` giúp chữ hiển thị trọn vẹn, sắc nét 100%.
+## 📌 [Phiên bản 2.8.12] - 31/08/2026: Custom Searchable Combobox Cho Người Giao Việc & Đồng Bộ 2 Chiều Số Ngày <-> Mức Ưu Tiên
+- **Nâng Cấp Custom Combobox Dropdown Cho "Người Giao Việc"**:
+  - Loại bỏ hoàn toàn native `<datalist>` xấu và tràn giao diện.
+  - Thay bằng Custom Dropdown có hiệu ứng bóng mờ cao cấp (`shadow-2xl`), bo tròn `rounded-xl`, giới hạn cuộn độc lập `max-h-48`, hiển thị avatar icon (`🏛️` BGH, `🏢` Trưởng phòng, `👤` Cán bộ) cùng mã phòng ban.
+  - Tự động đóng khi click ra ngoài modal/input và có nút `✕` xóa nhanh.
+- **Đồng Bộ Hai Chiều Thông Minh Số Ngày & Mức Độ Ưu Tiên**:
+  - Khi nhập hoặc chỉnh `Số ngày` (hoặc chọn ngày Deadline): Hệ thống tự động tính toán và kích hoạt Mức độ ưu tiên tương ứng (`<=1` ngày ➡️ Khẩn, `2-3` ngày ➡️ Cao, `4-7` ngày ➡️ T.Bình, `>=8` ngày ➡️ Thấp).
+## 📌 [Phiên bản 2.8.13] - 31/08/2026: Loại Bỏ Hoàn Toàn Trường "Số Hiệu Văn Bản / Chỉ Đạo" Giúp Form Tinh Gọn
+- **Tối Giản Hóa Form Giao Việc**:
+  - Loại bỏ hoàn toàn trường `taskDocRef` ("Số hiệu văn bản / Chỉ đạo") không cần thiết.
+  - Khi ở chế độ BGH hoặc Trưởng phòng, ô "Mô tả chi tiết yêu cầu & mục tiêu" chiếm trọn vẹn toàn bộ bề ngang hàng (3 cols), mang lại trải nghiệm viết mô tả rộng rãi, thoáng mắt.
+  - Khi ở chế độ Cá nhân, ô Mô tả (2 cols) kết hợp hài hòa với ô Người giao việc (1 col).
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] frontend/tasks.html`
+## 📌 [Phiên bản 2.8.14] - 31/08/2026: Lưu Trữ & Đồng Thuận Bản Đặc Tả Kỹ Thuật Tổng Thể (Final Blueprint)
+- **Tài Liệu Hóa Chuẩn Cứng Toàn Diện**:
+  - Ghi nhận đầy đủ 4 Trụ Cột Chốt Cứng (`parent_id`, Escalation 3 Nấc, Visibility 3 Tầng, Recurring Rules riêng biệt), Quy trình chuẩn 6 bước và Schema CSDL vào `.keywork.md` (Mục 28) và `README.md` (Mục 7).
+## 📌 [Phiên bản 2.8.15] - 31/08/2026: Hoàn Thiện 100% Sơ Đồ Mermaid Với AI Suggester & Vòng Lặp Trả Việc Khép Kín
+- **Tối Ưu Hóa Sơ Đồ Quy Trình (End-to-End Diagram)**:
+  - Bổ sung node `Smart Workflow Suggester` nhận diện từ khóa tự động trước khi chọn hình thái công việc.
+  - Khép kín luồng ngoại lệ: Nối `RejectToBGH` quay về `FormBGH` (BGH đọc lý do & điều chuyển đơn vị khác) và nối `ReturnToDept` quay về `AssignStaff` (Trưởng đơn vị phân bổ nhân sự khác).
+## 📌 [Phiên bản 2.9.0] - 31/08/2026: Triển Khai Toàn Diện Bản Đặc Tả Kỹ Thuật Tổng Thể (Final Blueprint)
+- **Nâng Cấp Data Model Backend & API (`tasks.py`, `models/task.py`)**:
+  - Tích hợp `parent_id` (Self-referencing Foreign Key), `TaskAssignment`, `TaskRecurringRule`, `TaskType`, `VisibilityScope`, `ProgressRule`.
+  - Triển khai hàm `recalculate_parent_progress(db, parent_id)` tự động tính lũy kế tiến độ cha khi các task con cập nhật %.
+  - Xây dựng API `GET /api/v1/tasks/workload` cung cấp chỉ số tải công việc thời gian thực của cán bộ (`🟢 Rảnh` / `🟡 Vừa phải` / `🔴 Quá tải`).
+- **Bộ Điều Khiển Frontend Thông Minh (`tasks.js`, `api.js`, HTML)**:
+  - **Weekend Smart Shield**: Tự động phát hiện hạn chót rơi vào Thứ 7/Chủ Nhật và đưa ra gợi ý 1-chạm lùi sang Thứ Hai đầu tuần.
+  - **Smart Step Milestones**: Tự động chia đều số ngày và hiển thị mốc thời hạn hoàn thành `(Mốc: DD/MM)` cho từng bước quy trình.
+  - **Smart Workload Indicator**: Tích hợp trực tiếp tải công việc vào dropdown chọn Cán bộ thực hiện.
+  - **Power-User Shortcuts & Validation Shield**: Bấm `Ctrl + Enter` để giao việc nhanh, `Esc` đóng Modal; chặn form và cảnh báo rung đỏ nếu thiếu Tiêu đề hoặc Đơn vị chủ trì.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] backend/app/models/task.py`
+  - `[MODIFY] backend/app/models/__init__.py`
+  - `[MODIFY] backend/app/schemas/task.py`
+  - `[MODIFY] backend/app/api/v1/tasks.py`
+  - `[MODIFY] backend/app/db/init_db.py`
+## 📌 [Phiên bản 2.9.1] - 31/08/2026: Tối Giản Quy Trình Bước Mốc - Loại Bỏ Mốc Ngày Chia Đều Tự Động
+- **Tinh Gọn Giao Diện Các Bước Quy Trình**:
+  - Loại bỏ hoàn toàn nhãn `(Mốc: DD/MM)` tính toán chia đều ngày tự động do không phản ánh đúng thực tế thời lượng của từng bước nghiệp vụ.
+  - Trả lại giao diện các bước mốc (Pipeline Steps) sạch sẽ, thoáng mắt, trực quan và dễ quản lý.
+## 📌 [Phiên bản 2.9.2] - 31/08/2026: Chuẩn Hóa Footer Sidebar Bản Quyền & Tác Quyền Hệ Thống
+- **Cập Nhật Toàn Bộ Footer Sidebar**:
+  - Thay thế thông tin cổng kỹ thuật `Ports: 8880 | 8881 | 8882` và link Swagger bằng phần chân trang bản quyền chính thức:
+    * `© 09/2026 HueIC-IMP`
+    * `Idea & Direction by Nguyen Dinh Le Trung`
+    * `Built with AI Assistance.`
+  - Áp dụng đồng bộ trên toàn bộ 6 trang giao diện: `index.html`, `tasks.html`, `tasks-list.html`, `settings.html`, `assets.html`, `documents.html`.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/index.html`
+  - `[MODIFY] frontend/tasks.html`
+  - `[MODIFY] frontend/tasks-list.html`
+  - `[MODIFY] frontend/settings.html`
+  - `[MODIFY] frontend/assets.html`
+  - `[MODIFY] frontend/documents.html`
+  - `[MODIFY] HISTORY.md`
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

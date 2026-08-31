@@ -132,7 +132,140 @@ HueIC IMP tích hợp 4 tính năng đột phá được chắt lọc theo tinh 
 
 ---
 
-## 🚀 7. Hướng Dẫn Khởi Chạy (Local & Server)
+## 🏗️ 7. Bản Đặc Tả Kỹ Thuật Tổng Thể & 4 Trụ Cột Chốt Cứng (Final Blueprint)
+
+Hệ thống điều hành và phân công nhiệm vụ HueIC IMP được xây dựng dựa trên 4 trụ cột kiến trúc cốt lõi:
+
+1. **Mô hình Dữ liệu Đơn vị Sự thật (`parent_id`)**:
+   - Tận dụng `parent_id` (Self-referencing Foreign Key) trên bảng `tasks` để phân rã nhiệm vụ thành các bước con/mốc PDCA.
+   - Hỗ trợ công thức tính lũy kế tiến độ cha (`progress_rule`: `AVERAGE`, `WEIGHTED`, `ALL`).
+2. **Động cơ Cảnh báo 3 Nấc Escalation (Human-in-the-loop)**:
+   - `24h`: Nhắc nhở thân thiện Trưởng đơn vị.
+   - `48h`: Cảnh báo Vàng trên Dashboard BGH.
+   - `72h`: Cảnh báo Đỏ cấp BGH kèm 3 nút hành động chủ động: `[Điều chuyển]`, `[Nhắc lại lần cuối]`, `[Bỏ qua]`.
+3. **Phân tầng Hiển thị 3 Tầng Tuyệt Đối (`visibility`)**:
+   - `PRIVATE`: Việc cá nhân (To-Do) - Ẩn hoàn toàn khỏi Dashboard chung.
+   - `DEPARTMENT`: Việc nội bộ phòng/khoa - Tính KPI Đơn vị, ẩn khỏi Dashboard chiến lược BGH.
+### 📊 Sơ Đồ Luồng Xử Lý Tổng Thể (End-to-End Workflow Diagram)
+
+```mermaid
+flowchart TD
+    %% ==========================================
+    %% KHỞI TẠO & PHÂN LOẠI (STEPS 1 & 2)
+    %% ==========================================
+    subgraph S1_S2 ["BƯỚC 1 & 2: KHỞI TẠO & CHỌN HÌNH THÁI (FORM ĐỘNG)"]
+        Start([Bắt đầu khởi tạo]) --> RoleCheck{Role người tạo?}
+        
+        RoleCheck -->|BGH| FormBGH["Form BGH: Giao chiến lược / toàn trường"]
+        RoleCheck -->|Trưởng Đơn Vị| FormTP["Form Trưởng phòng: Giao chuyên môn / phân rã"]
+        RoleCheck -->|Nhân Viên| FormNV["Form Chuyên viên: To-do cá nhân / Đề xuất"]
+
+        FormBGH --> TitleInput["Nhập Tiêu Đề Nhiệm Vụ"]
+        FormTP --> TitleInput
+        FormNV --> TitleInput
+
+        TitleInput --> SmartSuggest{"Smart Workflow Suggester<br/>(AI Nhận diện từ khóa Mua sắm, Đề cương...)"}
+        SmartSuggest -->|Khớp từ khóa| AutoSuggest["Gợi ý 1-Click: Áp dụng Quy trình Chuẩn"]
+        SmartSuggest -->|Không khớp / Tùy chọn| TaskType
+
+        AutoSuggest --> TaskType
+
+        TaskType{Chọn Hình Thái Nhiệm Vụ}
+        TaskType -->|1. Giao nhanh| TypeQuick["Loại: Giao nhanh - Ad-hoc"]
+        TaskType -->|2. Quy trình chuẩn| TypePDCA["Loại: Gắn Workflow Template PDCA"]
+        TaskType -->|3. Định kỳ| TypeRecurring["Loại: Định kỳ - Ghi task_recurring_rules"]
+        TaskType -->|4. Phối hợp| TypeCollab["Loại: Đa phòng ban / RACI Matrix"]
+    end
+
+    %% ==========================================
+    %% THIẾT LẬP THÔNG MINH (STEPS 3, 4, 5)
+    %% ==========================================
+    subgraph S3_S4_S5 ["BƯỚC 3, 4, 5: ĐIỀU PHỐI, DEADLINE & PHÂN RÃ MỐC"]
+        TypeQuick & TypePDCA & TypeRecurring & TypeCollab --> AssignCheck["Chọn Đầu Mối: Bật Smart Workload Indicator"]
+        AssignCheck --> SetPriority["Đặt Mức Ưu Tiên & Deadline"]
+        
+        SetPriority --> WeekendCheck{Rơi vào Thứ 7 / CN?}
+        WeekendCheck -->|Có| AutoShift["Gợi ý 1-Chạm: Tự động lùi sang Thứ 2"]
+        WeekendCheck -->|Không| MilestoneSetup["Thiết lập các mốc thực hiện"]
+        AutoShift --> MilestoneSetup
+
+        MilestoneSetup --> SplitCheck{Có phân rã chi tiết?}
+        SplitCheck -->|Có| CreateChildTasks["Tạo các Task Con với parent_id<br/>Tự động chia đều số ngày theo PDCA<br/>Gán progress_rule: AVERAGE | WEIGHTED"]
+        SplitCheck -->|Không| SingleTask["Giữ nguyên Single Task instance"]
+    end
+
+    %% ==========================================
+    %% PHẠM VI HIỂN THỊ (VISIBILITY FILTER)
+    %% ==========================================
+    subgraph VisibilityScope ["LỌC PHẠM VI HIỂN THỊ (VISIBILITY)"]
+        CreateChildTasks & SingleTask --> ScopeFilter{Gán nhãn Visibility}
+        ScopeFilter -->|PRIVATE| VisPrivate["PRIVATE: Việc cá nhân<br/>Ẩn hoàn toàn khỏi Dashboard chung"]
+        ScopeFilter -->|DEPARTMENT| VisDept["DEPARTMENT: Việc nội bộ phòng<br/>Tính KPI Đơn vị - Ẩn khỏi BGH"]
+        ScopeFilter -->|ORGANIZATIONAL| VisOrg["ORGANIZATIONAL: Việc toàn trường<br/>Hiển thị Dashboard BGH"]
+    end
+
+    %% ==========================================
+    %% BƯỚC 6: PHÁT LỆNH & THỰC THI (STEP 6)
+    %% ==========================================
+    subgraph S6_Execution ["BƯỚC 6: PHÁT LỆNH, VẬN HÀNH & SMART RULES"]
+        VisPrivate & VisDept & VisOrg --> Dispatch["Ghi task_assignments & Phát lệnh"]
+        
+        Dispatch --> DeptPending{Trưởng Đơn Vị Tiếp Nhận}
+        
+        %% Luồng phân công của Trưởng đơn vị
+        DeptPending -->|Nhận & Phân công| AssignStaff["Gán Nhân Viên thực hiện - RACI: Responsible"]
+        DeptPending -->|Phòng quá tải / Trả việc| RejectToBGH["Từ chối / Trả lại BGH kèm lý do"]
+        RejectToBGH -->|BGH nhận lý do & Giao lại| FormBGH
+        
+        %% Smart Rule: Escalation Engine
+        DeptPending -->|Không thao tác| EscalationTimer{Bộ đếm thời gian}
+        EscalationTimer -->|Sau 24h| EscNac1["Nấc 1: Digest / Ping nhắc nhở Trưởng Đơn Vị"]
+        EscalationTimer -->|Sau 48h| EscNac2["Nấc 2: Cảnh báo Vàng trên Dashboard BGH"]
+        EscalationTimer -->|Sau 72h| EscNac3["Nấc 3: Cảnh báo Đỏ cấp BGH<br/>BGH chọn: Điều chuyển | Nhắc lần cuối | Bỏ qua"]
+
+        %% Nhân viên thực hiện
+        AssignStaff --> StaffAction{Nhân Viên Tiếp Nhận}
+        StaffAction -->|Từ chối quá tải| ReturnToDept["Trả lại Trưởng Đơn Vị phân bổ lại"]
+        ReturnToDept -->|Trưởng phòng gán nhân sự khác| AssignStaff
+        StaffAction -->|Chấp nhận| Working["Thực hiện & Cập nhật % Tiến độ PDCA"]
+        
+        Working --> BlockCheck{Bị nghẽn liên phòng?}
+        BlockCheck -->|Có| EscalateCross["Kích hoạt Hỗ trợ Liên phòng<br/>Ping Trưởng 2 phòng phối hợp"]
+        BlockCheck -->|Không| CheckDone["Nộp báo cáo / Minh chứng hoàn thành"]
+        EscalateCross --> Working
+    end
+
+    %% ==========================================
+    %% NGHIỆM THU & TÍNH TOÁN LŨY KẾ
+    %% ==========================================
+    subgraph Review_Closure ["NGHIỆM THU & ĐÓNG NHIỆM VỤ"]
+        CheckDone --> DeptReview{Trưởng Đơn Vị Nghiệm Thu}
+        DeptReview -->|Chưa đạt| RequestRework["Yêu cầu chỉnh sửa / Làm lại bước con"]
+        RequestRework --> Working
+        
+        DeptReview -->|Đạt 100%| ChildClosed["Đóng toàn bộ Task con"]
+        
+        ChildClosed --> CascadeRule{Kiểm tra Cascade Rule}
+        CascadeRule -->|Tất cả Task con = 100%| RollupProgress["Tính lũy kế tiến độ lên Task Cha<br/>Progress_Parent = 100%"]
+        CascadeRule -->|Còn task con dở dang| BlockParentClosure["Chặn đóng Task Cha"]
+        
+        RollupProgress --> BGHVerify{BGH Xác Nhận Cuối}
+        BGHVerify -->|Đạt mục tiêu| TaskCompleted(["HOÀN THÀNH NHIỆM VỤ - COMPLETED"])
+        BGHVerify -->|Chỉ đạo thêm| FormBGH
+    end
+
+    %% ==========================================
+    %% HẠ TẦNG THÔNG BÁO (NOTIFICATION ENGINE)
+    %% ==========================================
+    subgraph NotificationLayer ["HẠ TẦNG THÔNG BÁO CHỐNG BÃO"]
+        EscNac3 & EscalateCross & RejectToBGH -.->|Khẩn cấp| NotifRealtime["Gửi REALTIME Webhook / Push ngay"]
+        Working & CheckDone & EscNac1 -.->|Cập nhật định kỳ| NotifDigest["Gom vào Hàng đợi - Gửi DIGEST mỗi 2h"]
+    end
+```
+
+---
+
+## 🚀 8. Hướng Dẫn Khởi Chạy (Local & Server)
 
 ### 🔹 Khởi chạy trên Môi trường Phát triển (Windows / macOS)
 Mở PowerShell hoặc Terminal tại thư mục dự án và chạy:
@@ -170,4 +303,5 @@ sudo ufw reload
 # 4. Khởi động các container nền tảng
 sudo docker compose up -d --build
 ```
+
 

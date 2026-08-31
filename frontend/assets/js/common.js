@@ -251,5 +251,57 @@ const Common = {
                 icon: '<i class="fa-regular fa-calendar text-slate-500 mr-1"></i>'
             };
         }
+    },
+
+    // ----------------------------------------------------
+    // SYSTEM THEME, STATUS & PRIORITY METADATA CONFIG
+    // ----------------------------------------------------
+    DEFAULT_STATUS_CONFIG: [
+        { code: 'CHUA_BAT_DAU', label: 'Chưa bắt đầu', color: '#8B96AC', bg: '#F1F0EB', tone: 'grey', order: 1 },
+        { code: 'DANG_THUC_HIEN', label: 'Đang làm', color: '#0E7C7B', bg: '#E4F1F0', tone: 'teal', order: 2 },
+        { code: 'CHO_DUYET', label: 'Chờ duyệt', color: '#C17817', bg: '#FBF0DF', tone: 'amber', order: 3 },
+        { code: 'TRE_HAN', label: 'Quá hạn', color: '#B3261E', bg: '#FBE9E7', tone: 'red', order: 4 },
+        { code: 'HOAN_THANH', label: 'Hoàn thành', color: '#3B8B6E', bg: '#E7F3EC', tone: 'green', order: 5 },
+        { code: 'TAM_DUNG', label: 'Tạm dừng', color: '#6B5B95', bg: '#EFEBF6', tone: 'purple', order: 6 }
+    ],
+
+    DEFAULT_PRIORITY_CONFIG: [
+        { code: 'KHAN_CAP', label: 'Khẩn cấp', color: '#B3261E', order: 1 },
+        { code: 'CAO', label: 'Mức độ cao', color: '#C17817', order: 2 },
+        { code: 'TRUNG_BINH', label: 'Trung bình', color: '#0E7C7B', order: 3 },
+        { code: 'THAP', label: 'Mức độ thấp', color: '#8B96AC', order: 4 }
+    ],
+
+    getStatusConfig() {
+        try {
+            const raw = localStorage.getItem('hueic_status_config');
+            if (raw) return JSON.parse(raw);
+        } catch (e) {}
+        return JSON.parse(JSON.stringify(this.DEFAULT_STATUS_CONFIG));
+    },
+
+    saveStatusConfig(cfg) {
+        localStorage.setItem('hueic_status_config', JSON.stringify(cfg));
+    },
+
+    getPriorityConfig() {
+        try {
+            const raw = localStorage.getItem('hueic_priority_config');
+            if (raw) return JSON.parse(raw);
+        } catch (e) {}
+        return JSON.parse(JSON.stringify(this.DEFAULT_PRIORITY_CONFIG));
+    },
+
+    savePriorityConfig(cfg) {
+        localStorage.setItem('hueic_priority_config', JSON.stringify(cfg));
+    },
+
+    resetDefaultStatusPriorityConfig() {
+        localStorage.removeItem('hueic_status_config');
+        localStorage.removeItem('hueic_priority_config');
+        return {
+            statuses: JSON.parse(JSON.stringify(this.DEFAULT_STATUS_CONFIG)),
+            priorities: JSON.parse(JSON.stringify(this.DEFAULT_PRIORITY_CONFIG))
+        };
     }
 };

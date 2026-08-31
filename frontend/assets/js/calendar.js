@@ -1,8 +1,8 @@
 /**
- * CalendarPage v2.3.0 - HueIC IMP
- * Inspired by Google Calendar + Notion Calendar + ClickUp Planner
- * 4 Views: Month / Week / Day / Agenda (danh sach)
- * Features: Full-height Adaptive Grid | Mini-calendar sidebar | Quick Department Filter & Search | Color-coded chips | Summary Badges
+ * CalendarPage v2.5.1 - HueIC IMP
+ * Modern Editorial Calendar - Full-Height Adaptive Grid & Day Inspector Modal
+ * 4 Views: Month / Week / Day / Agenda (Danh sách)
+ * Features: Auto Full-Height Viewport Grid | 2-Line Wrapped Event Chips | Quick Day Modal | Color System
  */
 const CalendarPage = {
     currentDate: new Date(),
@@ -16,13 +16,15 @@ const CalendarPage = {
     departments: [],
 
     async init() {
-        Common.detectAndApplyDeviceClasses();
+        if (typeof Common !== 'undefined') {
+            Common.detectAndApplyDeviceClasses();
+        }
         const user = API.getCurrentUser();
         if (!user) { window.location.href = 'login.html'; return; }
         
-        const unEl = document.getElementById('headerUserName');
+        const unEl = document.getElementById('sidebarUserName');
         if (unEl) unEl.innerText = user.full_name || user.username;
-        const avEl = document.getElementById('headerUserAvatar');
+        const avEl = document.getElementById('sidebarUserAvatar');
         if (avEl) avEl.innerText = (user.full_name || user.username).charAt(0).toUpperCase();
 
         const hash = window.location.hash.replace('#', '');
@@ -119,12 +121,25 @@ const CalendarPage = {
         td = (this.eventMap[today] || []).length;
         this.filteredTasks.forEach(t => {
             if (!t.due_date || t.status === 'HOAN_THANH' || t.status === 'HUY_BO') return;
-            const ds = Common.getDeadlineStatus(t.due_date, false);
+            const ds = typeof Common !== 'undefined' && Common.getDeadlineStatus 
+                ? Common.getDeadlineStatus(t.due_date, false)
+                : { isOverdue: new Date(t.due_date) < new Date(), isDueSoon: false };
             if (ds.isOverdue) od++;
             if (ds.isDueSoon) up++;
         });
         const s = (id, v) => { const el = document.getElementById(id); if (el) el.innerText = v; };
         s('summaryToday', td); s('summaryOverdue', od); s('summaryUpcoming', up);
+
+        const badge = document.getElementById('navBadgeTasks');
+        if (badge) {
+            const pending = od + up;
+            if (pending > 0) {
+                badge.classList.remove('hidden');
+                badge.innerText = pending;
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
     },
 
     setView(view, render = true) {
@@ -136,9 +151,9 @@ const CalendarPage = {
                 const btn = document.getElementById('btn-view-' + v + sfx);
                 if (!btn) return;
                 if (v === view) {
-                    btn.className = 'shrink-0 px-3 py-1.5 rounded-md text-xs font-bold bg-blue-800 text-white shadow-xs transition';
+                    btn.className = 'shrink-0 px-3 py-1.5 rounded-md text-xs font-bold bg-[#0E7C7B] text-white shadow-xs transition';
                 } else {
-                    btn.className = 'shrink-0 px-3 py-1.5 rounded-md text-xs font-semibold text-slate-600 hover:bg-white transition';
+                    btn.className = 'shrink-0 px-3 py-1.5 rounded-md text-xs font-semibold text-[#5B6472] hover:bg-white transition';
                 }
             });
         });
@@ -169,7 +184,7 @@ const CalendarPage = {
         } else if (this.currentView === 'week') {
             const mon = this._sow(d), sun = new Date(mon); sun.setDate(sun.getDate() + 6);
             const f = dt => dt.toLocaleDateString(lo, { day: '2-digit', month: '2-digit' });
-            el.innerText = 'Tuần ' + this._wn(d) + ' \u2014 ' + f(mon) + ' đến ' + f(sun);
+            el.innerText = 'Tuần ' + this._wn(d) + ' — ' + f(mon) + ' đến ' + f(sun);
         } else if (this.currentView === 'day') {
             el.innerText = d.toLocaleDateString(lo, { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
         } else {
@@ -251,14 +266,15 @@ const CalendarPage = {
             else if (isWe) cls += ' we-m';
             
             if (isTd) cls += ' today-m';
-            else if (isSel) cls += ' ring-1.5 ring-blue-500 text-blue-400 font-black bg-blue-900/60';
+            else if (isSel) cls += ' ring-1.5 ring-[#0E7C7B] text-[#0E7C7B] font-bold bg-[#16233D]';
             
             if (hasEv) cls += ' has-event';
-            html += `<div class="${cls}" onclick="CalendarPage.goToDate('${dk}')" title="${dk}">${dn}</div>`;
+            html += `<div class="${cls}" onclick="CalendarPage.openDayModal('${dk}')" title="${dk}">${dn}</div>`;
         }
         el.innerHTML = html;
     },
 
+    // 1. MONTH VIEW (Full-Height Adaptive Grid with Crisp Enterprise Borders)
     renderMonthView() {
         const grid = document.getElementById('monthGrid');
         if (!grid) return;
@@ -294,29 +310,28 @@ const CalendarPage = {
             const isToday = dk === today;
             const isWe = [0, 6].includes(cd.getDay());
 
-            let cellCls = 'day-cell';
+            let cellCls = 'day-cell group';
             if (!isCurM) cellCls += ' not-month';
-            else if (isWe) cellCls += ' weekend';
-            if (isToday) cellCls += ' today-col';
+            if (isToday) cellCls += ' is-today';
+            if (isWe && isCurM) cellCls += ' is-weekend';
 
-            let numCls = 'day-num';
-            if (isToday) numCls += ' today';
-            else if (!isCurM) numCls += ' not-month';
-            else if (isWe) numCls += ' weekend';
+            const numPill = isToday 
+                ? `<span class="w-6 h-6 rounded-full bg-blue-800 text-white font-black text-xs flex items-center justify-center shadow-xs">${dn}</span>`
+                : (isCurM 
+                    ? `<span class="w-6 h-6 rounded-full text-slate-800 font-bold text-xs flex items-center justify-center group-hover:bg-slate-200 transition ${isWe ? 'text-red-700' : ''}">${dn}</span>`
+                    : `<span class="w-6 h-6 rounded-full text-slate-400 font-medium text-xs flex items-center justify-center">${dn}</span>`);
 
-            // Show top 3 chips, rest in "+X khác"
-            const maxChips = 3;
-            const chips = evs.slice(0, maxChips).map(t => this._chip(t)).join('');
-            const moreCount = evs.length - maxChips;
+            const chips = evs.slice(0, 3).map(t => this._chip(t)).join('');
+            const moreCount = evs.length - 3;
             const more = moreCount > 0 
-                ? `<div class="text-[10px] font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 px-1.5 py-0.5 rounded-md cursor-pointer transition text-center" onclick="event.stopPropagation();CalendarPage.goToDate('${dk}')">+${moreCount} việc khác</div>` 
+                ? `<div class="text-[10px] font-bold text-blue-900 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded cursor-pointer transition text-center mt-auto border border-blue-200" onclick="event.stopPropagation();CalendarPage.openDayModal('${dk}')">+${moreCount} việc khác</div>` 
                 : '';
 
             html += `
-                <div class="${cellCls}" onclick="CalendarPage.goToDate('${dk}')" title="Xem chi tiết ngày ${dk}">
-                    <div class="day-header">
-                        <span class="${numCls}">${dn}</span>
-                        ${evs.length > 0 ? `<span class="text-[10px] font-extrabold text-blue-700 bg-blue-100/70 px-1.5 py-0.2 rounded-full">${evs.length} việc</span>` : ''}
+                <div class="${cellCls}" onclick="CalendarPage.openDayModal('${dk}')" title="Bấm để xem lịch trình ngày ${dk}">
+                    <div class="flex items-center justify-between shrink-0 mb-1">
+                        ${numPill}
+                        ${isToday ? `<span class="text-[9.5px] font-bold text-blue-900 bg-blue-100 border border-blue-200 rounded-full px-2 py-0.2">Hôm nay</span>` : (evs.length > 0 ? `<span class="text-[10px] font-bold text-slate-700 bg-slate-100 border border-slate-200 px-1.5 py-0.2 rounded-full">${evs.length} việc</span>` : '')}
                     </div>
                     <div class="day-events-list">
                         ${chips}
@@ -328,6 +343,7 @@ const CalendarPage = {
         grid.innerHTML = html;
     },
 
+    // 2. WEEK VIEW
     renderWeekView() {
         const container = document.getElementById('weekGrid');
         if (!container) return;
@@ -337,27 +353,27 @@ const CalendarPage = {
         const dnames = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ Nhật'];
         for (let i = 0; i < 7; i++) days.push(new Date(mon.getTime() + i * 86400000));
 
-        let hdr = '<div class="grid grid-cols-7 border-b border-slate-200 bg-white sticky top-0 z-10 shadow-xs">';
+        let hdr = '<div class="grid grid-cols-7 border-b border-slate-300 bg-slate-100/90 divide-x divide-slate-200 sticky top-0 z-10">';
         days.forEach((d, i) => {
             const dk = this._dk(d), isTd = dk === today, isWe = i >= 5;
             hdr += `
-                <div class="py-3 text-center ${i > 0 ? 'border-l border-slate-200' : ''} ${isTd ? 'bg-blue-50/80' : (isWe ? 'bg-rose-50/40' : '')}">
-                    <div class="text-[11px] font-extrabold uppercase tracking-wider ${isTd ? 'text-blue-800' : (isWe ? 'text-rose-600' : 'text-slate-500')}">${dnames[i]}</div>
+                <div class="py-2.5 text-center ${isTd ? 'bg-blue-50/60' : ''}">
+                    <div class="text-[11px] font-bold uppercase tracking-wider ${isTd ? 'text-blue-900' : (isWe ? 'text-red-700' : 'text-slate-700')}">${dnames[i]}</div>
                     <div class="flex justify-center mt-1">
-                        <span class="${isTd ? 'w-8 h-8 rounded-full bg-blue-800 text-white font-black text-sm inline-flex items-center justify-center shadow-sm' : 'text-slate-800 font-black text-base'}">${d.getDate()}</span>
+                        <span class="${isTd ? 'w-6 h-6 rounded-full bg-blue-800 text-white font-black text-xs inline-flex items-center justify-center shadow-xs' : 'text-slate-800 font-bold text-xs'}">${d.getDate()}</span>
                     </div>
                 </div>
             `;
         });
         hdr += '</div>';
 
-        let body = '<div class="grid grid-cols-7 flex-1 min-h-[500px] bg-slate-100 gap-px">';
+        let body = '<div class="grid grid-cols-7 flex-1 min-h-[520px] bg-slate-200 divide-x divide-slate-200">';
         days.forEach((d, i) => {
-            const dk = this._dk(d), evs = this.eventMap[dk] || [], isTd = dk === today, isWe = i >= 5;
-            const bgCol = isTd ? 'bg-blue-50/30' : (isWe ? 'bg-rose-50/20' : 'bg-white');
+            const dk = this._dk(d), evs = this.eventMap[dk] || [], isTd = dk === today;
+            const bgCol = isTd ? 'bg-blue-50/20' : 'bg-white';
             body += `
-                <div class="${bgCol} p-2 space-y-2 overflow-y-auto">
-                    ${evs.length === 0 ? '<div class="text-[11px] text-slate-300 text-center pt-12 italic font-medium">Không có việc</div>' : ''}
+                <div class="${bgCol} p-2.5 space-y-2 overflow-y-auto min-h-[300px]">
+                    ${evs.length === 0 ? '<div class="text-[11.5px] text-slate-400 text-center pt-10 italic">Không có việc</div>' : ''}
                     ${evs.map(t => this._weekCard(t)).join('')}
                 </div>
             `;
@@ -366,156 +382,134 @@ const CalendarPage = {
         container.innerHTML = hdr + body;
     },
 
+    // 3. DAY VIEW
     renderDayView() {
         const container = document.getElementById('dayContainer');
         if (!container) return;
         const dk = this._dk(this.currentDate), evs = this.eventMap[dk] || [];
         const isToday = dk === this._dk(new Date());
-        const hours = [];
-        for (let h = 7; h <= 18; h++) hours.push(h);
 
         const taskSec = evs.length === 0
-            ? `<div class="bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-xs">
-                <i class="fa-regular fa-calendar-check text-4xl text-slate-200 mb-3 block"></i>
-                <h4 class="text-sm font-bold text-slate-700">Không có nhiệm vụ nào đến hạn ngày này</h4>
-                <p class="text-xs text-slate-400 mt-1">Bạn có thể giao nhiệm vụ mới hoặc quay lại xem tháng</p>
-                <a href="tasks.html" class="mt-4 inline-flex items-center gap-1.5 px-4 py-2 bg-blue-800 text-white rounded-lg text-xs font-bold hover:bg-blue-900 shadow-xs transition">
-                    <i class="fa-solid fa-plus text-[10px]"></i><span>Giao nhiệm vụ mới</span>
-                </a>
+            ? `<div class="bg-[#FFFFFF] rounded-xl border border-[#E4E1D8] p-10 text-center shadow-xs">
+                <i class="fa-regular fa-calendar-check text-4xl text-[#C7C2B4] mb-3 block"></i>
+                <h4 class="text-sm font-bold text-[#16233D]">Không có nhiệm vụ nào đến hạn ngày này</h4>
+                <p class="text-xs text-[#5B6472] mt-1">Bấm nút "Giao việc" để thêm nhiệm vụ mới vào lịch trình</p>
                </div>`
-            : `<div class="space-y-2.5">${evs.map(t => this._dayCard(t)).join('')}</div>`;
+            : `<div class="space-y-3">
+                ${evs.map(t => this._dayCard(t)).join('')}
+               </div>`;
 
-        const todayStr = this.currentDate.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
-        
         container.innerHTML = `
-            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between gap-4 mb-5">
-                <div class="flex items-center gap-3.5">
-                    <div class="text-center shrink-0">
-                        <div class="text-[10px] font-extrabold text-slate-400 uppercase">${this.currentDate.toLocaleDateString('vi-VN', { weekday: 'short' })}</div>
-                        <div class="w-12 h-12 flex items-center justify-center rounded-2xl font-black text-xl shadow-xs ${isToday ? 'bg-blue-800 text-white' : 'bg-slate-100 text-slate-800'}">${this.currentDate.getDate()}</div>
-                    </div>
-                    <div>
-                        <h3 class="font-black text-slate-900 text-base capitalize">${todayStr}</h3>
-                        <p class="text-xs text-slate-500 mt-0.5 font-medium">${evs.length > 0 ? `Có <strong>${evs.length}</strong> nhiệm vụ đến hạn cần xử lý` : 'Không có công việc đến hạn'}</p>
-                    </div>
+            <div class="bg-[#FFFFFF] p-5 rounded-xl border border-[#E4E1D8] mb-4 flex items-center justify-between shadow-xs">
+                <div>
+                    <span class="text-xs font-bold text-[#0E7C7B] uppercase tracking-wider">${isToday ? '⭐ Hôm nay' : 'Chi tiết ngày'}</span>
+                    <h3 class="font-manrope font-extrabold text-xl text-[#16233D] mt-0.5 capitalize">${this.currentDate.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</h3>
                 </div>
-                <div class="flex items-center gap-1">
-                    <button onclick="CalendarPage.prevPeriod()" class="p-2 text-slate-500 hover:text-blue-800 rounded-lg hover:bg-slate-100 text-xs font-bold"><i class="fa-solid fa-chevron-left"></i></button>
-                    <button onclick="CalendarPage.setView('month', true)" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition flex items-center gap-1.5"><i class="fa-regular fa-calendar"></i>Về Lưới Tháng</button>
-                    <button onclick="CalendarPage.nextPeriod()" class="p-2 text-slate-500 hover:text-blue-800 rounded-lg hover:bg-slate-100 text-xs font-bold"><i class="fa-solid fa-chevron-right"></i></button>
-                </div>
+                <span class="text-xs font-bold px-3 py-1 bg-[#E4F1F0] text-[#0E7C7B] rounded-full">${evs.length} nhiệm vụ</span>
             </div>
-
-            <div class="mb-6">
-                <h4 class="text-xs font-extrabold text-slate-600 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                    <i class="fa-solid fa-list-check text-blue-700"></i>
-                    <span>Nhiệm vụ đến hạn (${evs.length})</span>
-                </h4>
-                ${taskSec}
-            </div>
-
-            <div>
-                <h4 class="text-xs font-extrabold text-slate-600 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                    <i class="fa-solid fa-clock text-slate-500"></i>
-                    <span>Khung Giờ Làm Việc Hành Chính</span>
-                </h4>
-                <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs divide-y divide-slate-100">
-                    ${hours.map(h => {
-                        const bg = h === 12 ? 'bg-amber-50/60' : 'bg-white';
-                        const badge = h === 7 ? '<span class="text-[11px] text-blue-700 font-bold bg-blue-50 px-2 py-0.5 rounded-full">Bắt đầu giờ Hành chính (07:00)</span>'
-                            : (h === 11 ? '<span class="text-[11px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded-full">Nghỉ trưa (11:30)</span>'
-                            : (h === 13 ? '<span class="text-[11px] text-blue-700 font-bold bg-blue-50 px-2 py-0.5 rounded-full">Bắt đầu ca Chiều (13:30)</span>'
-                            : (h === 17 ? '<span class="text-[11px] text-slate-600 font-bold bg-slate-100 px-2 py-0.5 rounded-full">Kết thúc giờ Hành chính (17:00)</span>' : '')));
-                        return `
-                            <div class="flex items-center gap-3 px-4 py-2.5 ${bg}">
-                                <span class="w-14 text-right text-xs font-mono font-bold text-slate-400 shrink-0">${String(h).padStart(2, '0')}:00</span>
-                                <div class="w-px h-4 bg-slate-200 shrink-0"></div>
-                                <div class="flex-1 text-xs text-slate-400">${badge}</div>
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-            </div>
+            ${taskSec}
         `;
     },
 
+    // 4. AGENDA VIEW (DANH SÁCH)
     renderAgendaView() {
         const container = document.getElementById('agendaContainer');
         if (!container) return;
-        const withDue = this.filteredTasks.filter(t => t.due_date).sort((a, b) => new Date(a.due_date) - new Date(b.due_date));
-        const noDue = this.filteredTasks.filter(t => !t.due_date && t.status !== 'HOAN_THANH' && t.status !== 'HUY_BO');
-        const today = this._dk(new Date());
-
-        if (!withDue.length && !noDue.length) {
+        
+        const sortedKeys = Object.keys(this.eventMap).sort();
+        if (sortedKeys.length === 0) {
             container.innerHTML = `
-                <div class="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-xs">
-                    <i class="fa-regular fa-calendar-xmark text-4xl text-slate-200 mb-3 block"></i>
-                    <h4 class="text-base font-bold text-slate-800">Chưa có nhiệm vụ nào trong danh sách</h4>
-                    <p class="text-xs text-slate-400 mt-1">Không tìm thấy công việc phù hợp với bộ lọc hiện tại</p>
-                    <a href="tasks.html" class="mt-4 inline-flex items-center gap-1.5 px-4 py-2 bg-blue-800 text-white rounded-lg text-xs font-bold hover:bg-blue-900 shadow-xs transition">
-                        <i class="fa-solid fa-plus text-[10px]"></i><span>Giao nhiệm vụ mới</span>
-                    </a>
+                <div class="bg-[#FFFFFF] rounded-xl border border-[#E4E1D8] p-12 text-center shadow-xs">
+                    <i class="fa-solid fa-list-check text-4xl text-[#C7C2B4] mb-3 block"></i>
+                    <h4 class="text-base font-bold text-[#16233D]">Chưa có lịch trình công tác nào</h4>
+                    <p class="text-xs text-[#5B6472] mt-1">Danh sách công việc có thời hạn sẽ hiển thị theo trình tự thời gian tại đây</p>
                 </div>
             `;
             return;
         }
 
-        let html = '<div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden divide-y divide-slate-100">';
-        const grouped = {};
-        withDue.forEach(t => {
-            const dk = t.due_date.split('T')[0];
-            if (!grouped[dk]) grouped[dk] = [];
-            grouped[dk].push(t);
-        });
-
-        Object.keys(grouped).sort().forEach(dk => {
-            const d = new Date(dk + 'T00:00:00');
-            const isPast = dk < today;
-            const isToday = dk === today;
-            const label = isToday ? '⭐ Hôm nay — ' + d.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })
-                                  : d.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+        let html = '<div class="bg-[#FFFFFF] rounded-xl border border-[#E4E1D8] overflow-hidden shadow-xs divide-y divide-[#E4E1D8]">';
+        sortedKeys.forEach(k => {
+            const evs = this.eventMap[k];
+            const d = new Date(k + 'T00:00:00');
+            const dStr = d.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
             
-            html += `<div class="agenda-date-hdr ${isToday ? 'text-blue-800 bg-blue-50/70 border-b border-blue-200' : (isPast ? 'text-rose-700' : '')}">${label}</div>`;
-            grouped[dk].forEach(t => { html += this._agendaRow(t); });
+            html += `
+                <div class="bg-[#FBFAF7] px-4 py-2.5 font-bold text-xs text-[#5B6472] uppercase tracking-wider flex items-center justify-between">
+                    <span>${dStr}</span>
+                    <span class="text-[11px] font-bold text-[#0E7C7B] bg-[#E4F1F0] px-2 py-0.5 rounded-full">${evs.length} việc</span>
+                </div>
+                <div class="divide-y divide-[#F1F0EB]">
+                    ${evs.map(t => this._agendaRow(t)).join('')}
+                </div>
+            `;
         });
-
-        if (noDue.length) {
-            html += '<div class="agenda-date-hdr text-slate-400 bg-slate-50">Nhiệm vụ chưa đặt hạn chót</div>';
-            noDue.forEach(t => { html += this._agendaRow(t); });
-        }
         html += '</div>';
         container.innerHTML = html;
     },
 
+    // Quick Day Inspector Modal
+    openDayModal(dateKey) {
+        const modal = document.getElementById('dayModal');
+        const titleEl = document.getElementById('dayModalTitle');
+        const countEl = document.getElementById('dayModalCount');
+        const bodyEl = document.getElementById('dayModalBody');
+        if (!modal || !titleEl || !bodyEl) return;
+
+        const d = new Date(dateKey + 'T00:00:00');
+        const dStr = d.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+        titleEl.innerText = dStr;
+
+        const evs = this.eventMap[dateKey] || [];
+        if (countEl) countEl.innerText = `${evs.length} công việc`;
+
+        if (evs.length === 0) {
+            bodyEl.innerHTML = `
+                <div class="text-center py-8 text-[#5B6472]">
+                    <i class="fa-regular fa-calendar text-3xl text-[#C7C2B4] mb-2 block"></i>
+                    <p class="text-xs italic">Không có nhiệm vụ nào trong ngày này.</p>
+                </div>
+            `;
+        } else {
+            bodyEl.innerHTML = evs.map(t => this._dayCard(t)).join('');
+        }
+
+        modal.classList.remove('hidden');
+    },
+
+    closeDayModal() {
+        const modal = document.getElementById('dayModal');
+        if (modal) modal.classList.add('hidden');
+    },
+
+    // Event Chip for Month View (Enterprise Pill with Department & Colored Status Dot)
     _chip(task) {
         const c = this._colors(task);
-        const deptBadge = task.leading_department ? `<span class="text-[9px] font-bold opacity-80 shrink-0">[${task.leading_department.code}]</span>` : '';
-        const title = task.title.length > 22 ? task.title.substring(0, 22) + '...' : task.title;
-        const fullTooltip = `[${task.leading_department ? task.leading_department.code : 'HueIC'}] ${task.title}\nTrạng thái: ${this._sn(task.status)}\nTiến độ: ${task.progress_percent}%\nHạn: ${Common.formatDateTime(task.due_date)}`;
-
+        const deptCode = task.leading_department ? task.leading_department.code : 'HueIC';
         return `
-            <div onclick="event.stopPropagation();CalendarPage._open(${task.id})" class="ev-chip ${c.bg} ${c.text} ${c.border}" title="${fullTooltip}">
-                <span class="ev-dot ${c.dot}"></span>
-                ${deptBadge}
-                <span class="truncate">${title}</span>
+            <div onclick="event.stopPropagation();CalendarPage._open(${task.id})" 
+                class="ev-chip ${c.bg} ${c.text} ${c.border}" 
+                title="${task.title} - [${deptCode}]">
+                <span class="w-1.5 h-3.5 rounded-full ${c.dot} shrink-0"></span>
+                <span class="font-mono text-[9.5px] font-black opacity-85 shrink-0">[${deptCode}]</span>
+                <span class="truncate flex-1 font-medium">${task.title}</span>
             </div>
         `;
     },
 
     _weekCard(task) {
         const c = this._colors(task);
-        const title = task.title.length > 26 ? task.title.substring(0, 26) + '...' : task.title;
-        const ds = Common.getDeadlineStatus(task.due_date, task.status === 'HOAN_THANH');
+        const ds = typeof Common !== 'undefined' && Common.getDeadlineStatus ? Common.getDeadlineStatus(task.due_date, task.status === 'HOAN_THANH') : { shortLabel: '', badgeClass: '' };
         return `
-            <div onclick="CalendarPage._open(${task.id})" class="p-2.5 rounded-xl border ${c.borderCard} ${c.bgCard} cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition block" title="${task.title}">
-                <div class="flex items-center justify-between text-[10px] mb-1">
-                    <span class="font-black text-slate-700">${task.leading_department ? task.leading_department.code : 'HueIC'}</span>
-                    <span class="font-bold text-[10px] ${ds.badgeClass} px-1.5 py-0.2 rounded-full">${ds.shortLabel}</span>
+            <div onclick="CalendarPage._open(${task.id})" class="p-2.5 rounded-lg border ${c.borderCard} ${c.bgCard} cursor-pointer hover:shadow-md transition block" title="${task.title}">
+                <div class="flex items-center justify-between text-[10.5px] mb-1">
+                    <span class="font-bold text-slate-800">[${task.leading_department ? task.leading_department.code : 'HueIC'}]</span>
+                    ${ds.shortLabel ? `<span class="font-bold text-[10px] ${ds.badgeClass} px-1.5 py-0.2 rounded">${ds.shortLabel}</span>` : ''}
                 </div>
-                <div class="font-bold text-slate-900 text-xs leading-snug line-clamp-2">${title}</div>
-                <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-200/60 text-[10px]">
+                <div class="font-semibold text-slate-900 text-xs leading-snug line-clamp-2">${task.title}</div>
+                <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-200 text-[10.5px]">
                     <span class="font-semibold ${c.text}">${this._sn(task.status)}</span>
-                    <span class="font-mono font-bold text-slate-700">${task.progress_percent}%</span>
+                    <span class="font-mono font-bold text-slate-900">${task.progress_percent || 0}%</span>
                 </div>
             </div>
         `;
@@ -523,79 +517,76 @@ const CalendarPage = {
 
     _dayCard(task) {
         const c = this._colors(task);
-        const ds = Common.getDeadlineStatus(task.due_date, task.status === 'HOAN_THANH');
+        const ds = typeof Common !== 'undefined' && Common.getDeadlineStatus ? Common.getDeadlineStatus(task.due_date, task.status === 'HOAN_THANH') : { shortLabel: '', badgeClass: '' };
         return `
-            <div onclick="CalendarPage._open(${task.id})" class="flex items-center gap-3.5 p-3.5 rounded-2xl border ${c.borderCard} ${c.bgCard} cursor-pointer hover:shadow-md transition">
-                <div class="w-1.5 h-12 rounded-full shrink-0 ${c.dot}"></div>
+            <div onclick="CalendarPage._open(${task.id})" class="flex items-center gap-3.5 p-3 rounded-xl border ${c.borderCard} ${c.bgCard} cursor-pointer hover:shadow-md transition bg-white">
+                <div class="w-1.5 h-10 rounded-full shrink-0 ${c.dot}"></div>
                 <div class="flex-1 min-w-0">
-                    <div class="font-bold text-slate-900 text-sm truncate">${task.title}</div>
-                    <div class="flex items-center flex-wrap gap-x-2.5 gap-y-1 mt-1">
-                        <span class="text-[11px] font-bold ${c.text}">${this._sn(task.status)}</span>
-                        <span class="text-[10px] ${ds.badgeClass} px-2 py-0.5 rounded-full font-bold">${ds.shortLabel}</span>
-                        ${task.leading_department ? `<span class="text-[10px] text-slate-600 font-bold bg-white px-2 py-0.5 rounded-md border border-slate-200">[${task.leading_department.code}] ${task.leading_department.name}</span>` : ''}
-                        ${task.assignee ? `<span class="text-[11px] text-slate-500 font-medium"><i class="fa-solid fa-user-tie text-[10px] mr-1 text-slate-400"></i>${task.assignee.full_name}</span>` : ''}
+                    <div class="font-bold text-slate-900 text-xs line-clamp-2">${task.title}</div>
+                    <div class="flex items-center flex-wrap gap-x-2 gap-y-1 mt-1">
+                        <span class="text-[10.5px] font-bold ${c.text}">${this._sn(task.status)}</span>
+                        ${ds.shortLabel ? `<span class="text-[9.5px] ${ds.badgeClass} px-1.5 py-0.2 rounded-full font-bold">${ds.shortLabel}</span>` : ''}
+                        ${task.leading_department ? `<span class="text-[9.5px] text-slate-700 font-bold bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200">[${task.leading_department.code}]</span>` : ''}
+                        ${task.assignee ? `<span class="text-[10.5px] text-slate-600 font-medium"><i class="fa-solid fa-user-tie text-[9px] mr-1 text-slate-400"></i>${task.assignee.full_name}</span>` : ''}
                     </div>
                 </div>
                 <div class="text-right shrink-0">
-                    <div class="text-xs font-mono font-black text-slate-800">${task.progress_percent}%</div>
+                    <div class="text-xs font-mono font-bold text-slate-900">${task.progress_percent || 0}%</div>
                     <div class="w-14 bg-slate-200 rounded-full h-1.5 mt-1 overflow-hidden">
-                        <div class="h-full rounded-full ${task.progress_percent >= 100 ? 'bg-emerald-500' : 'bg-blue-600'}" style="width: ${task.progress_percent}%"></div>
+                        <div class="h-full rounded-full ${task.progress_percent >= 100 ? 'bg-emerald-600' : 'bg-blue-700'}" style="width: ${task.progress_percent || 0}%"></div>
                     </div>
                 </div>
-                <i class="fa-solid fa-chevron-right text-xs text-slate-300"></i>
+                <i class="fa-solid fa-chevron-right text-xs text-slate-400"></i>
             </div>
         `;
     },
 
     _agendaRow(task) {
         const c = this._colors(task);
-        const ds = task.due_date ? Common.getDeadlineStatus(task.due_date, task.status === 'HOAN_THANH') : null;
+        const ds = task.due_date && typeof Common !== 'undefined' && Common.getDeadlineStatus ? Common.getDeadlineStatus(task.due_date, task.status === 'HOAN_THANH') : null;
         const pri = { 'THAP': 'Thấp', 'TRUNG_BINH': 'Trung bình', 'CAO': 'Cao', 'KHAN_CAP': 'Khẩn cấp' };
         
         return `
-            <div onclick="CalendarPage._open(${task.id})" class="agenda-row">
-                <div class="w-1.5 min-h-[42px] rounded-full ${c.dot} shrink-0 self-stretch"></div>
+            <div onclick="CalendarPage._open(${task.id})" class="flex items-center gap-3.5 p-3.5 hover:bg-slate-50 cursor-pointer transition">
+                <div class="w-1.5 min-h-[38px] rounded-full ${c.dot} shrink-0 self-stretch"></div>
                 <div class="flex-1 min-w-0">
                     <div class="font-bold text-slate-900 text-sm leading-snug truncate">${task.title}</div>
                     <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs">
                         <span class="font-bold ${c.text}">${this._sn(task.status)}</span>
-                        ${ds ? `<span class="text-[11px] font-bold ${ds.badgeClass} px-2 py-0.5 rounded-full">${ds.shortLabel}</span>` : ''}
-                        ${task.leading_department ? `<span class="font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md text-[11px]">[${task.leading_department.code}]</span>` : ''}
-                        ${task.assignee ? `<span class="text-slate-500 text-[11px]"><i class="fa-solid fa-user-tie text-[10px] mr-1 text-slate-400"></i>${task.assignee.full_name}</span>` : ''}
+                        ${ds ? `<span class="text-[10.5px] font-bold ${ds.badgeClass} px-2 py-0.5 rounded-full">${ds.shortLabel}</span>` : ''}
+                        ${task.leading_department ? `<span class="font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded text-[11px]">[${task.leading_department.code}]</span>` : ''}
+                        ${task.assignee ? `<span class="text-slate-600 text-[11px]"><i class="fa-solid fa-user-tie text-[10px] mr-1 text-slate-400"></i>${task.assignee.full_name}</span>` : ''}
                     </div>
                 </div>
                 <div class="shrink-0 text-right min-w-[60px]">
-                    <div class="text-xs font-mono font-black text-slate-700">${task.progress_percent}%</div>
-                    <div class="text-[10px] text-slate-400 font-semibold mt-0.5">${pri[task.priority] || task.priority}</div>
+                    <div class="text-xs font-mono font-bold text-slate-900">${task.progress_percent || 0}%</div>
+                    <div class="text-[10px] text-slate-500 font-semibold mt-0.5">${pri[task.priority] || task.priority}</div>
                 </div>
             </div>
         `;
     },
 
     _colors(task) {
-        const ds = Common.getDeadlineStatus(task.due_date, task.status === 'HOAN_THANH');
+        const ds = typeof Common !== 'undefined' && Common.getDeadlineStatus 
+            ? Common.getDeadlineStatus(task.due_date, task.status === 'HOAN_THANH') 
+            : { isOverdue: false, isDueSoon: false };
+            
         if (task.status === 'HOAN_THANH') {
-            return { bg: 'bg-emerald-50', text: 'text-emerald-800', dot: 'bg-emerald-500', border: 'border-emerald-500', bgCard: 'bg-emerald-50/50', borderCard: 'border-emerald-200' };
+            return { bg: 'bg-emerald-50 text-emerald-900', text: 'text-emerald-800', dot: 'bg-emerald-600', border: 'border-emerald-200', bgCard: 'bg-emerald-50/60', borderCard: 'border-emerald-200' };
         }
-        if (ds.isOverdue) {
-            return { bg: 'bg-red-50', text: 'text-red-800', dot: 'bg-red-500', border: 'border-red-500', bgCard: 'bg-red-50/60', borderCard: 'border-red-200' };
+        if (ds.isOverdue || task.status === 'TRE_HAN') {
+            return { bg: 'bg-red-50 text-red-900', text: 'text-red-800', dot: 'bg-red-600', border: 'border-red-200', bgCard: 'bg-red-50/60', borderCard: 'border-red-200' };
         }
-        if (task.status === 'CHO_DUYET') {
-            return { bg: 'bg-amber-50', text: 'text-amber-900', dot: 'bg-amber-500', border: 'border-amber-500', bgCard: 'bg-amber-50/60', borderCard: 'border-amber-200' };
+        if (task.status === 'CHO_DUYET' || ds.isDueSoon) {
+            return { bg: 'bg-amber-50 text-amber-900', text: 'text-amber-800', dot: 'bg-amber-500', border: 'border-amber-200', bgCard: 'bg-amber-50/60', borderCard: 'border-amber-200' };
         }
         if (task.status === 'TAM_DUNG') {
-            return { bg: 'bg-purple-50', text: 'text-purple-900', dot: 'bg-purple-500', border: 'border-purple-500', bgCard: 'bg-purple-50/60', borderCard: 'border-purple-200' };
+            return { bg: 'bg-purple-50 text-purple-900', text: 'text-purple-800', dot: 'bg-purple-500', border: 'border-purple-200', bgCard: 'bg-purple-50/60', borderCard: 'border-purple-200' };
         }
         if (task.status === 'HUY_BO') {
-            return { bg: 'bg-slate-100', text: 'text-slate-600', dot: 'bg-slate-400', border: 'border-slate-400', bgCard: 'bg-slate-50', borderCard: 'border-slate-200' };
+            return { bg: 'bg-slate-100 text-slate-600', text: 'text-slate-600', dot: 'bg-slate-400', border: 'border-slate-300', bgCard: 'bg-slate-100', borderCard: 'border-slate-200' };
         }
-        if (ds.isDueSoon) {
-            return { bg: 'bg-amber-50', text: 'text-amber-800', dot: 'bg-amber-500', border: 'border-amber-400', bgCard: 'bg-amber-50/50', borderCard: 'border-amber-200' };
-        }
-        if (task.priority === 'KHAN_CAP') {
-            return { bg: 'bg-red-50', text: 'text-red-800', dot: 'bg-red-500', border: 'border-red-500', bgCard: 'bg-red-50/50', borderCard: 'border-red-200' };
-        }
-        return { bg: 'bg-blue-50', text: 'text-blue-800', dot: 'bg-blue-600', border: 'border-blue-600', bgCard: 'bg-blue-50/40', borderCard: 'border-blue-200' };
+        return { bg: 'bg-blue-50 text-blue-900', text: 'text-blue-800', dot: 'bg-blue-600', border: 'border-blue-200', bgCard: 'bg-blue-50/60', borderCard: 'border-blue-200' };
     },
 
     _sn(s) {
@@ -634,4 +625,3 @@ const CalendarPage = {
 };
 
 document.addEventListener('DOMContentLoaded', () => CalendarPage.init());
-

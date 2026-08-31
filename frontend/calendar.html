@@ -4,145 +4,191 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lịch Công Tác - HueIC IMP</title>
+  
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  
+  <!-- Google Fonts Manrope & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+
   <style>
-    .nav-link { color: rgb(203 213 225); transition: all 0.15s ease-in-out; }
-    .nav-link:hover { background: rgb(30 41 59); color: white; }
-    #nav-calendar { background: rgb(29 78 216) !important; color: white !important; font-weight: 700; }
+    body { font-family: 'Inter', sans-serif; background-color: #F6F5F1; color: #16233D; }
+    .font-manrope { font-family: 'Manrope', sans-serif; }
     
-    /* Month View Grid & Cell Styles */
-    .cal-month-container { display: flex; flex-direction: column; height: 100%; min-height: 0; }
-    .mhdr-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
-    .mhdr { padding: 10px 6px; text-align: center; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: rgb(71 85 105); background: rgb(241 245 249); border-bottom: 1px solid rgb(226 232 240); }
-    .mhdr.we { color: rgb(225 29 72); background: rgb(255 241 242); }
+    .nav-link { color: #8B96AC; transition: all 0.15s ease-in-out; }
+    .nav-link:hover { background: #1E2C4A; color: #FFFFFF; }
+    #nav-calendar { background: #0E7C7B !important; color: #FFFFFF !important; font-weight: 700; }
     
-    .month-cells-grid { 
-      display: grid; 
-      grid-template-columns: repeat(7, minmax(0, 1fr)); 
-      flex: 1 1 0%; 
-      min-height: 0;
-      gap: 1px;
-      background: rgb(226 232 240);
-      border-bottom: 1px solid rgb(226 232 240);
-    }
-    
-    .day-cell { 
-      background: #ffffff; 
-      padding: 6px 6px 4px 6px; 
-      display: flex; 
-      flex-direction: column; 
-      cursor: pointer; 
-      transition: all 0.12s ease-in-out; 
+    /* Crisp Enterprise Calendar Grid */
+    .cal-grid-container {
+      display: flex;
+      flex-direction: column;
+      background: #FFFFFF;
+      border: 1px solid #94A3B8;
+      border-radius: 12px;
       overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      flex: 1 1 0%;
+      min-height: 0;
+    }
+
+    .cal-header-row {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      background: #F1F5F9;
+      border-bottom: 1px solid #94A3B8;
+      text-align: center;
+      font-weight: 800;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #334155;
+      flex-shrink: 0;
+    }
+    .cal-header-col {
+      padding: 10px 4px;
+      border-right: 1px solid #CBD5E1;
+    }
+    .cal-header-col:last-child {
+      border-right: none;
+    }
+    .cal-header-col.weekend {
+      color: #DC2626;
+      background: #FEF2F2;
+    }
+
+    .cal-grid-wrapper {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      background-color: #FFFFFF;
+      overflow-y: auto;
+      flex: 1 1 0%;
+      min-height: 0;
+    }
+    
+    .day-cell {
+      background: #FFFFFF;
+      min-height: 110px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+      transition: background 0.15s ease, box-shadow 0.15s ease;
       position: relative;
+      border-right: 1px solid #CBD5E1 !important;
+      border-bottom: 1px solid #CBD5E1 !important;
+      box-sizing: border-box;
     }
-    .day-cell:hover { background: rgb(240 249 255) !important; }
-    .day-cell.weekend { background: rgb(255 251 251); }
-    .day-cell.not-month { background: rgb(248 250 252); opacity: 0.75; }
-    .day-cell.today-col { background: rgb(239 246 255); box-shadow: inset 0 0 0 1.5px rgb(59 130 246); }
-    
-    .day-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; flex-shrink: 0; }
-    .day-num { 
-      width: 26px; 
-      height: 26px; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      border-radius: 9999px; 
-      font-size: 12px; 
-      font-weight: 700; 
-      color: rgb(51 65 85);
-      transition: all 0.15s;
+    .day-cell:nth-child(7n) {
+      border-right: none !important;
     }
-    .day-num.today { background: rgb(29 78 216); color: #ffffff !important; font-weight: 900; box-shadow: 0 1px 3px rgba(29, 78, 216, 0.4); }
-    .day-num.not-month { color: rgb(148 163 184); font-weight: 500; }
-    .day-num.weekend { color: rgb(225 29 72); font-weight: 800; }
+    @media (max-width: 640px) {
+      .day-cell { min-height: 68px; padding: 4px; }
+    }
+    .day-cell:hover {
+      background: #F8FAFC !important;
+    }
+    .day-cell.not-month {
+      background: #F8FAFC;
+    }
+    .day-cell.is-weekend {
+      background: #FAFAFA;
+    }
     
-    .day-events-list { flex: 1 1 0%; overflow-y: auto; display: flex; flex-direction: column; gap: 3px; }
-    
-    /* Event Chip Styles */
-    .ev-chip { 
-      display: flex; 
-      align-items: center; 
-      gap: 4px; 
-      padding: 3px 6px; 
-      border-radius: 6px; 
-      font-size: 11px; 
-      font-weight: 600; 
-      cursor: pointer; 
-      overflow: hidden; 
-      white-space: nowrap; 
-      text-overflow: ellipsis; 
-      max-width: 100%; 
+    .day-cell.is-today {
+      background: #EFF6FF !important;
+      box-shadow: inset 0 0 0 2px #2563EB;
+      z-index: 2;
+    }
+
+    .day-events-list {
+      flex: 1 1 0%;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    /* Enterprise Event Chip */
+    .ev-chip {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      border-radius: 6px;
+      padding: 4px 7px;
+      font-size: 11px;
+      line-height: 1.35;
+      font-weight: 600;
+      cursor: pointer;
+      border-width: 1px;
+      border-style: solid;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-      transition: transform 0.1s, box-shadow 0.1s, opacity 0.1s; 
-      border-left-width: 3px;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
     }
-    .ev-chip:hover { transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08); opacity: 0.95; }
-    .ev-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
-    
+    .ev-chip:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+    }
+
     /* Mini Calendar */
     .mini-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
-    .mini-day { 
-      aspect-ratio: 1; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      font-size: 11px; 
-      font-weight: 600; 
-      border-radius: 9999px; 
-      cursor: pointer; 
-      color: rgb(148 163 184); 
-      transition: all 0.1s; 
-      position: relative; 
+    .mini-day {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 500;
+      border-radius: 9999px;
+      cursor: pointer;
+      color: #DCE1EC;
+      transition: all 0.1s;
+      position: relative;
     }
-    .mini-day:hover { background: rgb(30 58 138); color: #ffffff; }
-    .mini-day.today-m { background: rgb(29 78 216); color: #ffffff !important; font-weight: 800; }
-    .mini-day.has-event::after { 
-      content: ''; 
-      width: 4px; 
-      height: 4px; 
-      background: rgb(96 165 250); 
-      border-radius: 50%; 
-      position: absolute; 
-      bottom: 2px; 
-      left: 50%; 
-      transform: translateX(-50%); 
+    .mini-day:hover { background: #1E2C4A; color: #FFFFFF; }
+    .mini-day.today-m { background: #0E7C7B; color: #FFFFFF !important; font-weight: 800; }
+    .mini-day.not-m { color: #4C5772; opacity: 0.5; }
+    .mini-day.we-m { color: #F87171; }
+    .mini-day.has-event::after {
+      content: '';
+      width: 3px;
+      height: 3px;
+      background: #C17817;
+      border-radius: 50%;
+      position: absolute;
+      bottom: 2px;
+      left: 50%;
+      transform: translateX(-50%);
     }
-    .mini-day.we-m { color: rgb(248 113 113); }
-    .mini-day.not-m { color: rgb(100 116 139); opacity: 0.35; }
-    
-    /* Agenda View */
-    .agenda-date-hdr { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: rgb(71 85 105); padding: 12px 18px 6px; background: rgb(248 250 252); border-bottom: 1px solid rgb(226 232 240); position: sticky; top: 0; z-index: 2; }
-    .agenda-row { display: flex; align-items: flex-start; gap: 14px; padding: 12px 18px; border-bottom: 1px solid rgb(241 245 249); cursor: pointer; transition: background 0.12s; background: #ffffff; }
-    .agenda-row:hover { background: rgb(240 249 255); }
 
     /* Custom Scrollbar */
-    ::-webkit-scrollbar { width: 5px; height: 5px; }
-    ::-webkit-scrollbar-thumb { background: rgb(203 213 225); border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgb(148 163 184); }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-thumb { background: #C7C2B4; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #5B6472; }
   </style>
 </head>
-<body class="bg-slate-100 font-sans text-slate-800 antialiased">
+<body class="bg-[#F6F5F1] font-sans text-[#16233D] antialiased">
 <div class="flex h-screen overflow-hidden">
 
   <!-- MOBILE BACKDROP -->
   <div id="sidebarBackdrop" onclick="Common.toggleSidebar(false)" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-30 hidden md:hidden transition-opacity"></div>
 
-  <!-- SIDEBAR: Navigation + Mini Calendar + Legend (Contextually Grouped) -->
-  <aside id="mainSidebar" class="fixed inset-y-0 left-0 z-40 w-64 bg-slate-900 text-white flex flex-col flex-shrink-0 shadow-2xl md:shadow-xl md:static transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+  <!-- SIDEBAR: Navigation + Mini Calendar + Legend -->
+  <aside id="mainSidebar" class="fixed inset-y-0 left-0 z-40 w-64 bg-[#16233D] text-white flex flex-col flex-shrink-0 shadow-2xl md:shadow-xl md:static transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
     
-    <!-- Brand -->
-    <div class="h-16 flex items-center justify-between px-5 bg-slate-950/60 border-b border-slate-800/80 shrink-0">
+    <!-- Brand Header -->
+    <div class="h-16 flex items-center justify-between px-5 bg-[#0F192C] border-b border-[#1E2C4A] shrink-0">
       <div class="flex items-center space-x-3">
-        <div class="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-white shadow-md">
+        <div class="w-8 h-8 rounded-lg bg-[#0E7C7B] flex items-center justify-center font-bold text-white shadow-md font-manrope">
           <i class="fa-solid fa-graduation-cap"></i>
         </div>
         <div>
-          <h1 class="font-black text-base tracking-wide text-white leading-tight">HueIC IMP</h1>
-          <p class="text-[10px] text-blue-400 font-semibold tracking-wider uppercase">Internal Portal</p>
+          <h1 class="font-manrope font-extrabold text-base tracking-wide text-white leading-tight">HueIC IMP</h1>
+          <p class="text-[10px] text-[#0E7C7B] font-semibold tracking-wider uppercase">Internal Portal</p>
         </div>
       </div>
       <button onclick="Common.toggleSidebar(false)" class="md:hidden text-slate-400 hover:text-white p-2">
@@ -150,94 +196,94 @@
       </button>
     </div>
 
-    <!-- Scrollable Sidebar Body -->
+    <!-- Scrollable Sidebar Content -->
     <div class="flex-1 px-3 py-3 space-y-3 overflow-y-auto">
       
-      <!-- ĐIỀU HÀNH (Top Section) -->
+      <!-- Section 1: ĐIỀU HÀNH -->
       <div>
-        <div class="text-[10px] font-bold uppercase text-slate-400 px-2 mb-1.5 tracking-wider">Điều Hành</div>
+        <div class="text-[10.5px] font-bold uppercase text-[#7D8AA3] px-2 mb-1.5 tracking-wider">Điều Hành</div>
         <div class="space-y-1">
-          <a href="index.html" id="nav-dashboard" class="nav-link flex items-center px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
-            <i class="fa-solid fa-chart-pie w-4 mr-2.5 text-center"></i>
+          <a href="index.html" id="nav-dashboard" class="nav-link flex items-center px-3 py-2 rounded-lg text-xs font-medium text-[#B9C2D4] hover:bg-[#1E2C4A] hover:text-white transition">
+            <i class="fa-solid fa-chart-pie w-4 mr-2.5 text-center text-xs"></i>
             <span>Tổng Quan (Dashboard)</span>
           </a>
-          <a href="tasks.html" id="nav-tasks" class="nav-link flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+          <a href="tasks.html" id="nav-tasks" class="nav-link flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-[#B9C2D4] hover:bg-[#1E2C4A] hover:text-white transition">
             <div class="flex items-center">
-              <i class="fa-solid fa-list-check w-4 mr-2.5 text-center"></i>
+              <i class="fa-solid fa-list-check w-4 mr-2.5 text-center text-xs"></i>
               <span>Quản Lý Công Việc</span>
             </div>
-            <span id="navBadgeTasks" class="hidden text-[10px] bg-red-600 text-white font-bold px-1.5 py-0.2 rounded-full shadow-xs">0</span>
+            <span id="navBadgeTasks" class="hidden text-[10px] bg-[#B3261E] text-white font-bold px-1.5 py-0.2 rounded-full shadow-xs">0</span>
           </a>
-          <a href="calendar.html" id="nav-calendar" class="nav-link flex items-center px-3 py-2 rounded-lg text-xs font-bold bg-blue-700 text-white shadow transition">
-            <i class="fa-solid fa-calendar-days w-4 mr-2.5 text-center"></i>
+          <a href="calendar.html" id="nav-calendar" class="nav-link flex items-center px-3 py-2 rounded-lg text-xs font-bold bg-[#0E7C7B] text-white shadow transition">
+            <i class="fa-solid fa-calendar-days w-4 mr-2.5 text-center text-xs"></i>
             <span>Lịch Công Tác</span>
           </a>
         </div>
       </div>
 
-      <!-- MINI CALENDAR & CHÚ THÍCH MÀU (Contextual tools for Calendar) -->
-      <div class="bg-slate-950/70 p-3 rounded-xl border border-slate-800/80 space-y-3 shadow-inner">
+      <!-- Section 2: MINI CALENDAR & CHÚ THÍCH MÀU -->
+      <div class="bg-[#1E2C4A]/80 p-3 rounded-xl border border-[#2A3B60] space-y-3 shadow-inner">
         <!-- Mini Calendar Header -->
         <div class="flex items-center justify-between px-1">
-          <button onclick="CalendarPage.miniPrev()" class="w-6 h-6 flex items-center justify-center rounded hover:bg-slate-800 text-slate-400 hover:text-white transition" title="Tháng trước">
+          <button onclick="CalendarPage.miniPrev()" class="w-6 h-6 flex items-center justify-center rounded hover:bg-[#16233D] text-[#8B96AC] hover:text-white transition" title="Tháng trước">
             <i class="fa-solid fa-chevron-left text-[10px]"></i>
           </button>
-          <span id="miniCalTitle" class="text-xs font-black text-slate-200 capitalize"></span>
-          <button onclick="CalendarPage.miniNext()" class="w-6 h-6 flex items-center justify-center rounded hover:bg-slate-800 text-slate-400 hover:text-white transition" title="Tháng sau">
+          <span id="miniCalTitle" class="text-xs font-bold text-white capitalize font-manrope"></span>
+          <button onclick="CalendarPage.miniNext()" class="w-6 h-6 flex items-center justify-center rounded hover:bg-[#16233D] text-[#8B96AC] hover:text-white transition" title="Tháng sau">
             <i class="fa-solid fa-chevron-right text-[10px]"></i>
           </button>
         </div>
 
         <!-- Mini Day-of-week Headers -->
-        <div class="mini-cal-grid mb-1 text-[9px] font-bold text-center">
-          <div class="text-slate-400 py-0.5">T2</div>
-          <div class="text-slate-400 py-0.5">T3</div>
-          <div class="text-slate-400 py-0.5">T4</div>
-          <div class="text-slate-400 py-0.5">T5</div>
-          <div class="text-slate-400 py-0.5">T6</div>
-          <div class="text-rose-400 py-0.5">T7</div>
-          <div class="text-rose-400 py-0.5">CN</div>
+        <div class="mini-cal-grid mb-1 text-[9.5px] font-bold text-center">
+          <div class="text-[#7D8AA3] py-0.5">T2</div>
+          <div class="text-[#7D8AA3] py-0.5">T3</div>
+          <div class="text-[#7D8AA3] py-0.5">T4</div>
+          <div class="text-[#7D8AA3] py-0.5">T5</div>
+          <div class="text-[#7D8AA3] py-0.5">T6</div>
+          <div class="text-[#B7756F] py-0.5">T7</div>
+          <div class="text-[#B7756F] py-0.5">CN</div>
         </div>
 
         <!-- Mini Calendar Grid -->
         <div id="miniCalGrid" class="mini-cal-grid gap-y-0.5"></div>
 
         <!-- Chú thích màu (Legend) -->
-        <div class="pt-3 border-t border-slate-800/80 space-y-1.5 text-[11px]">
-          <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-            <i class="fa-solid fa-palette text-[9px] text-blue-400"></i>
+        <div class="pt-2.5 border-t border-[#2A3B60] space-y-1.5 text-[11.5px]">
+          <div class="text-[9.5px] font-bold text-[#7D8AA3] uppercase tracking-wider mb-1 flex items-center gap-1.5">
+            <i class="fa-solid fa-palette text-[9px] text-[#0E7C7B]"></i>
             <span>Chú thích màu</span>
           </div>
-          <div class="flex items-center gap-2 text-slate-300 text-[11px] font-medium"><span class="w-2.5 h-2.5 rounded-xs bg-blue-500 shrink-0 shadow-xs"></span><span>Đang thực hiện</span></div>
-          <div class="flex items-center gap-2 text-slate-300 text-[11px] font-medium"><span class="w-2.5 h-2.5 rounded-xs bg-red-500 shrink-0 shadow-xs"></span><span>Quá hạn</span></div>
-          <div class="flex items-center gap-2 text-slate-300 text-[11px] font-medium"><span class="w-2.5 h-2.5 rounded-xs bg-amber-400 shrink-0 shadow-xs"></span><span>Chờ nghiệm thu / Sắp hạn</span></div>
-          <div class="flex items-center gap-2 text-slate-300 text-[11px] font-medium"><span class="w-2.5 h-2.5 rounded-xs bg-emerald-500 shrink-0 shadow-xs"></span><span>Đã hoàn thành</span></div>
-          <div class="flex items-center gap-2 text-slate-300 text-[11px] font-medium"><span class="w-2.5 h-2.5 rounded-xs bg-purple-500 shrink-0 shadow-xs"></span><span>Tạm dừng</span></div>
+          <div class="flex items-center gap-2 text-[#B9C2D4]"><span class="w-2.5 h-2.5 rounded-xs bg-[#0E7C7B] shrink-0 shadow-xs"></span><span>Đang thực hiện</span></div>
+          <div class="flex items-center gap-2 text-[#B9C2D4]"><span class="w-2.5 h-2.5 rounded-xs bg-[#B3261E] shrink-0 shadow-xs"></span><span>Quá hạn</span></div>
+          <div class="flex items-center gap-2 text-[#B9C2D4]"><span class="w-2.5 h-2.5 rounded-xs bg-[#C17817] shrink-0 shadow-xs"></span><span>Chờ nghiệm thu / Sắp hạn</span></div>
+          <div class="flex items-center gap-2 text-[#B9C2D4]"><span class="w-2.5 h-2.5 rounded-xs bg-[#3B8B6E] shrink-0 shadow-xs"></span><span>Đã hoàn thành</span></div>
+          <div class="flex items-center gap-2 text-[#B9C2D4]"><span class="w-2.5 h-2.5 rounded-xs bg-[#6B5B95] shrink-0 shadow-xs"></span><span>Tạm dừng</span></div>
         </div>
       </div>
 
-      <!-- BOTTOM SECTION: QUẢN TRỊ & HỒ SƠ -->
+      <!-- Section 3: QUẢN TRỊ & HỒ SƠ -->
       <div class="space-y-3 pt-1">
         <div>
-          <div class="text-[10px] font-bold uppercase text-slate-400 px-2 mb-1.5 tracking-wider">Quản Trị</div>
-          <a href="settings.html" id="nav-settings" class="nav-link flex items-center px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
-            <i class="fa-solid fa-sliders w-4 mr-2.5 text-center"></i>
+          <div class="text-[10.5px] font-bold uppercase text-[#7D8AA3] px-2 mb-1.5 tracking-wider">Quản Trị</div>
+          <a href="settings.html" id="nav-settings" class="nav-link flex items-center px-3 py-2 rounded-lg text-xs font-medium text-[#B9C2D4] hover:bg-[#1E2C4A] hover:text-white transition">
+            <i class="fa-solid fa-sliders w-4 mr-2.5 text-center text-xs"></i>
             <span>Thiết Lập Hệ Thống</span>
           </a>
-          <a href="assets.html" id="nav-assets" class="nav-link flex items-center px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition mt-1">
-            <i class="fa-solid fa-boxes-stacked w-4 mr-2.5 text-center"></i>
+          <a href="assets.html" id="nav-assets" class="nav-link flex items-center px-3 py-2 rounded-lg text-xs font-medium text-[#B9C2D4] hover:bg-[#1E2C4A] hover:text-white transition mt-1">
+            <i class="fa-solid fa-boxes-stacked w-4 mr-2.5 text-center text-xs"></i>
             <span>Quản Lý Tài Sản</span>
-            <span class="ml-auto text-[9px] bg-slate-800 text-amber-400 font-bold px-1.5 py-0.5 rounded">Sắp mở</span>
+            <span class="ml-auto text-[9px] bg-[#1E2C4A] text-[#C17817] font-bold px-1.5 py-0.5 rounded">Sắp mở</span>
           </a>
         </div>
 
         <div>
-          <div class="text-[10px] font-bold uppercase text-slate-400 px-2 mb-1.5 tracking-wider">Hồ Sơ</div>
+          <div class="text-[10.5px] font-bold uppercase text-[#7D8AA3] px-2 mb-1.5 tracking-wider">Hồ Sơ</div>
           <div class="space-y-1">
-            <a href="documents.html" id="nav-documents" class="nav-link flex items-center px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
-              <i class="fa-solid fa-file-signature w-4 mr-2.5 text-center"></i>
+            <a href="documents.html" id="nav-documents" class="nav-link flex items-center px-3 py-2 rounded-lg text-xs font-medium text-[#B9C2D4] hover:bg-[#1E2C4A] hover:text-white transition">
+              <i class="fa-solid fa-file-signature w-4 mr-2.5 text-center text-xs"></i>
               <span>Văn Bản &amp; Hồ Sơ</span>
-              <span class="ml-auto text-[9px] bg-slate-800 text-amber-400 font-bold px-1.5 py-0.5 rounded">Sắp mở</span>
+              <span class="ml-auto text-[9px] bg-[#1E2C4A] text-[#C17817] font-bold px-1.5 py-0.5 rounded">Sắp mở</span>
             </a>
           </div>
         </div>
@@ -245,158 +291,159 @@
 
     </div>
 
-    <!-- Bottom System Info -->
-    <div class="p-3 bg-slate-950/80 border-t border-slate-800/80 text-xs shrink-0">
-      <div class="flex items-center space-x-2 text-slate-400 mb-1">
-        <span class="w-2 h-2 rounded-full bg-green-400"></span>
-        <span class="font-mono text-[11px]">Ports: 8880 | 8881 | 8882</span>
+    <!-- Bottom User Bar -->
+    <div class="p-3 bg-[#0F192C] border-t border-[#1E2C4A] text-xs shrink-0 flex items-center justify-between">
+      <div class="flex items-center space-x-2.5">
+        <div id="sidebarUserAvatar" class="w-7 h-7 rounded-full bg-[#0E7C7B] text-white flex items-center justify-center font-bold text-xs shadow">A</div>
+        <div>
+          <div id="sidebarUserName" class="font-bold text-white text-xs leading-tight">Admin</div>
+          <div id="sidebarUserRole" class="text-[10px] text-[#7D8AA3]">Quản trị viên</div>
+        </div>
       </div>
-      <a href="/docs" target="_blank" class="text-blue-400 hover:underline text-[11px] flex items-center space-x-1">
-        <i class="fa-solid fa-book-bookmark text-[10px]"></i>
-        <span>FastAPI Swagger UI Docs</span>
-      </a>
+      <button onclick="API.logout()" class="text-[#7D8AA3] hover:text-red-400 p-1.5 transition" title="Đăng xuất">
+        <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i>
+      </button>
     </div>
   </aside>
 
   <!-- MAIN CONTENT AREA -->
-  <div class="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-100">
+  <div class="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#F6F5F1]">
 
-    <!-- HEADER (Google Calendar + Notion Calendar Style) -->
-    <header class="h-16 border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 shrink-0 bg-white z-10 gap-3">
+    <!-- TOP BAR (WARM EDITORIAL ENTERPRISE HEADER) -->
+    <header class="h-16 border-b border-[#E4E1D8] flex items-center justify-between px-4 sm:px-6 shrink-0 bg-[#FFFFFF] z-10 gap-3">
       
-      <!-- Left: Sidebar Toggle + Navigation + Current Title -->
-      <div class="flex items-center gap-2 sm:gap-3 shrink-0">
-        <button onclick="Common.toggleSidebar(true)" class="md:hidden p-2 text-slate-600 hover:text-blue-800 rounded-lg hover:bg-slate-100 focus:outline-none">
+      <!-- Left: Sidebar Toggle + Period Switcher + Title -->
+      <div class="flex items-center gap-2 sm:gap-4 shrink-0">
+        <button onclick="Common.toggleSidebar(true)" class="md:hidden p-2 text-[#5B6472] hover:text-[#16233D] rounded-lg hover:bg-[#F1F0EB] focus:outline-none">
           <i class="fa-solid fa-bars text-lg"></i>
         </button>
 
-        <div class="flex items-center space-x-1 bg-slate-100 p-1 rounded-lg border border-slate-200">
-          <button onclick="CalendarPage.prevPeriod()" class="w-7 h-7 flex items-center justify-center rounded-md text-slate-600 hover:bg-white hover:shadow-xs transition" title="Kỳ trước">
+        <div class="flex items-center space-x-1 bg-[#F1F0EB] p-1 rounded-lg border border-[#E4E1D8]">
+          <button onclick="CalendarPage.prevPeriod()" class="w-7 h-7 flex items-center justify-center rounded-md text-[#5B6472] hover:bg-[#FFFFFF] hover:shadow-xs transition" title="Kỳ trước">
             <i class="fa-solid fa-chevron-left text-xs"></i>
           </button>
-          <button onclick="CalendarPage.goToday()" class="px-2.5 py-1 rounded-md text-xs font-bold text-slate-700 hover:bg-white hover:shadow-xs transition">
+          <button onclick="CalendarPage.goToday()" class="px-2.5 py-1 rounded-md text-xs font-bold text-[#16233D] hover:bg-[#FFFFFF] hover:shadow-xs transition">
             Hôm nay
           </button>
-          <button onclick="CalendarPage.nextPeriod()" class="w-7 h-7 flex items-center justify-center rounded-md text-slate-600 hover:bg-white hover:shadow-xs transition" title="Kỳ sau">
+          <button onclick="CalendarPage.nextPeriod()" class="w-7 h-7 flex items-center justify-center rounded-md text-[#5B6472] hover:bg-[#FFFFFF] hover:shadow-xs transition" title="Kỳ sau">
             <i class="fa-solid fa-chevron-right text-xs"></i>
           </button>
         </div>
 
-        <h2 id="calendarTitle" class="text-base sm:text-lg font-black text-slate-900 capitalize hidden sm:block ml-1"></h2>
+        <h2 id="calendarTitle" class="text-base sm:text-lg font-manrope font-extrabold text-[#16233D] capitalize hidden sm:block"></h2>
       </div>
 
-      <!-- Middle: Fast Filter & Search Bar -->
-      <div class="hidden xl:flex items-center gap-2">
-        <div class="flex items-center space-x-1.5 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1">
-          <i class="fa-solid fa-building-columns text-slate-400 text-xs"></i>
-          <select id="calendarFilterDept" onchange="CalendarPage.handleFilterChange()" class="bg-transparent text-xs font-semibold text-slate-700 focus:outline-none pr-1">
+      <!-- Middle: Department Filter & Search -->
+      <div class="hidden xl:flex items-center gap-2.5">
+        <div class="flex items-center space-x-1.5 bg-[#FFFFFF] border border-[#E4E1D8] rounded-lg px-2.5 py-1.5 shadow-xs">
+          <i class="fa-solid fa-building-columns text-[#5B6472] text-xs"></i>
+          <select id="calendarFilterDept" onchange="CalendarPage.handleFilterChange()" class="bg-transparent text-xs font-semibold text-[#16233D] focus:outline-none pr-1 cursor-pointer">
             <option value="">🏢 Tất Cả Đơn Vị (12 Đơn Vị)</option>
           </select>
         </div>
         <div class="relative w-48">
-          <input type="text" id="calendarSearchInput" onkeyup="CalendarPage.handleSearchInput(event)" placeholder="Lọc việc trên lịch..." class="w-full pl-7 pr-2.5 py-1 border border-slate-200 rounded-lg bg-slate-50 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-700">
-          <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2 text-slate-400 text-[10px]"></i>
+          <input type="text" id="calendarSearchInput" onkeyup="CalendarPage.handleSearchInput(event)" placeholder="Lọc việc trên lịch..." class="w-full pl-7 pr-2.5 py-1.5 border border-[#E4E1D8] rounded-lg bg-[#FFFFFF] text-xs text-[#16233D] placeholder-[#5B6472] focus:outline-none focus:border-[#0E7C7B] shadow-xs">
+          <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-[#5B6472] text-[10px]"></i>
         </div>
       </div>
 
-      <!-- Right: View Switcher Tabs + Stats + User Profile -->
+      <!-- Right: View Switchers + Labeled Stats + Action Button -->
       <div class="flex items-center gap-2 sm:gap-3 shrink-0">
-        <!-- View tabs -->
-        <div class="hidden sm:flex items-center bg-slate-100 rounded-lg p-1 gap-0.5 border border-slate-200">
+        
+        <!-- View Switcher Tabs -->
+        <div class="hidden sm:flex items-center bg-[#F1F0EB] rounded-lg p-1 gap-0.5 border border-[#E4E1D8]">
           <button id="btn-view-month" onclick="CalendarPage.setView('month')" class="px-3 py-1.5 rounded-md text-xs font-bold transition">
             <i class="fa-solid fa-calendar mr-1"></i>Tháng
           </button>
-          <button id="btn-view-week" onclick="CalendarPage.setView('week')" class="px-3 py-1.5 rounded-md text-xs font-semibold text-slate-600 hover:bg-white transition">
+          <button id="btn-view-week" onclick="CalendarPage.setView('week')" class="px-3 py-1.5 rounded-md text-xs font-semibold text-[#5B6472] hover:bg-[#FFFFFF] transition">
             <i class="fa-solid fa-calendar-week mr-1"></i>Tuần
           </button>
-          <button id="btn-view-day" onclick="CalendarPage.setView('day')" class="px-3 py-1.5 rounded-md text-xs font-semibold text-slate-600 hover:bg-white transition">
+          <button id="btn-view-day" onclick="CalendarPage.setView('day')" class="px-3 py-1.5 rounded-md text-xs font-semibold text-[#5B6472] hover:bg-[#FFFFFF] transition">
             <i class="fa-solid fa-calendar-day mr-1"></i>Ngày
           </button>
-          <button id="btn-view-agenda" onclick="CalendarPage.setView('agenda')" class="px-3 py-1.5 rounded-md text-xs font-semibold text-slate-600 hover:bg-white transition">
+          <button id="btn-view-agenda" onclick="CalendarPage.setView('agenda')" class="px-3 py-1.5 rounded-md text-xs font-semibold text-[#5B6472] hover:bg-[#FFFFFF] transition">
             <i class="fa-solid fa-list-ul mr-1"></i>Danh sách
           </button>
         </div>
 
-        <!-- Summary badges -->
+        <!-- 3 Labeled Stats Indicator (Quá hạn / Sắp hạn / Hôm nay) -->
         <div class="hidden lg:flex items-center gap-1.5">
-          <span class="flex items-center gap-1 px-2 py-1 bg-red-50 text-red-700 rounded-full text-[11px] font-bold border border-red-200" title="Công việc quá hạn">
-            <i class="fa-solid fa-circle-exclamation text-[10px]"></i><span id="summaryOverdue">0</span>
-          </span>
-          <span class="flex items-center gap-1 px-2 py-1 bg-amber-50 text-amber-800 rounded-full text-[11px] font-bold border border-amber-200" title="Sắp đến hạn trong 48h">
-            <i class="fa-solid fa-hourglass-half text-[10px]"></i><span id="summaryUpcoming">0</span>
-          </span>
-          <span class="flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-800 rounded-full text-[11px] font-bold border border-blue-200" title="Đến hạn hôm nay">
-            <i class="fa-solid fa-calendar-check text-[10px]"></i><span id="summaryToday">0</span>
-          </span>
+          <!-- Quá hạn -->
+          <div class="flex items-center gap-1.5 px-2.5 py-1 bg-[#FBE9E7] text-[#B3261E] rounded-md text-[11.5px] font-semibold" title="Công việc quá hạn">
+            <i class="fa-solid fa-triangle-exclamation text-[11px]"></i>
+            <span>Quá hạn</span>
+            <span id="summaryOverdue" class="bg-[#B3261E] text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">0</span>
+          </div>
+          <!-- Sắp hạn -->
+          <div class="flex items-center gap-1.5 px-2.5 py-1 bg-[#FBF0DF] text-[#C17817] rounded-md text-[11.5px] font-semibold" title="Sắp đến hạn trong 48h">
+            <i class="fa-solid fa-clock text-[11px]"></i>
+            <span>Sắp hạn</span>
+            <span id="summaryUpcoming" class="bg-[#C17817] text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">0</span>
+          </div>
+          <!-- Nhắc nhở / Hôm nay -->
+          <div class="flex items-center gap-1.5 px-2.5 py-1 bg-[#EFEEE9] text-[#5B6472] rounded-md text-[11.5px] font-semibold" title="Công việc đến hạn hôm nay">
+            <i class="fa-solid fa-bell text-[11px]"></i>
+            <span>Nhắc nhở</span>
+            <span id="summaryToday" class="bg-[#5B6472] text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">0</span>
+          </div>
         </div>
 
-        <!-- Action Button: Giao việc mới -->
-        <a href="tasks.html" class="hidden md:flex items-center space-x-1.5 px-3 py-1.5 bg-blue-800 hover:bg-blue-900 text-white rounded-lg text-xs font-bold shadow-xs transition">
+        <!-- Giao việc Action -->
+        <a href="tasks.html" class="hidden md:flex items-center space-x-1.5 px-3.5 py-1.5 bg-[#16233D] hover:bg-[#1E2C4A] text-white rounded-lg text-xs font-semibold shadow-xs transition">
           <i class="fa-solid fa-plus text-[10px]"></i>
           <span>Giao việc</span>
         </a>
-
-        <!-- User profile avatar & logout -->
-        <div class="flex items-center space-x-2 pl-2 border-l border-slate-200">
-          <div class="hidden sm:block text-right">
-            <div id="headerUserName" class="text-xs font-bold text-slate-800">Admin</div>
-            <div id="headerUserRole" class="text-[10px] text-slate-500 font-medium">Quản trị viên</div>
-          </div>
-          <div id="headerUserAvatar" class="w-8 h-8 rounded-full bg-blue-800 text-white flex items-center justify-center font-bold text-xs shadow">A</div>
-          <button onclick="API.logout()" class="p-1.5 text-slate-400 hover:text-red-600 rounded-lg transition" title="Đăng xuất">
-            <i class="fa-solid fa-arrow-right-from-bracket text-sm"></i>
-          </button>
-        </div>
       </div>
     </header>
 
     <!-- Mobile View Tabs & Filter Bar -->
-    <div class="sm:hidden flex flex-col bg-white border-b border-slate-200 px-3 py-2 gap-2">
+    <div class="sm:hidden flex flex-col bg-[#FFFFFF] border-b border-[#E4E1D8] px-3 py-2 gap-2">
       <div class="flex items-center justify-between gap-1 overflow-x-auto pb-1">
         <button id="btn-view-month-m" onclick="CalendarPage.setView('month')" class="shrink-0 px-3 py-1 rounded-lg text-xs font-bold transition"><i class="fa-solid fa-calendar mr-1"></i>Tháng</button>
-        <button id="btn-view-week-m" onclick="CalendarPage.setView('week')" class="shrink-0 px-3 py-1 rounded-lg text-xs font-semibold text-slate-600 transition"><i class="fa-solid fa-calendar-week mr-1"></i>Tuần</button>
-        <button id="btn-view-day-m" onclick="CalendarPage.setView('day')" class="shrink-0 px-3 py-1 rounded-lg text-xs font-semibold text-slate-600 transition"><i class="fa-solid fa-calendar-day mr-1"></i>Ngày</button>
-        <button id="btn-view-agenda-m" onclick="CalendarPage.setView('agenda')" class="shrink-0 px-3 py-1 rounded-lg text-xs font-semibold text-slate-600 transition"><i class="fa-solid fa-list-ul mr-1"></i>Danh sách</button>
+        <button id="btn-view-week-m" onclick="CalendarPage.setView('week')" class="shrink-0 px-3 py-1 rounded-lg text-xs font-semibold text-[#5B6472] transition"><i class="fa-solid fa-calendar-week mr-1"></i>Tuần</button>
+        <button id="btn-view-day-m" onclick="CalendarPage.setView('day')" class="shrink-0 px-3 py-1 rounded-lg text-xs font-semibold text-[#5B6472] transition"><i class="fa-solid fa-calendar-day mr-1"></i>Ngày</button>
+        <button id="btn-view-agenda-m" onclick="CalendarPage.setView('agenda')" class="shrink-0 px-3 py-1 rounded-lg text-xs font-semibold text-[#5B6472] transition"><i class="fa-solid fa-list-ul mr-1"></i>Danh sách</button>
       </div>
       <div class="flex items-center gap-2">
-        <select id="calendarFilterDept-m" onchange="CalendarPage.handleFilterChange(true)" class="flex-1 px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700">
+        <select id="calendarFilterDept-m" onchange="CalendarPage.handleFilterChange(true)" class="flex-1 px-2 py-1 bg-[#F1F0EB] border border-[#E4E1D8] rounded-lg text-xs font-semibold text-[#16233D]">
           <option value="">🏢 Tất Cả Đơn Vị</option>
         </select>
       </div>
     </div>
 
-    <!-- CALENDAR VIEW WRAPPER -->
-    <main class="flex-1 overflow-hidden flex flex-col min-h-0 bg-white">
+    <!-- CALENDAR VIEW CONTENT AREA (Full Height Adaptive Viewport) -->
+    <main class="flex-1 overflow-hidden p-3 sm:p-5 bg-[#F6F5F1] flex flex-col min-h-0">
       
-      <!-- 1. MONTH VIEW -->
-      <div id="viewMonth" class="cal-month-container">
-        <!-- Weekday Headers -->
-        <div class="mhdr-grid shrink-0">
-          <div class="mhdr">Thứ 2</div>
-          <div class="mhdr">Thứ 3</div>
-          <div class="mhdr">Thứ 4</div>
-          <div class="mhdr">Thứ 5</div>
-          <div class="mhdr">Thứ 6</div>
-          <div class="mhdr we">Thứ 7</div>
-          <div class="mhdr we">Chủ Nhật</div>
+      <!-- 1. MONTH VIEW (Full Height Stretch) -->
+      <div id="viewMonth" class="flex-1 flex flex-col min-h-0 w-full rounded-xl border border-slate-300 shadow-sm overflow-hidden bg-white">
+        <!-- Weekday Headers Bar with Column Dividers -->
+        <div class="grid grid-cols-7 text-center font-bold text-xs text-slate-700 uppercase tracking-wider bg-slate-100/90 border-b border-slate-300 divide-x divide-slate-200 shrink-0">
+          <div class="py-2.5">Thứ 2</div>
+          <div class="py-2.5">Thứ 3</div>
+          <div class="py-2.5">Thứ 4</div>
+          <div class="py-2.5">Thứ 5</div>
+          <div class="py-2.5">Thứ 6</div>
+          <div class="py-2.5 text-red-600 bg-red-50/50">Thứ 7</div>
+          <div class="py-2.5 text-red-600 bg-red-50/50">Chủ Nhật</div>
         </div>
-        <!-- 7-Column Dynamic Month Cells (Full Height Stretch) -->
-        <div id="monthGrid" class="month-cells-grid"></div>
+
+        <!-- 7-Column Adaptive Dynamic Month Cells (Fills full height) -->
+        <div id="monthGrid" class="cal-grid-wrapper flex-1 !border-0 !rounded-none"></div>
       </div>
 
       <!-- 2. WEEK VIEW -->
-      <div id="viewWeek" class="hidden flex-1 overflow-y-auto bg-slate-50">
-        <div id="weekGrid" class="h-full flex flex-col"></div>
+      <div id="viewWeek" class="hidden flex-1 overflow-y-auto w-full">
+        <div id="weekGrid" class="bg-[#FFFFFF] border border-[#E4E1D8] rounded-xl overflow-hidden shadow-xs"></div>
       </div>
 
       <!-- 3. DAY VIEW -->
-      <div id="viewDay" class="hidden flex-1 overflow-y-auto bg-slate-50 p-4 sm:p-6">
-        <div id="dayContainer" class="max-w-3xl mx-auto"></div>
+      <div id="viewDay" class="hidden flex-1 overflow-y-auto max-w-4xl mx-auto w-full">
+        <div id="dayContainer"></div>
       </div>
 
       <!-- 4. AGENDA VIEW (DANH SÁCH) -->
-      <div id="viewAgenda" class="hidden flex-1 overflow-y-auto bg-slate-50">
-        <div id="agendaContainer" class="max-w-4xl mx-auto py-4"></div>
+      <div id="viewAgenda" class="hidden flex-1 overflow-y-auto max-w-4xl mx-auto w-full">
+        <div id="agendaContainer"></div>
       </div>
 
     </main>
@@ -404,28 +451,52 @@
   </div>
 </div>
 
+<!-- QUICK DAY PREVIEW MODAL -->
+<div id="dayModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-[#E4E1D8] overflow-hidden transform transition-all">
+    <div class="px-5 py-4 bg-[#FAFAF7] border-b border-[#E4E1D8] flex items-center justify-between">
+      <div>
+        <span id="dayModalSubtitle" class="text-[11px] font-bold text-[#0E7C7B] uppercase tracking-wider">Lịch Trình Chi Tiết</span>
+        <h3 id="dayModalTitle" class="font-manrope font-extrabold text-base text-[#16233D]"></h3>
+      </div>
+      <button onclick="CalendarPage.closeDayModal()" class="w-8 h-8 rounded-lg hover:bg-slate-200 text-[#5B6472] flex items-center justify-center transition">
+        <i class="fa-solid fa-xmark text-sm"></i>
+      </button>
+    </div>
+    <div id="dayModalBody" class="p-5 max-h-[65vh] overflow-y-auto space-y-2.5">
+      <!-- Dynamic task cards -->
+    </div>
+    <div class="px-5 py-3 bg-[#FAFAF7] border-t border-[#E4E1D8] flex items-center justify-between">
+      <span id="dayModalCount" class="text-xs font-semibold text-[#5B6472]">0 công việc</span>
+      <a href="tasks.html" class="px-3.5 py-1.5 bg-[#16233D] hover:bg-[#1E2C4A] text-white rounded-lg text-xs font-semibold shadow-xs transition">
+        <i class="fa-solid fa-plus text-[10px] mr-1"></i> Giao việc ngày này
+      </a>
+    </div>
+  </div>
+</div>
+
 <!-- MOBILE BOTTOM NAV -->
-<nav class="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 z-20 flex shadow-lg">
-  <a href="index.html" class="flex-1 flex flex-col items-center py-2 text-slate-400 hover:text-blue-800">
+<nav class="md:hidden fixed bottom-0 inset-x-0 bg-[#FFFFFF] border-t border-[#E4E1D8] z-20 flex shadow-lg">
+  <a href="index.html" class="flex-1 flex flex-col items-center py-2 text-[#5B6472] hover:text-[#0E7C7B]">
     <i class="fa-solid fa-chart-pie text-lg"></i>
     <span class="text-[9px] font-bold mt-0.5">Tổng Quan</span>
   </a>
-  <a href="tasks.html" class="flex-1 flex flex-col items-center py-2 text-slate-400 hover:text-blue-800">
+  <a href="tasks.html" class="flex-1 flex flex-col items-center py-2 text-[#5B6472] hover:text-[#0E7C7B]">
     <i class="fa-solid fa-list-check text-lg"></i>
     <span class="text-[9px] font-bold mt-0.5">Công Việc</span>
   </a>
-  <a href="calendar.html" class="flex-1 flex flex-col items-center py-2 text-blue-700">
+  <a href="calendar.html" class="flex-1 flex flex-col items-center py-2 text-[#0E7C7B]">
     <i class="fa-solid fa-calendar-days text-lg"></i>
     <span class="text-[9px] font-bold mt-0.5">Lịch</span>
   </a>
-  <a href="settings.html" class="flex-1 flex flex-col items-center py-2 text-slate-400 hover:text-blue-800">
+  <a href="settings.html" class="flex-1 flex flex-col items-center py-2 text-[#5B6472] hover:text-[#0E7C7B]">
     <i class="fa-solid fa-sliders text-lg"></i>
     <span class="text-[9px] font-bold mt-0.5">Cài Đặt</span>
   </a>
 </nav>
 
-<script src="assets/js/api.js"></script>
-<script src="assets/js/common.js"></script>
-<script src="assets/js/calendar.js"></script>
+<script src="assets/js/api.js?v=2.7.4"></script>
+<script src="assets/js/common.js?v=2.7.4"></script>
+<script src="assets/js/calendar.js?v=2.7.4"></script>
 </body>
 </html>
