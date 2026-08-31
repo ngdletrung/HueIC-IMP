@@ -1,0 +1,68 @@
+name: hueic_imp
+
+networks:
+  hueic_imp_network:
+    name: hueic_imp_network
+    driver: bridge
+
+volumes:
+  hueic_imp_db_data:
+    name: hueic_imp_db_data
+
+services:
+  # 1. Cơ sở dữ liệu PostgreSQL 15 (Cổng 8882)
+  db:
+    image: postgres:15-alpine
+    container_name: hueic_imp_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-hueic_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-HueIC_SecurePass2026}
+      POSTGRES_DB: ${POSTGRES_DB:-hueic_imp_db}
+    ports:
+      - "8882:5432"  # Dải cổng chuyên dụng HueIC: 8882 cho Database
+    volumes:
+      - hueic_imp_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-hueic_admin} -d ${POSTGRES_DB:-hueic_imp_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hueic_imp_network
+
+  # 2. Backend FastAPI Server (Cổng 8881)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hueic_imp_backend
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-hueic_admin}:${POSTGRES_PASSWORD:-HueIC_SecurePass2026}@db:5432/${POSTGRES_DB:-hueic_imp_db}
+    ports:
+      - "8881:8000"  # Cổng Backend & Swagger UI trực tiếp
+    volumes:
+      - ./backend:/app
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - hueic_imp_network
+
+  # 3. Frontend Web Server Nginx (Cổng 8880)
+  frontend:
+    image: nginx:alpine
+    container_name: hueic_imp_frontend
+    restart: always
+    ports:
+      - "8880:80"    # Cổng Web Portal giao diện chính
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+    networks:
+      - hueic_imp_network

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sổ Văn Bản & Hồ Sơ Điện Tử - HueIC IMP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-slate-100 font-sans text-slate-800 antialiased">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebarBackdrop" onclick="Common.toggleSidebar(false)" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-30 hidden md:hidden transition-opacity"></div>
+        <aside id="mainSidebar" class="fixed inset-y-0 left-0 z-40 w-64 bg-slate-900 text-white flex flex-col flex-shrink-0 shadow-2xl md:shadow-xl md:static transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+            <div class="h-16 flex items-center justify-between px-5 bg-slate-950/60 border-b border-slate-800/80">
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-white shadow-md">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-black text-base tracking-wide text-white leading-tight">HueIC IMP</h1>
+                        <p class="text-[10px] text-blue-400 font-semibold tracking-wider uppercase">Internal Portal</p>
+                    </div>
+                </div>
+                <button onclick="Common.toggleSidebar(false)" class="md:hidden text-slate-400 hover:text-white p-2">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+                <div class="text-[10px] font-bold uppercase text-slate-400 px-3 mb-2 tracking-wider">Điều Hành</div>
+                <a href="index.html" id="nav-dashboard" class="nav-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition duration-150 text-slate-300 hover:bg-blue-900/50">
+                    <i class="fa-solid fa-chart-pie w-5 mr-3 text-center"></i>
+                    <span>Tổng Quan (Dashboard)</span>
+                </a>
+                <a href="tasks.html" id="nav-tasks" class="nav-link flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition duration-150 text-slate-300 hover:bg-blue-900/50">
+                    <div class="flex items-center">
+                        <i class="fa-solid fa-list-check w-5 mr-3 text-center"></i>
+                        <span>Quản Lý Công Việc</span>
+                    </div>
+                    <span id="navBadgeTasks" class="hidden text-[10px] bg-red-600 text-white font-bold px-2 py-0.5 rounded-full shadow-xs">0</span>
+                </a>
+                <a href="calendar.html" id="nav-calendar" class="nav-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition duration-150 text-slate-300 hover:bg-blue-900/50">
+                    <i class="fa-solid fa-calendar-days w-5 mr-3 text-center"></i>
+                    <span>Lịch Công Tác</span>
+                </a>
+                <div class="text-[10px] font-bold uppercase text-slate-400 px-3 mt-5 mb-2 tracking-wider">Quản Trị</div>
+                <a href="settings.html" id="nav-settings" class="nav-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition duration-150 text-slate-300 hover:bg-blue-900/50">
+                    <i class="fa-solid fa-sliders w-5 mr-3 text-center"></i>
+                    <span>Thiết Lập Hệ Thống</span>
+                </a>
+                <a href="assets.html" id="nav-assets" class="nav-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition duration-150 text-slate-300 hover:bg-blue-900/50">
+                    <i class="fa-solid fa-boxes-stacked w-5 mr-3 text-center"></i>
+                    <span>Quản Lý Tài Sản</span>
+                    <span class="ml-auto text-[9px] bg-slate-800 text-amber-400 font-bold px-1.5 py-0.5 rounded">Sắp mở</span>
+                </a>
+                <div class="text-[10px] font-bold uppercase text-slate-400 px-3 mt-5 mb-2 tracking-wider">Hồ Sơ</div>
+                <a href="documents.html" id="nav-documents" class="nav-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition duration-150 bg-blue-900 text-white">
+                    <i class="fa-solid fa-file-signature w-5 mr-3 text-center"></i>
+                    <span>Văn Bản & Hồ Sơ</span>
+                    <span class="ml-auto text-[9px] bg-slate-800 text-amber-400 font-bold px-1.5 py-0.5 rounded">Sắp mở</span>
+                </a>
+            </nav>
+            <div class="p-3 bg-slate-950/80 border-t border-slate-800/80 text-xs">
+                <div class="flex items-center space-x-2 text-slate-400 mb-1">
+                    <span class="w-2 h-2 rounded-full bg-green-400"></span>
+                    <span class="font-mono text-[11px]">Ports: 8880 | 8881 | 8882</span>
+                </div>
+                <a href="/docs" target="_blank" class="text-blue-400 hover:underline text-[11px] flex items-center space-x-1">
+                    <i class="fa-solid fa-book-bookmark text-[10px]"></i>
+                    <span>FastAPI Swagger UI Docs</span>
+                </a>
+            </div>
+        </aside>
+
+        <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+            <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 z-10">
+                <div class="flex items-center space-x-2 sm:space-x-3">
+                    <button onclick="Common.toggleSidebar(true)" class="md:hidden p-2 text-slate-600 hover:text-blue-800 rounded-lg hover:bg-slate-100 focus:outline-none">
+                        <i class="fa-solid fa-bars text-lg"></i>
+                    </button>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs sm:text-sm font-bold text-slate-800 truncate">HueIC IMP</span>
+                        <span class="hidden sm:inline text-slate-300">|</span>
+                        <span class="hidden sm:inline text-xs text-slate-500 font-medium">Sổ Văn Bản & Hồ Sơ Điện Tử</span>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2 sm:space-x-4">
+                    <div class="flex items-center space-x-2 sm:space-x-3 text-right">
+                        <div class="hidden sm:block">
+                            <div id="headerUserName" class="text-xs font-bold text-slate-800">Admin</div>
+                            <div id="headerUserRole" class="text-[10px] text-slate-500 font-medium">Quản trị viên</div>
+                        </div>
+                        <div id="headerUserAvatar" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-blue-800 text-white flex items-center justify-center font-bold text-xs sm:text-sm shadow">A</div>
+                    </div>
+                    <button onclick="API.logout()" class="p-2 text-slate-400 hover:text-red-600 hover:bg-slate-100 rounded-lg text-sm transition" title="Đăng xuất">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    </button>
+                </div>
+            </header>
+
+            <main class="flex-1 overflow-y-auto p-6 bg-slate-100 flex items-center justify-center">
+                <div class="bg-white p-8 sm:p-12 rounded-2xl border border-slate-200 shadow-md text-center max-w-lg">
+                    <div class="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto text-2xl mb-4 border border-amber-200">
+                        <i class="fa-solid fa-file-signature"></i>
+                    </div>
+                    <h3 class="text-lg font-black text-slate-900 mb-2">Sổ Văn Bản & Hồ Sơ Điện Tử</h3>
+                    <p class="text-xs text-slate-500 leading-relaxed mb-6">Phân hệ quản lý công văn đi, công văn đến, số hóa tệp tin hồ sơ lưu trữ và quy trình trình ký duyệt điện tử liên phòng ban.</p>
+                    <div class="inline-flex items-center space-x-2 px-3 py-1.5 bg-blue-50 text-blue-900 rounded-lg text-xs font-bold border border-blue-200">
+                        <i class="fa-solid fa-code-branch"></i>
+                        <span>Dự kiến triển khai trong Lộ trình Phase 2</span>
+                    </div>
+                    <div class="mt-6">
+                        <a href="index.html" class="inline-flex items-center space-x-2 px-4 py-2 bg-blue-800 hover:bg-blue-900 text-white rounded-lg text-xs font-bold transition shadow">
+                            <i class="fa-solid fa-arrow-left"></i>
+                            <span>Về Bảng Điều Khiển</span>
+                        </a>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    <script src="assets/js/api.js"></script>
+    <script src="assets/js/common.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            Common.init('documents');
+        });
+    </script>
+</body>
+</html>

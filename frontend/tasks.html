@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý & Phân Công Nhiệm Vụ - HueIC IMP</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-slate-100 font-sans text-slate-800 antialiased">
+    <div class="flex h-screen overflow-hidden">
+        
+        <!-- MOBILE BACKDROP -->
+        <div id="sidebarBackdrop" onclick="Common.toggleSidebar(false)" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-30 hidden md:hidden transition-opacity"></div>
+
+        <!-- SIDEBAR (RESPONSIVE DRAWER ON MOBILE) -->
+        <aside id="mainSidebar" class="fixed inset-y-0 left-0 z-40 w-64 bg-slate-900 text-white flex flex-col flex-shrink-0 shadow-2xl md:shadow-xl md:static transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+            <!-- Brand -->
+            <div class="h-16 flex items-center justify-between px-5 bg-slate-950/60 border-b border-slate-800/80">
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-white shadow-md">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-black text-base tracking-wide text-white leading-tight">HueIC IMP</h1>
+                        <p class="text-[10px] text-blue-400 font-semibold tracking-wider uppercase">Internal Portal</p>
+                    </div>
+                </div>
+                <button onclick="Common.toggleSidebar(false)" class="md:hidden text-slate-400 hover:text-white p-2">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+                <div class="text-[10px] font-bold uppercase text-slate-400 px-3 mb-2 tracking-wider">Điều Hành</div>
+                
+                <a href="index.html" id="nav-dashboard"
+                    class="nav-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition duration-150">
+                    <i class="fa-solid fa-chart-pie w-5 mr-3 text-center"></i>
+                    <span>Tổng Quan (Dashboard)</span>
+                </a>
+
+                <a href="tasks.html" id="nav-tasks"
+                    class="nav-link flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition duration-150">
+                    <div class="flex items-center">
+                        <i class="fa-solid fa-list-check w-5 mr-3 text-center"></i>
+                        <span>Quản Lý Công Việc</span>
+                    </div>
+                    <span id="navBadgeTasks" class="hidden text-[10px] bg-red-600 text-white font-bold px-2 py-0.5 rounded-full shadow-xs">0</span>
+                </a>
+
+                <a href="calendar.html" id="nav-calendar"
+                    class="nav-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition duration-150">
+                    <i class="fa-solid fa-calendar-days w-5 mr-3 text-center"></i>
+                    <span>Lịch Công Tác</span>
+                </a>
+
+                <div class="text-[10px] font-bold uppercase text-slate-400 px-3 mt-5 mb-2 tracking-wider">Quản Trị</div>
+
+                <a href="settings.html" id="nav-settings"
+                    class="nav-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition duration-150">
+                    <i class="fa-solid fa-sliders w-5 mr-3 text-center"></i>
+                    <span>Thiết Lập Hệ Thống</span>
+                </a>
+
+                <a href="assets.html" id="nav-assets"
+                    class="nav-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition duration-150">
+                    <i class="fa-solid fa-boxes-stacked w-5 mr-3 text-center"></i>
+                    <span>Quản Lý Tài Sản</span>
+                    <span class="ml-auto text-[9px] bg-slate-800 text-amber-400 font-bold px-1.5 py-0.5 rounded">Sắp mở</span>
+                </a>
+
+                <div class="text-[10px] font-bold uppercase text-slate-400 px-3 mt-5 mb-2 tracking-wider">Hồ Sơ</div>
+
+                <a href="documents.html" id="nav-documents"
+                    class="nav-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition duration-150">
+                    <i class="fa-solid fa-file-signature w-5 mr-3 text-center"></i>
+                    <span>Văn Bản & Hồ Sơ</span>
+                    <span class="ml-auto text-[9px] bg-slate-800 text-amber-400 font-bold px-1.5 py-0.5 rounded">Sắp mở</span>
+                </a>
+            </nav>
+
+            <!-- Bottom System Info -->
+            <div class="p-3 bg-slate-950/80 border-t border-slate-800/80 text-xs">
+                <div class="flex items-center space-x-2 text-slate-400 mb-1">
+                    <span class="w-2 h-2 rounded-full bg-green-400"></span>
+                    <span class="font-mono text-[11px]">Ports: 8880 | 8881 | 8882</span>
+                </div>
+                <a href="/docs" target="_blank" class="text-blue-400 hover:underline text-[11px] flex items-center space-x-1">
+                    <i class="fa-solid fa-book-bookmark text-[10px]"></i>
+                    <span>FastAPI Swagger UI Docs</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT WRAPPER -->
+        <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+            
+            <!-- HEADER BAR -->
+            <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 z-10">
+                <div class="flex items-center space-x-2 sm:space-x-3">
+                    <button onclick="Common.toggleSidebar(true)" class="md:hidden p-2 text-slate-600 hover:text-blue-800 rounded-lg hover:bg-slate-100 focus:outline-none">
+                        <i class="fa-solid fa-bars text-lg"></i>
+                    </button>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs sm:text-sm font-bold text-slate-800 truncate">HueIC IMP</span>
+                        <span class="hidden sm:inline text-slate-300">|</span>
+                        <span class="hidden sm:inline text-xs text-slate-500 font-medium">Quản Lý Tiến Độ & Phân Công Nhiệm Vụ</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-2 sm:space-x-4">
+                    <div class="flex items-center space-x-2 sm:space-x-3 text-right">
+                        <div class="hidden sm:block">
+                            <div id="headerUserName" class="text-xs font-bold text-slate-800">Admin</div>
+                            <div id="headerUserRole" class="text-[10px] text-slate-500 font-medium">Quản trị viên</div>
+                        </div>
+                        <div id="headerUserAvatar" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-blue-800 text-white flex items-center justify-center font-bold text-xs sm:text-sm shadow">
+                            A
+                        </div>
+                    </div>
+                    <button onclick="API.logout()" class="p-2 text-slate-400 hover:text-red-600 hover:bg-slate-100 rounded-lg text-sm transition" title="Đăng xuất">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- MAIN CONTENT -->
+            <main class="flex-1 overflow-y-auto p-3.5 sm:p-6 pb-20 md:pb-6 bg-slate-100 space-y-4">
+                
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <h2 class="text-xl font-black text-slate-900 tracking-tight">Quản Lý & Phân Công Nhiệm Vụ</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Theo dõi chi tiết tiến độ, phối hợp liên đơn vị và trao đổi công việc</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="TasksPage.loadTasks()" class="px-3 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold rounded-lg shadow-xs transition flex items-center space-x-1.5" title="Làm mới">
+                            <i class="fa-solid fa-rotate-right text-blue-700"></i>
+                            <span>Làm mới</span>
+                        </button>
+                        <button onclick="TasksPage.openCreateTaskModal()" class="px-4 py-2 bg-blue-800 hover:bg-blue-900 text-white text-xs font-bold rounded-lg shadow transition flex items-center space-x-2">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>Giao Nhiệm Vụ Mới</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Control Bar: Multi-View Switcher & Quick Filter Pills (MISA AMIS Workspace Pattern) -->
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
+                    <!-- Left: Multi-View Switcher Buttons -->
+                    <div class="flex items-center space-x-1 bg-slate-100 p-1 rounded-lg border border-slate-200/80 self-start">
+                        <button id="btnViewList" onclick="TasksPage.switchView('list')" 
+                            class="px-3 py-1.5 rounded-md font-bold text-xs flex items-center space-x-1.5 transition bg-white text-blue-900 shadow-xs">
+                            <i class="fa-solid fa-table-list"></i>
+                            <span>Bảng Danh Sách</span>
+                        </button>
+                        <button id="btnViewKanban" onclick="TasksPage.switchView('kanban')" 
+                            class="px-3 py-1.5 rounded-md font-bold text-xs flex items-center space-x-1.5 transition text-slate-600 hover:text-blue-900 hover:bg-white/50">
+                            <i class="fa-solid fa-table-columns"></i>
+                            <span>Bảng Thẻ Kanban</span>
+                        </button>
+                        <button id="btnViewCalendar" onclick="TasksPage.switchView('calendar')" 
+                            class="px-3 py-1.5 rounded-md font-bold text-xs flex items-center space-x-1.5 transition text-slate-600 hover:text-blue-900 hover:bg-white/50">
+                            <i class="fa-regular fa-calendar-days"></i>
+                            <span>Lịch Công Tác</span>
+                        </button>
+                    </div>
+
+                    <!-- Right: Quick Filter Pills -->
+                    <div class="flex flex-wrap items-center gap-1.5 text-[11px] font-bold">
+                        <button onclick="TasksPage.setQuickFilter('all')" id="qf-all" class="px-2.5 py-1 rounded-full border border-blue-700 bg-blue-50 text-blue-900 transition">
+                            Tất cả
+                        </button>
+                        <button onclick="TasksPage.setQuickFilter('overdue')" id="qf-overdue" class="px-2.5 py-1 rounded-full border border-slate-200 bg-slate-50 text-red-700 hover:border-red-300 transition flex items-center space-x-1">
+                            <span>🚨 Quá hạn</span>
+                            <span id="badgeOverdueCount" class="px-1.5 py-0.2 bg-red-600 text-white rounded-full text-[9px] hidden">0</span>
+                        </button>
+                        <button onclick="TasksPage.setQuickFilter('duesoon')" id="qf-duesoon" class="px-2.5 py-1 rounded-full border border-slate-200 bg-slate-50 text-amber-700 hover:border-amber-300 transition flex items-center space-x-1">
+                            <span>⏳ Sắp đến hạn (48h)</span>
+                            <span id="badgeDueSoonCount" class="px-1.5 py-0.2 bg-amber-500 text-white rounded-full text-[9px] hidden">0</span>
+                        </button>
+                        <button onclick="TasksPage.setQuickFilter('my_tasks')" id="qf-my_tasks" class="px-2.5 py-1 rounded-full border border-slate-200 bg-slate-50 text-slate-700 hover:border-blue-300 transition">
+                            🎯 Việc của tôi
+                        </button>
+                        <button onclick="TasksPage.setQuickFilter('urgent')" id="qf-urgent" class="px-2.5 py-1 rounded-full border border-slate-200 bg-slate-50 text-purple-700 hover:border-purple-300 transition">
+                            🔥 Khẩn cấp
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Detailed Filter & Search Bar -->
+                <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3 text-xs">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <select id="filterStatus" onchange="TasksPage.loadTasks()" class="border border-slate-200 rounded-lg px-3 py-1.5 bg-slate-50 text-slate-700 font-semibold focus:outline-none focus:border-blue-800">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="CHUA_BAT_DAU">Chưa bắt đầu</option>
+                            <option value="DANG_THUC_HIEN">Đang thực hiện</option>
+                            <option value="CHO_DUYET">Chờ nghiệm thu</option>
+                            <option value="HOAN_THANH">Đã hoàn thành</option>
+                            <option value="TAM_DUNG">Tạm dừng</option>
+                            <option value="HUY_BO">Hủy bỏ</option>
+                        </select>
+
+                        <select id="filterPriority" onchange="TasksPage.loadTasks()" class="border border-slate-200 rounded-lg px-3 py-1.5 bg-slate-50 text-slate-700 font-semibold focus:outline-none focus:border-blue-800">
+                            <option value="">Tất cả mức độ</option>
+                            <option value="KHAN_CAP">🔥 Khẩn cấp</option>
+                            <option value="CAO">Cao</option>
+                            <option value="TRUNG_BINH">Trung bình</option>
+                            <option value="THAP">Thấp</option>
+                        </select>
+
+                        <select id="filterDept" onchange="TasksPage.loadTasks()" class="border border-slate-200 rounded-lg px-3 py-1.5 bg-slate-50 text-slate-700 font-semibold focus:outline-none focus:border-blue-800">
+                            <option value="">Tất cả đơn vị</option>
+                        </select>
+                    </div>
+
+                    <div class="relative flex-1 min-w-[200px] max-w-xs">
+                        <input type="text" id="taskSearchInput" onkeyup="if(event.key === 'Enter') TasksPage.loadTasks()" placeholder="Tìm kiếm theo tiêu đề..." 
+                            class="w-full pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-800">
+                        <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-400 text-xs"></i>
+                    </div>
+                </div>
+
+                <!-- ==================== VIEW 1: BẢNG DANH SÁCH (TABLE & CARDS) ==================== -->
+                <div id="viewListContainer" class="space-y-4">
+                    <!-- Tasks Table (Hiển thị cho màn hình PC / Laptop: hidden md:block) -->
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden hidden md:block">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-slate-50 text-slate-600 font-bold border-b border-slate-200 text-xs">
+                                    <tr>
+                                        <th class="px-4 py-3 w-12 text-center">#</th>
+                                        <th class="px-4 py-3">Tiêu đề nhiệm vụ & Quy trình</th>
+                                        <th class="px-4 py-3 whitespace-nowrap">Đơn vị & Cán bộ</th>
+                                        <th class="px-4 py-3 whitespace-nowrap">Hạn chót (Deadline)</th>
+                                        <th class="px-4 py-3 whitespace-nowrap">Ưu tiên</th>
+                                        <th class="px-4 py-3 text-center whitespace-nowrap">Trạng thái</th>
+                                        <th class="px-4 py-3 whitespace-nowrap">Tiến độ (%)</th>
+                                        <th class="px-4 py-3 text-right whitespace-nowrap">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tasksTableBody">
+                                    <!-- Dynamic rows for PC -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Tasks Mobile Cards (Tự động nhận diện & hiển thị trên Điện thoại: md:hidden) -->
+                    <div id="tasksMobileCards" class="space-y-3 md:hidden">
+                        <!-- Dynamic Cards for Mobile -->
+                    </div>
+                </div>
+
+                <!-- ==================== VIEW 2: BẢNG THẺ KANBAN KÉO THẢ (DRAG & DROP) ==================== -->
+                <div id="viewKanbanContainer" class="hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 items-start">
+                        <!-- Cột 1: Chưa bắt đầu -->
+                        <div class="bg-slate-200/70 p-3 rounded-2xl border border-slate-300/80 flex flex-col max-h-[75vh]">
+                            <div class="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-300">
+                                <div class="flex items-center space-x-2 font-bold text-xs text-slate-800">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-slate-500"></span>
+                                    <span>CHƯA BẮT ĐẦU</span>
+                                </div>
+                                <span id="kanbanCount-CHUA_BAT_DAU" class="px-2 py-0.5 bg-white text-slate-700 font-black text-[11px] rounded-full shadow-xs">0</span>
+                            </div>
+                            <div id="kanbanCol-CHUA_BAT_DAU" 
+                                ondragover="TasksPage.handleKanbanDragOver(event)" 
+                                ondragleave="TasksPage.handleKanbanDragLeave(event)"
+                                ondrop="TasksPage.handleKanbanDrop(event, 'CHUA_BAT_DAU')"
+                                class="space-y-2.5 overflow-y-auto flex-1 p-1 min-h-[150px] transition-colors rounded-xl">
+                                <!-- Cards injected dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Cột 2: Đang thực hiện -->
+                        <div class="bg-blue-50/70 p-3 rounded-2xl border border-blue-200 flex flex-col max-h-[75vh]">
+                            <div class="flex items-center justify-between pb-2.5 mb-2.5 border-b border-blue-200">
+                                <div class="flex items-center space-x-2 font-bold text-xs text-blue-900">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></span>
+                                    <span>ĐANG THỰC HIỆN</span>
+                                </div>
+                                <span id="kanbanCount-DANG_THUC_HIEN" class="px-2 py-0.5 bg-white text-blue-800 font-black text-[11px] rounded-full shadow-xs">0</span>
+                            </div>
+                            <div id="kanbanCol-DANG_THUC_HIEN" 
+                                ondragover="TasksPage.handleKanbanDragOver(event)" 
+                                ondragleave="TasksPage.handleKanbanDragLeave(event)"
+                                ondrop="TasksPage.handleKanbanDrop(event, 'DANG_THUC_HIEN')"
+                                class="space-y-2.5 overflow-y-auto flex-1 p-1 min-h-[150px] transition-colors rounded-xl">
+                                <!-- Cards injected dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Cột 3: Chờ nghiệm thu -->
+                        <div class="bg-amber-50/70 p-3 rounded-2xl border border-amber-200 flex flex-col max-h-[75vh]">
+                            <div class="flex items-center justify-between pb-2.5 mb-2.5 border-b border-amber-200">
+                                <div class="flex items-center space-x-2 font-bold text-xs text-amber-900">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                                    <span>CHỜ NGHIỆM THU</span>
+                                </div>
+                                <span id="kanbanCount-CHO_DUYET" class="px-2 py-0.5 bg-white text-amber-800 font-black text-[11px] rounded-full shadow-xs">0</span>
+                            </div>
+                            <div id="kanbanCol-CHO_DUYET" 
+                                ondragover="TasksPage.handleKanbanDragOver(event)" 
+                                ondragleave="TasksPage.handleKanbanDragLeave(event)"
+                                ondrop="TasksPage.handleKanbanDrop(event, 'CHO_DUYET')"
+                                class="space-y-2.5 overflow-y-auto flex-1 p-1 min-h-[150px] transition-colors rounded-xl">
+                                <!-- Cards injected dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Cột 4: Đã hoàn thành -->
+                        <div class="bg-green-50/70 p-3 rounded-2xl border border-green-200 flex flex-col max-h-[75vh]">
+                            <div class="flex items-center justify-between pb-2.5 mb-2.5 border-b border-green-200">
+                                <div class="flex items-center space-x-2 font-bold text-xs text-green-900">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-green-600"></span>
+                                    <span>ĐÃ HOÀN THÀNH</span>
+                                </div>
+                                <span id="kanbanCount-HOAN_THANH" class="px-2 py-0.5 bg-white text-green-800 font-black text-[11px] rounded-full shadow-xs">0</span>
+                            </div>
+                            <div id="kanbanCol-HOAN_THANH" 
+                                ondragover="TasksPage.handleKanbanDragOver(event)" 
+                                ondragleave="TasksPage.handleKanbanDragLeave(event)"
+                                ondrop="TasksPage.handleKanbanDrop(event, 'HOAN_THANH')"
+                                class="space-y-2.5 overflow-y-auto flex-1 p-1 min-h-[150px] transition-colors rounded-xl">
+                                <!-- Cards injected dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==================== VIEW 3: LỊCH CÔNG TÁC & DEADLINE (CALENDAR VIEW) ==================== -->
+                <div id="viewCalendarContainer" class="hidden bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                        <div class="flex items-center space-x-3">
+                            <h3 id="calendarMonthTitle" class="text-base sm:text-lg font-black text-slate-900">Tháng 08 / 2026</h3>
+                            <div class="flex items-center space-x-1">
+                                <button onclick="TasksPage.prevCalendarMonth()" class="p-1.5 hover:bg-slate-100 rounded-lg text-slate-600 text-xs border border-slate-200">
+                                    <i class="fa-solid fa-chevron-left"></i>
+                                </button>
+                                <button onclick="TasksPage.todayCalendarMonth()" class="px-2.5 py-1 hover:bg-slate-100 rounded-lg text-slate-700 text-xs font-bold border border-slate-200">
+                                    Hôm nay
+                                </button>
+                                <button onclick="TasksPage.nextCalendarMonth()" class="p-1.5 hover:bg-slate-100 rounded-lg text-slate-600 text-xs border border-slate-200">
+                                    <i class="fa-solid fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Chú thích màu sắc trên lịch -->
+                        <div class="flex flex-wrap items-center gap-2 text-[11px] font-semibold text-slate-600">
+                            <span class="flex items-center space-x-1"><span class="w-2 h-2 rounded-full bg-red-500"></span><span>Khẩn cấp / Trễ hạn</span></span>
+                            <span class="flex items-center space-x-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span><span>Ưu tiên cao</span></span>
+                            <span class="flex items-center space-x-1"><span class="w-2 h-2 rounded-full bg-blue-500"></span><span>Bình thường</span></span>
+                            <span class="flex items-center space-x-1"><span class="w-2 h-2 rounded-full bg-green-500"></span><span>Đã hoàn thành</span></span>
+                        </div>
+                    </div>
+
+                    <!-- Lưới Lịch 7 Cột (Thứ 2 -> Chủ Nhật) -->
+                    <div class="grid grid-cols-7 gap-1 text-center font-bold text-xs text-slate-500 bg-slate-50 py-2 rounded-lg border border-slate-200">
+                        <div>Thứ 2</div>
+                        <div>Thứ 3</div>
+                        <div>Thứ 4</div>
+                        <div>Thứ 5</div>
+                        <div>Thứ 6</div>
+                        <div class="text-blue-800">Thứ 7</div>
+                        <div class="text-red-700">Chủ Nhật</div>
+                    </div>
+
+                    <div id="calendarGridDays" class="grid grid-cols-7 gap-1.5 sm:gap-2">
+                        <!-- Dynamic Day Cells -->
+                    </div>
+                </div>
+
+            </main>
+
+            <!-- MOBILE BOTTOM QUICK NAVIGATION BAR -->
+            <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 py-1.5 px-3 z-30 flex items-center justify-around shadow-lg">
+                <a href="index.html" class="flex flex-col items-center py-1 px-3 rounded-lg text-xs font-bold text-slate-500 hover:text-blue-900">
+                    <i class="fa-solid fa-chart-pie text-base mb-0.5"></i>
+                    <span class="text-[10px]">Tổng Quan</span>
+                </a>
+                <a href="tasks.html" class="flex flex-col items-center py-1 px-3 rounded-lg text-xs font-bold text-blue-900">
+                    <i class="fa-solid fa-list-check text-base mb-0.5"></i>
+                    <span class="text-[10px]">Công Việc</span>
+                </a>
+                <a href="calendar.html" class="flex flex-col items-center py-1 px-3 rounded-lg text-xs font-bold text-slate-500 hover:text-blue-900">
+                    <i class="fa-solid fa-calendar-days text-base mb-0.5"></i>
+                    <span class="text-[10px]">Lịch</span>
+                </a>
+                <a href="settings.html" class="flex flex-col items-center py-1 px-3 rounded-lg text-xs font-bold text-slate-500 hover:text-blue-900">
+                    <i class="fa-solid fa-sliders text-base mb-0.5"></i>
+                    <span class="text-[10px]">Thiết Lập</span>
+                </a>
+                <button onclick="Common.toggleSidebar(true)" class="flex flex-col items-center py-1 px-3 rounded-lg text-xs font-bold text-slate-500 hover:text-blue-900">
+                    <i class="fa-solid fa-bars text-base mb-0.5"></i>
+                    <span class="text-[10px]">Thêm</span>
+                </button>
+            </nav>
+        </div>
+    </div>
+
+    <!-- MODAL 1: GIAO NHIỆM VỤ MỚI -->
+    <div id="modalCreateTask" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-3 sm:p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden border border-slate-200">
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <h3 class="font-bold text-sm text-slate-800 flex items-center space-x-2">
+                    <i class="fa-solid fa-circle-plus text-blue-800"></i>
+                    <span>Giao Nhiệm Vụ & Phân Công Quy Trình Mới</span>
+                </h3>
+                <button onclick="TasksPage.closeCreateTaskModal()" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <form id="formCreateTask" onsubmit="TasksPage.handleCreateTask(event)" class="p-6 space-y-4 text-xs overflow-y-auto flex-1">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Tiêu đề nhiệm vụ <span class="text-red-500">*</span></label>
+                    <input type="text" id="taskTitle" required oninput="TasksPage.handleTitleInputForSuggester(this.value)" placeholder="Ví dụ: Mua sắm thiết bị máy tính thực hành hoặc Xây dựng đề cương CTĐT..." 
+                        class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-800">
+                    <!-- Smart Workflow Suggester Pill (MISA AMIS Pattern) -->
+                    <div id="taskWorkflowSuggestionBox" class="hidden mt-1.5 p-2 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg flex items-center justify-between animate-fade-in">
+                        <div class="flex items-center space-x-2 text-blue-950 font-semibold text-[11px]">
+                            <i class="fa-solid fa-wand-magic-sparkles text-blue-600"></i>
+                            <span>Gợi ý quy trình chuẩn: <strong id="suggestedWorkflowName" class="text-blue-800">QT Mua sắm</strong></span>
+                        </div>
+                        <button type="button" onclick="TasksPage.applySuggestedWorkflow()" class="px-2.5 py-1 bg-blue-800 text-white rounded-md font-bold text-[10px] hover:bg-blue-900 shadow-xs transition">
+                            <i class="fa-solid fa-check mr-1"></i>Áp dụng ngay
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Mô tả chi tiết yêu cầu & mục tiêu</label>
+                    <textarea id="taskDescription" rows="3" placeholder="Nội dung cụ thể, chỉ tiêu bàn giao..." 
+                        class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-800"></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Đơn vị chủ trì *</label>
+                        <select id="taskLeadingDept" required class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-blue-800 font-semibold">
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Đơn vị phối hợp</label>
+                        <select id="taskAssistingDept" class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-blue-800">
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Cán bộ phụ trách</label>
+                        <select id="taskAssignee" class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-blue-800">
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Mức độ ưu tiên</label>
+                        <select id="taskPriority" class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-blue-800 font-semibold">
+                            <option value="TRUNG_BINH">Trung bình</option>
+                            <option value="CAO">Cao</option>
+                            <option value="KHAN_CAP">🔥 Khẩn cấp</option>
+                            <option value="THAP">Thấp</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Hạn hoàn thành (Deadline)</label>
+                        <input type="datetime-local" id="taskDueDate" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-800">
+                    </div>
+                </div>
+
+                <!-- THIẾT LẬP QUY TRÌNH BƯỚC MỐC (WORKFLOW STEPS CHECKLIST) -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                            <label class="font-bold text-slate-800 flex items-center space-x-1.5 text-xs">
+                                <i class="fa-solid fa-route text-blue-800"></i>
+                                <span>Quy Trình Thực Hiện Từng Bước (Workflow Pipeline)</span>
+                            </label>
+                            <p class="text-[10px] text-slate-400">Chọn quy trình chuẩn từ danh mục hoặc tự thiết lập các bước mốc (2 đến 8 bước)</p>
+                        </div>
+                        <button type="button" onclick="TasksPage.addNewWorkflowStep()" class="text-xs bg-blue-50 text-blue-800 hover:bg-blue-800 hover:text-white font-bold px-2.5 py-1 rounded-lg border border-blue-200 self-start sm:self-auto transition flex items-center space-x-1">
+                            <i class="fa-solid fa-plus text-[10px]"></i>
+                            <span>Thêm bước</span>
+                        </button>
+                    </div>
+
+                    <!-- Dropdown Chọn Quy Trình Chuẩn Từ Danh Mục -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                        <div class="sm:col-span-2">
+                            <select id="taskWorkflowSelect" onchange="TasksPage.handleSelectWorkflowTemplate(this.value)"
+                                class="w-full px-3 py-1.5 border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-blue-800 text-xs font-semibold">
+                                <option value="">-- Chọn quy trình mẫu từ danh mục chuẩn --</option>
+                            </select>
+                        </div>
+                        <div class="flex space-x-1">
+                            <button type="button" onclick="TasksPage.clearWorkflowSteps()" class="w-full px-2.5 py-1 bg-white hover:bg-red-50 text-slate-500 hover:text-red-600 rounded-lg border border-slate-200 text-[11px] font-semibold transition flex items-center justify-center space-x-1">
+                                <i class="fa-solid fa-trash-can text-[10px]"></i>
+                                <span>Xóa các bước</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Danh Sách Các Bước Mốc Động -->
+                    <div id="createTaskStepsContainer" class="space-y-2 max-h-48 overflow-y-auto pt-1">
+                        <!-- Dynamic step inputs -->
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100 flex justify-end space-x-2">
+                    <button type="button" onclick="TasksPage.closeCreateTaskModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold transition">Hủy</button>
+                    <button type="submit" class="px-5 py-2 bg-blue-800 hover:bg-blue-900 text-white rounded-lg font-bold transition">Giao Nhiệm Vụ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: CẬP NHẬT TIẾN ĐỘ & BÁO CÁO -->
+    <div id="modalUpdateTask" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-3 sm:p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden border border-slate-200">
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <h3 class="font-bold text-sm text-slate-800 flex items-center space-x-2">
+                    <i class="fa-solid fa-pen-to-square text-blue-800"></i>
+                    <span>Cập Nhật Tiến Độ Nhiệm Vụ</span>
+                </h3>
+                <button onclick="TasksPage.closeUpdateTaskModal()" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <form id="formUpdateTask" onsubmit="TasksPage.handleUpdateTask(event)" class="p-6 space-y-4 text-xs overflow-y-auto flex-1">
+                <input type="hidden" id="updateTaskId">
+
+                <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase">Nhiệm vụ:</span>
+                    <h4 id="updateTaskTitle" class="font-bold text-slate-900 text-sm mt-0.5">-</h4>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Trạng thái nhiệm vụ <span class="text-red-500">*</span></label>
+                        <select id="updateStatus" required onchange="TasksPage.handleStatusChange(this.value)"
+                            class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-800 bg-white text-xs font-semibold">
+                            <option value="CHUA_BAT_DAU">Chưa bắt đầu</option>
+                            <option value="DANG_THUC_HIEN">Đang thực hiện</option>
+                            <option value="CHO_DUYET">Chờ nghiệm thu</option>
+                            <option value="HOAN_THANH">Đã hoàn thành</option>
+                            <option value="TAM_DUNG">Tạm dừng</option>
+                            <option value="HUY_BO">Hủy bỏ</option>
+                        </select>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <input type="hidden" id="updateProgress" value="0">
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label class="block font-bold text-slate-700 text-xs">Tiến độ tự động:</label>
+                            <span id="progressValueDisplay" class="font-mono text-blue-900 font-black text-xs px-2.5 py-0.5 bg-blue-100 rounded-full">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                            <div id="updateProgressBar" class="h-full rounded-full bg-blue-600 transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                        <div class="flex justify-between items-center text-[10px] text-slate-500 font-semibold mt-1.5">
+                            <span id="updateDoneStepsText" class="text-blue-900 font-bold">Đã xong: 0/0 bước</span>
+                            <span class="italic text-slate-400"><i class="fa-solid fa-lock text-[9px] mr-1"></i>Tính từ các bước</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DANH SÁCH CHECKLIST BƯỚC MỐC TRONG MODAL CẬP NHẬT -->
+                <div id="updateWorkflowStepsSection" class="bg-blue-50/50 p-4 rounded-xl border border-blue-100 space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <label class="font-bold text-slate-800 flex items-center space-x-1.5 text-xs">
+                            <i class="fa-solid fa-bars-progress text-blue-800"></i>
+                            <span>Checklist Tiến Trình Từng Bước</span>
+                        </label>
+                        <span id="updateCurrentStepBadge" class="px-2 py-0.5 bg-blue-100 text-blue-900 rounded-full font-bold text-[10px]">
+                            Đang ở bước 1
+                        </span>
+                    </div>
+
+                    <div id="updateStepsListContainer" class="space-y-2 max-h-56 overflow-y-auto">
+                        <!-- Dynamic checkboxes for each step -->
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Ý kiến cập nhật / Báo cáo kết quả xử lý</label>
+                    <textarea id="updateComment" rows="2" placeholder="Ghi chú nội dung đã làm, khó khăn vướng mắc nếu có..." 
+                        class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-800"></textarea>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100 flex justify-end space-x-2">
+                    <button type="button" onclick="TasksPage.closeUpdateTaskModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold transition">Đóng</button>
+                    <button type="submit" class="px-5 py-2 bg-blue-800 hover:bg-blue-900 text-white rounded-lg font-bold transition">Lưu Cập Nhật</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 3: CHI TIẾT & TRAO ĐỔI NHIỆM VỤ -->
+    <div id="modalTaskDetail" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-3 sm:p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden border border-slate-200">
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <h3 class="font-bold text-sm text-slate-800 flex items-center space-x-2">
+                    <i class="fa-solid fa-comments text-blue-800"></i>
+                    <span>Chi Tiết & Nhật Ký Trao Đổi</span>
+                </h3>
+                <button onclick="TasksPage.closeTaskDetailModal()" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 space-y-4 text-xs overflow-y-auto flex-1">
+                <div>
+                    <h3 id="detailTaskTitle" class="text-base font-black text-slate-900">-</h3>
+                    <p id="detailTaskDesc" class="text-slate-600 mt-1 leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-200">-</p>
+                </div>
+
+                <!-- Meta Grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 p-3 bg-blue-50/50 rounded-xl border border-blue-100">
+                    <div>
+                        <span class="text-[10px] text-slate-400 block font-bold">Chủ trì:</span>
+                        <span id="detailLeadingDept" class="font-bold text-blue-900">-</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 block font-bold">Phối hợp:</span>
+                        <span id="detailAssistingDept" class="font-semibold text-slate-700">-</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 block font-bold">Cán bộ phụ trách:</span>
+                        <span id="detailAssignee" class="font-semibold text-slate-800">-</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 block font-bold">Trạng thái:</span>
+                        <span id="detailStatus" class="font-bold text-cyan-800">-</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 block font-bold">Ưu tiên:</span>
+                        <span id="detailPriority" class="font-bold text-slate-800">-</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 block font-bold">Tiến độ:</span>
+                        <span id="detailProgress" class="font-mono font-black text-green-700">-</span>
+                    </div>
+                </div>
+
+                <!-- VISUAL WORKFLOW STEPPER TIMELINE -->
+                <div id="detailWorkflowSection" class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h4 class="font-bold text-xs text-slate-800 flex items-center space-x-1.5">
+                            <i class="fa-solid fa-timeline text-blue-800"></i>
+                            <span>Tiến Trình Quy Trình Các Bước Mốc</span>
+                        </h4>
+                        <span id="detailWorkflowBadge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-900">
+                            0/0 bước
+                        </span>
+                    </div>
+                    <div id="detailWorkflowTimeline" class="space-y-2">
+                        <!-- Dynamic Visual Stepper -->
+                    </div>
+                </div>
+
+                <!-- Discussion Feed -->
+                <div class="pt-2">
+                    <h4 class="font-bold text-slate-800 text-xs mb-2 flex items-center space-x-1.5">
+                        <i class="fa-solid fa-timeline text-blue-800"></i>
+                        <span>Lịch sử cập nhật & Ý kiến chỉ đạo</span>
+                    </h4>
+                    <div id="detailCommentsList" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                        <!-- Dynamic Comments -->
+                    </div>
+                </div>
+
+                <!-- New Comment Input -->
+                <form id="formAddComment" onsubmit="TasksPage.handleAddComment(event)" class="pt-2 border-t border-slate-100 flex gap-2">
+                    <input type="hidden" id="detailTaskIdInput">
+                    <input type="text" id="newCommentInput" required placeholder="Nhập ý kiến trao đổi hoặc chỉ đạo..." 
+                        class="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-800 text-xs">
+                    <button type="submit" class="px-4 py-2 bg-blue-800 hover:bg-blue-900 text-white font-bold rounded-lg transition text-xs flex items-center space-x-1">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        <span>Gửi</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="assets/js/api.js"></script>
+    <script src="assets/js/common.js"></script>
+    <script src="assets/js/tasks.js"></script>
+</body>
+</html>
