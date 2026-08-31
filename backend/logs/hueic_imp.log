@@ -270,3 +270,12 @@ FROM tasks) AS anon_1]
 [2026-08-31 12:34:10] [INFO] [hueic_imp:28] ✅ [HueIC IMP] Cơ sở dữ liệu và dữ liệu khởi tạo đã sẵn sàng!
 [2026-08-31 12:37:31] [INFO] [hueic_imp.auth:96] ✅ [AUTH SUCCESS] Người dùng 'admin' (Quản Trị Viên Hệ Thống HueIC) đăng nhập thành công.
 [2026-08-31 12:37:36] [INFO] [hueic_imp.auth:96] ✅ [AUTH SUCCESS] Người dùng 'admin' (Quản Trị Viên Hệ Thống HueIC) đăng nhập thành công.
+[2026-08-31 13:43:29] [INFO] [hueic_imp:52] 🚀 [HueIC IMP] Hệ thống Logging tập trung đã được kích hoạt thành công!
+[2026-08-31 13:43:29] [WARNING] [hueic_imp:22] 🚨 [SECURITY WARNING] Bạn đang sử dụng SECRET_KEY mặc định! Hãy tạo SECRET_KEY ngẫu nhiên mới trong file .env trước khi đưa vào môi trường Production.
+[2026-08-31 13:43:29] [INFO] [hueic_imp:28] ✅ [HueIC IMP] Cơ sở dữ liệu và dữ liệu khởi tạo đã sẵn sàng!
+[2026-08-31 13:43:55] [INFO] [hueic_imp:52] 🚀 [HueIC IMP] Hệ thống Logging tập trung đã được kích hoạt thành công!
+[2026-08-31 13:43:55] [WARNING] [hueic_imp:22] 🚨 [SECURITY WARNING] Bạn đang sử dụng SECRET_KEY mặc định! Hãy tạo SECRET_KEY ngẫu nhiên mới trong file .env trước khi đưa vào môi trường Production.
+[2026-08-31 13:43:56] [INFO] [hueic_imp:28] ✅ [HueIC IMP] Cơ sở dữ liệu và dữ liệu khởi tạo đã sẵn sàng!
+[2026-08-31 13:44:00] [INFO] [hueic_imp:52] 🚀 [HueIC IMP] Hệ thống Logging tập trung đã được kích hoạt thành công!
+[2026-08-31 13:44:00] [WARNING] [hueic_imp:22] 🚨 [SECURITY WARNING] Bạn đang sử dụng SECRET_KEY mặc định! Hãy tạo SECRET_KEY ngẫu nhiên mới trong file .env trước khi đưa vào môi trường Production.
+[2026-08-31 13:44:00] [INFO] [hueic_imp:28] ✅ [HueIC IMP] Cơ sở dữ liệu và dữ liệu khởi tạo đã sẵn sàng!

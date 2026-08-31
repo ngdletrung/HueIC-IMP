@@ -51,9 +51,15 @@ const TasksPage = {
             // Đóng custom dropdown khi click bên ngoài
             document.addEventListener('click', (e) => {
                 const requesterWrapper = document.getElementById('requesterWrapper');
-                const menu = document.getElementById('requesterDropdownMenu');
-                if (requesterWrapper && menu && !requesterWrapper.contains(e.target)) {
-                    menu.classList.add('hidden');
+                const requesterMenu = document.getElementById('requesterDropdownMenu');
+                if (requesterWrapper && requesterMenu && !requesterWrapper.contains(e.target)) {
+                    requesterMenu.classList.add('hidden');
+                }
+
+                const colWrapper = document.getElementById('collaboratorsSection');
+                const colMenu = document.getElementById('collaboratorDropdownMenu');
+                if (colWrapper && colMenu && !colWrapper.contains(e.target)) {
+                    colMenu.classList.add('hidden');
                 }
             });
 
@@ -260,7 +266,10 @@ const TasksPage = {
             // VAI TRÒ 1: BAN GIÁM HIỆU (Giao việc & Chỉ đạo cấp trường)
             if (titleEl) titleEl.innerText = 'Giao Nhiệm Vụ & Chỉ Đạo Cấp Trường';
             if (subTitleEl) subTitleEl.innerText = 'Phân công đơn vị chủ trì, chỉ định đầu mối và gắn quy trình thực thi toàn trường';
-            if (iconWrapper) iconWrapper.className = 'w-7 h-7 rounded-lg bg-blue-800 text-white flex items-center justify-center text-xs';
+            if (iconWrapper) {
+                iconWrapper.className = 'w-7 h-7 rounded-lg bg-blue-800 text-white flex items-center justify-center text-xs';
+                iconWrapper.innerHTML = '<i class="fa-solid fa-plus"></i>';
+            }
             if (staffToggle) staffToggle.classList.add('hidden');
             if (deptRow) deptRow.classList.remove('hidden');
             if (leadingDeptSelect) {
@@ -275,6 +284,11 @@ const TasksPage = {
             // Mô tả full dòng (3 cols), Ẩn Người giao việc
             if (descColWrapper) descColWrapper.className = 'sm:col-span-3';
             if (requesterWrapper) requesterWrapper.classList.add('hidden');
+            const collabSec = document.getElementById('collaboratorsSection');
+            if (collabSec) {
+                collabSec.classList.remove('sm:col-span-1');
+                collabSec.classList.add('sm:col-span-2');
+            }
 
             this.populateSelectOptions();
 
@@ -285,7 +299,10 @@ const TasksPage = {
 
             if (titleEl) titleEl.innerText = `Phân Công Nhiệm Vụ Nội Bộ (${deptObj ? deptObj.code : ''})`;
             if (subTitleEl) subTitleEl.innerText = `Điều phối công việc cho cán bộ, giảng viên trong ${deptTag}`;
-            if (iconWrapper) iconWrapper.className = 'w-7 h-7 rounded-lg bg-teal-700 text-white flex items-center justify-center text-xs';
+            if (iconWrapper) {
+                iconWrapper.className = 'w-7 h-7 rounded-lg bg-teal-700 text-white flex items-center justify-center text-xs';
+                iconWrapper.innerHTML = '<i class="fa-solid fa-users-gear"></i>';
+            }
             if (staffToggle) staffToggle.classList.add('hidden');
             if (deptRow) deptRow.classList.remove('hidden');
             if (leadingDeptSelect) {
@@ -301,15 +318,17 @@ const TasksPage = {
             // Mô tả full dòng (3 cols), Ẩn Người giao việc
             if (descColWrapper) descColWrapper.className = 'sm:col-span-3';
             if (requesterWrapper) requesterWrapper.classList.add('hidden');
+            const collabSec = document.getElementById('collaboratorsSection');
+            if (collabSec) {
+                collabSec.classList.remove('sm:col-span-1');
+                collabSec.classList.add('sm:col-span-2');
+            }
 
             this.populateWorkflowSelect(userDeptId);
             this.filterAssigneesByDept(userDeptId);
 
         } else if (role === 'STAFF') {
             // VAI TRÒ 3: CÁ NHÂN / CÁN BỘ / GIẢNG VIÊN (Thực thi & Đề xuất)
-            if (titleEl) titleEl.innerText = 'Công Việc Cá Nhân & Đề Xuất Nhiệm Vụ';
-            if (subTitleEl) subTitleEl.innerText = 'Tự tạo danh sách việc cần làm (To-do) hoặc gửi đề xuất lên Trưởng phòng';
-            if (iconWrapper) iconWrapper.className = 'w-7 h-7 rounded-lg bg-indigo-700 text-white flex items-center justify-center text-xs';
             if (staffToggle) staffToggle.classList.remove('hidden');
             if (deptRow) deptRow.classList.add('hidden'); // Ẩn chọn đơn vị
             if (assigneeWrapper) assigneeWrapper.classList.add('hidden'); // Ẩn chọn cán bộ (mặc định là chính mình)
@@ -317,9 +336,8 @@ const TasksPage = {
 
             // Mô tả 2 cols + Người giao việc 1 col
             if (descColWrapper) descColWrapper.className = 'sm:col-span-2';
-            if (requesterWrapper) requesterWrapper.classList.remove('hidden');
 
-            this.setStaffTaskMode(this.staffTaskMode || 'todo');
+            this.setStaffTaskMode('todo');
         }
     },
 
@@ -352,31 +370,28 @@ const TasksPage = {
 
         if (list.length === 0) {
             menu.innerHTML = `
-                <div class="p-3 text-center text-slate-400 text-xs">
-                    <p>Không tìm thấy nhân sự trùng khớp</p>
-                    <p class="text-[10px] text-slate-500 mt-0.5">Tên <b>"${query}"</b> sẽ được lưu dạng tự do</p>
+                <div class="p-3 text-center text-slate-400 italic text-xs">
+                    Không tìm thấy cán bộ phù hợp. Bạn có thể giữ nguyên tên vừa gõ.
                 </div>
             `;
             menu.classList.remove('hidden');
             return;
         }
 
-        menu.innerHTML = list.map(u => {
-            const isBGH = u.role === 'BGH' || u.role === 'SUPERADMIN';
-            const deptName = u.department ? u.department.name : (isBGH ? 'Ban Giám Hiệu' : 'HueIC');
-            const deptCode = u.department ? u.department.code : (isBGH ? 'BGH' : '');
-            const icon = isBGH ? '🏛️' : (u.role === 'DEPT_HEAD' ? '🏢' : '👤');
-            const safeName = (u.full_name || '').replace(/'/g, "\\'");
-            const safeDisplay = `${safeName} (${deptCode || deptName})`;
-
+        menu.innerHTML = list.slice(0, 15).map(u => {
+            const deptCode = u.department ? u.department.code : '';
+            const safeFullName = (u.full_name || 'Cán bộ').replace(/'/g, "\\'");
+            const safeDeptCode = (deptCode || '').replace(/'/g, "\\'");
             return `
-                <div onclick="TasksPage.selectRequester('${safeDisplay}')" 
-                    class="p-2 hover:bg-blue-50 cursor-pointer flex items-center justify-between transition group">
+                <div onclick="TasksPage.selectRequester('${safeFullName}${safeDeptCode ? ' (' + safeDeptCode + ')' : ''}')" 
+                    class="p-2.5 hover:bg-blue-50 cursor-pointer flex items-center justify-between text-xs group transition">
                     <div class="flex items-center space-x-2">
-                        <span class="text-sm shrink-0">${icon}</span>
+                        <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-900 font-bold flex items-center justify-center text-[10px] shrink-0">
+                            ${(u.full_name || 'U').charAt(0)}
+                        </div>
                         <div>
-                            <div class="font-bold text-slate-800 group-hover:text-blue-900 text-xs">${u.full_name}</div>
-                            <div class="text-[10px] text-slate-500">${deptName}</div>
+                            <div class="font-semibold text-slate-800 group-hover:text-blue-900">${u.full_name}</div>
+                            <div class="text-[10px] text-slate-400">${u.role || 'Cán bộ'} ${u.email ? '• ' + u.email : ''}</div>
                         </div>
                     </div>
                     ${deptCode ? `<span class="px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-slate-100 text-slate-600 group-hover:bg-blue-100 group-hover:text-blue-900">${deptCode}</span>` : ''}
@@ -407,26 +422,176 @@ const TasksPage = {
         this.showRequesterDropdown();
     },
 
+    // ----------------------------------------------------
+    // XỬ LÝ CÁN BỘ / ĐỒNG NGHIỆP PHỐI HỢP CÙNG THỰC HIỆN
+    // ----------------------------------------------------
+    selectedCollaborators: [],
+
+    showCollaboratorDropdown() {
+        const menu = document.getElementById('collaboratorDropdownMenu');
+        if (!menu) return;
+        const currentVal = document.getElementById('taskCollaboratorInput')?.value || '';
+        this.filterCollaboratorDropdown(currentVal);
+    },
+
+    filterCollaboratorDropdown(query = '') {
+        const menu = document.getElementById('collaboratorDropdownMenu');
+        if (!menu) return;
+
+        const q = (query || '').toLowerCase().trim();
+        const selectedIds = new Set((this.selectedCollaborators || []).map(c => c.id));
+        const currentUser = API.getUser ? API.getUser() : null;
+        if (currentUser) selectedIds.add(currentUser.id);
+
+        let list = (this.users || []).filter(u => !selectedIds.has(u.id));
+        if (q) {
+            list = list.filter(u => {
+                const name = (u.full_name || '').toLowerCase();
+                const dept = (u.department?.name || u.department?.code || '').toLowerCase();
+                const role = (u.role || '').toLowerCase();
+                return name.includes(q) || dept.includes(q) || role.includes(q);
+            });
+        }
+
+        if (list.length === 0) {
+            menu.innerHTML = `
+                <div class="p-3 text-center text-slate-400 italic text-xs">
+                    Không tìm thấy đồng nghiệp khả dụng để thêm vào phối hợp.
+                </div>
+            `;
+            menu.classList.remove('hidden');
+            return;
+        }
+
+        menu.innerHTML = list.slice(0, 15).map(u => {
+            const deptCode = u.department ? u.department.code : '';
+            return `
+                <div onclick="TasksPage.addCollaborator(${u.id})" 
+                    class="p-2.5 hover:bg-blue-50 cursor-pointer flex items-center justify-between text-xs group transition">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-900 font-bold flex items-center justify-center text-[10px] shrink-0">
+                            ${(u.full_name || 'U').charAt(0)}
+                        </div>
+                        <div>
+                            <div class="font-semibold text-slate-800 group-hover:text-blue-900">${u.full_name}</div>
+                            <div class="text-[10px] text-slate-400">${u.role || 'Cán bộ'} ${u.email ? '• ' + u.email : ''}</div>
+                        </div>
+                    </div>
+                    ${deptCode ? `<span class="px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-slate-100 text-slate-600 group-hover:bg-blue-100 group-hover:text-blue-900">${deptCode}</span>` : ''}
+                </div>
+            `;
+        }).join('');
+
+        menu.classList.remove('hidden');
+    },
+
+    addCollaborator(userId) {
+        const u = (this.users || []).find(x => x.id === userId);
+        if (!u) return;
+        if (!this.selectedCollaborators) this.selectedCollaborators = [];
+        if (!this.selectedCollaborators.some(c => c.id === userId)) {
+            this.selectedCollaborators.push({
+                id: u.id,
+                full_name: u.full_name,
+                dept_code: u.department ? u.department.code : ''
+            });
+            this.renderSelectedCollaborators();
+        }
+        const input = document.getElementById('taskCollaboratorInput');
+        if (input) {
+            input.value = '';
+            input.focus();
+        }
+        const menu = document.getElementById('collaboratorDropdownMenu');
+        if (menu) menu.classList.add('hidden');
+    },
+
+    removeCollaborator(userId) {
+        this.selectedCollaborators = (this.selectedCollaborators || []).filter(c => c.id !== userId);
+        this.renderSelectedCollaborators();
+    },
+
+    renderSelectedCollaborators() {
+        const listEl = document.getElementById('selectedCollaboratorsList');
+        if (!listEl) return;
+        if (!this.selectedCollaborators || this.selectedCollaborators.length === 0) {
+            listEl.innerHTML = `<span class="text-[11px] text-slate-400 italic" id="emptyCollaboratorsMsg">Chưa có người phối hợp (Làm độc lập)</span>`;
+            return;
+        }
+
+        listEl.innerHTML = this.selectedCollaborators.map(c => `
+            <span class="inline-flex items-center space-x-1.5 px-2.5 py-1 bg-blue-100 text-blue-900 border border-blue-200 rounded-lg text-xs font-semibold animate-scale-in">
+                <i class="fa-solid fa-user-check text-blue-600 text-[10px]"></i>
+                <span>${c.full_name}${c.dept_code ? ' (' + c.dept_code + ')' : ''}</span>
+                <button type="button" onclick="TasksPage.removeCollaborator(${c.id})" class="text-blue-500 hover:text-red-600 ml-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </span>
+        `).join('');
+    },
+
     setStaffTaskMode(mode) {
-        this.staffTaskMode = mode;
+        this.staffTaskMode = mode || 'todo';
+        const titleEl = document.getElementById('modalCreateTaskTitle');
+        const subTitleEl = document.getElementById('modalCreateTaskSubTitle');
+        const iconWrapper = document.getElementById('modalCreateTaskIcon');
         const btnTodo = document.getElementById('staffModeBtnTodo');
         const btnProposal = document.getElementById('staffModeBtnProposal');
         const submitBtnText = document.getElementById('btnSubmitTaskText');
+        const submitBtn = document.getElementById('btnSubmitTask');
+        const requesterWrapper = document.getElementById('requesterWrapper');
+        const collabSec = document.getElementById('collaboratorsSection');
 
-        if (mode === 'todo') {
-            if (btnTodo) btnTodo.className = 'flex-1 p-2 rounded-lg border-2 border-indigo-700 bg-white text-indigo-950 font-bold text-left transition text-xs shadow-xs';
-            if (btnProposal) btnProposal.className = 'flex-1 p-2 rounded-lg border border-slate-200 bg-white text-slate-600 font-semibold text-left hover:bg-slate-50 transition text-xs';
+        if (this.staffTaskMode === 'todo') {
+            if (titleEl) titleEl.innerText = 'Công Việc Cá Nhân';
+            if (subTitleEl) subTitleEl.innerText = 'Tự lập danh sách việc cần làm cho chính mình (My To-Do)';
+            if (iconWrapper) {
+                iconWrapper.className = 'w-7 h-7 rounded-lg bg-white border border-indigo-200 text-indigo-700 flex items-center justify-center text-xs shadow-xs';
+                iconWrapper.innerHTML = '<i class="fa-solid fa-user-pen"></i>';
+            }
+            if (btnTodo) {
+                btnTodo.className = 'flex-1 p-2.5 rounded-xl border-2 border-indigo-600 bg-indigo-50/90 text-indigo-950 font-bold text-left transition text-xs shadow-xs ring-2 ring-indigo-200/60';
+            }
+            if (btnProposal) {
+                btnProposal.className = 'flex-1 p-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 font-semibold text-left hover:bg-slate-50 transition text-xs';
+            }
             if (submitBtnText) submitBtnText.innerText = 'Lưu Việc Cá Nhân';
+            if (submitBtn) {
+                submitBtn.className = 'px-5 py-2 bg-blue-800 hover:bg-blue-900 text-white rounded-lg font-bold transition flex items-center space-x-1.5 shadow-xs';
+            }
+            if (requesterWrapper) requesterWrapper.classList.remove('hidden');
+            if (collabSec) {
+                collabSec.classList.remove('sm:col-span-2');
+                collabSec.classList.add('sm:col-span-1');
+            }
         } else {
-            if (btnProposal) btnProposal.className = 'flex-1 p-2 rounded-lg border-2 border-amber-600 bg-amber-50/70 text-amber-950 font-bold text-left transition text-xs shadow-xs';
-            if (btnTodo) btnTodo.className = 'flex-1 p-2 rounded-lg border border-slate-200 bg-white text-slate-600 font-semibold text-left hover:bg-slate-50 transition text-xs';
+            if (titleEl) titleEl.innerText = 'Đề Xuất Nhiệm Vụ';
+            if (subTitleEl) subTitleEl.innerText = 'Gửi đề xuất nhiệm vụ lên Trưởng đơn vị phê duyệt';
+            if (iconWrapper) {
+                iconWrapper.className = 'w-7 h-7 rounded-lg bg-white border border-amber-300 text-amber-500 flex items-center justify-center text-xs shadow-xs';
+                iconWrapper.innerHTML = '<i class="fa-solid fa-lightbulb text-amber-500 text-sm"></i>';
+            }
+            if (btnProposal) {
+                btnProposal.className = 'flex-1 p-2.5 rounded-xl border-2 border-amber-400 bg-amber-50/90 text-amber-950 font-bold text-left transition text-xs shadow-xs ring-2 ring-amber-200/60';
+            }
+            if (btnTodo) {
+                btnTodo.className = 'flex-1 p-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 font-semibold text-left hover:bg-slate-50 transition text-xs';
+            }
             if (submitBtnText) submitBtnText.innerText = 'Gửi Đề Xuất Cho Trưởng Phòng';
+            if (submitBtn) {
+                submitBtn.className = 'px-5 py-2 bg-blue-800 hover:bg-blue-900 text-white rounded-lg font-bold transition flex items-center space-x-1.5 shadow-xs';
+            }
+            if (requesterWrapper) requesterWrapper.classList.add('hidden');
+            if (collabSec) {
+                collabSec.classList.remove('sm:col-span-1');
+                collabSec.classList.add('sm:col-span-2');
+            }
         }
     },
 
     switchTaskArchetype(type) {
         this.currentArchetype = type;
-        const btnTypes = ['quick', 'workflow', 'recurring', 'multi_dept'];
+        const btnTypes = ['quick', 'workflow', 'multi_dept'];
         btnTypes.forEach(t => {
             const btn = document.getElementById(`archetype-btn-${t}`);
             if (btn) {
@@ -439,13 +604,8 @@ const TasksPage = {
         });
 
         const workflowSec = document.getElementById('workflowBuilderSection');
-        const recurringSec = document.getElementById('recurringOptionsSection');
-
         if (workflowSec) {
             workflowSec.classList.toggle('hidden', type === 'quick');
-        }
-        if (recurringSec) {
-            recurringSec.classList.toggle('hidden', type !== 'recurring');
         }
 
         if (type === 'quick') {
@@ -1377,6 +1537,10 @@ const TasksPage = {
             this.createWorkflowSteps = [];
             this.currentSelectedWorkflowName = null;
             this.suggestedWorkflow = null;
+            this.selectedCollaborators = [];
+            this.renderSelectedCollaborators();
+            const colInput = document.getElementById('taskCollaboratorInput');
+            if (colInput) colInput.value = '';
             document.getElementById('taskWorkflowSuggestionBox')?.classList.add('hidden');
             document.getElementById('deadlineSafetyWarning')?.classList.add('hidden');
             this.switchTaskArchetype('workflow');
@@ -1499,8 +1663,6 @@ const TasksPage = {
         
         const priority = document.getElementById('taskPriority')?.value || 'TRUNG_BINH';
         const due_date = document.getElementById('taskDueDate')?.value || null;
-        const recurrenceFreq = document.getElementById('taskRecurrenceFreq')?.value;
-        const recurrenceNote = document.getElementById('taskRecurrenceNote')?.value?.trim();
 
         if (this.currentDispatchRole === 'BGH' && (!leading_dept_id || isNaN(leading_dept_id))) {
             Common.showToast('Vui lòng chọn Đơn vị chủ trì thực hiện nhiệm vụ!', 'error');
@@ -1522,13 +1684,13 @@ const TasksPage = {
             leading_dept_id = user.department_id || (this.departments.length > 0 ? this.departments[0].id : 1);
             assisting_dept_id = null;
 
-            if (requester) {
-                description = `[NGƯỜI GIAO VIỆC / YÊU CẦU: ${requester}]\n` + description;
-            }
-
             if (this.staffTaskMode === 'todo') {
                 assignee_id = user.id || null;
-                description = `[VIỆC CÁ NHÂN - TO DO]\n` + description;
+                if (requester) {
+                    description = `[NGƯỜI YÊU CẦU: ${requester}]\n` + description;
+                } else {
+                    description = `[VIỆC CÁ NHÂN TỰ TẠO - TO DO]\n` + description;
+                }
                 successMessage = 'Đã lưu việc cá nhân thành công!';
                 visibility = 'PRIVATE';
                 taskType = 'SELF';
@@ -1550,8 +1712,10 @@ const TasksPage = {
             taskType = 'STRATEGIC';
         }
 
-        if (this.currentArchetype === 'recurring' && recurrenceFreq) {
-            description += `\n[Định kỳ: ${recurrenceFreq}${recurrenceNote ? ' - ' + recurrenceNote : ''}]`;
+        const collaborator_ids = (this.selectedCollaborators || []).map(c => c.id);
+        if (this.selectedCollaborators && this.selectedCollaborators.length > 0) {
+            const colNames = this.selectedCollaborators.map(c => c.full_name + (c.dept_code ? ` (${c.dept_code})` : '')).join(', ');
+            description += `\n[ĐỒNG NGHIỆP PHỐI HỢP: ${colNames}]`;
         }
 
         const payload = {
@@ -1563,6 +1727,7 @@ const TasksPage = {
             leading_dept_id,
             assisting_dept_id,
             assignee_id,
+            collaborator_ids,
             priority,
             workflow_name: this.currentSelectedWorkflowName || undefined,
             due_date: due_date ? new Date(due_date).toISOString() : null,

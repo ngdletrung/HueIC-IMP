@@ -75,6 +75,7 @@ class TaskBase(BaseModel):
 
 class TaskCreate(TaskBase):
     steps: Optional[List[Dict[str, Any]]] = None # Cho phép gửi danh sách bước để tự sinh task con
+    collaborator_ids: Optional[List[int]] = None # Danh sách ID cán bộ phối hợp cùng thực hiện
 
 class TaskUpdate(BaseModel):
     title: Optional[str] = None

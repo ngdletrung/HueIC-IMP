@@ -882,12 +882,129 @@ Tài liệu này ghi lại chi tiết toàn bộ các phiên bản, mốc thời
   - Áp dụng đồng bộ trên toàn bộ 6 trang giao diện: `index.html`, `tasks.html`, `tasks-list.html`, `settings.html`, `assets.html`, `documents.html`.
 - **Files Chỉnh Sửa**:
   - `[MODIFY] frontend/index.html`
-  - `[MODIFY] frontend/tasks.html`
+## 📌 [Phiên bản 2.9.3] - 31/08/2026: Tinh Chỉnh Form Cá Nhân - Tách Riêng Ô Người Giao Việc Xuống Dưới Mô Tả
+- **Cải Tiến Bố Cục Giao Diện Form Cá Nhân**:
+  - Tách ô **Mô tả chi tiết yêu cầu & mục tiêu** thành dòng riêng toàn chiều rộng (Full-width), giúp soạn thảo thoải mái, không bị gò bó.
+  - Đưa ô **Người giao việc / Người yêu cầu** xuống dòng riêng biệt ngay bên dưới với nhãn chú thích rõ ràng: `(Tùy chọn - Để trống nếu bạn tự tạo việc cho mình)`.
+  - Tự động gắn tag `[VIỆC CÁ NHÂN TỰ TẠO - TO DO]` khi người dùng không chọn người giao việc, và `[NGƯỜI GIAO VIỆC: ...]` khi có người giao.
+## 📌 [Phiên bản 2.9.4] - 31/08/2026: Chuẩn Hóa Đặc Tả Động Cơ Lặp Lại Định Kỳ (Smart Recurring Engine)
+- **Đặc Tả & Lưu Trữ 4 Trụ Cột Động Cơ Lặp Lại**:
+  - Ghi nhận chi tiết 3 hình thái chu kỳ nghiệp vụ (Loại A: Cron Fixed, Loại B: Interval Days, Loại C: Relative & Holiday-Aware).
+  - Xác lập nguyên tắc bất biến của dữ liệu lịch sử (Historical Immutability) khi tắt/sửa rule.
+  - Phân định rõ 2 chế độ phân công `STATIC_DELEGATE` và `ROTATING_DELEGATE` (giao về cho Trưởng đơn vị tự điều phối mỗi kỳ).
+  - Tích hợp 2 bộ xử lý ngoại lệ: `Overlap Guard` (chống chồng lấn/cảnh báo quá tải) và `Weekend & Vietnamese Holiday Shield`.
+  - Thiết kế sơ đồ Mermaid Flowchart chi tiết cho vòng lặp Background Scheduler.
+- **Files Chỉnh Sửa**:
+## 📌 [Phiên bản 2.9.5] - 31/08/2026: Tách Biệt Ranh Giới: Giao Việc (Tasks) & Lịch Công Tác (Calendar Recurrence)
+- **Tối Giản Form Giao Việc & Chống Rác Dữ Liệu**:
+  - Gỡ bỏ hoàn toàn tính năng lặp lại (Recurring) và khối `#recurringOptionsSection` khỏi modal Giao việc (`modalCreateTask`).
+  - Chuẩn hóa 3 hình thái giao việc thuần túy: `⚡ Việc Nhanh`, `🔄 Quy Trình Chuẩn (PDCA)`, `🏢 Phối Hợp Liên Đơn Vị`.
+  - Quy hoạch tính năng Lặp lại định kỳ (Recurring Events / Reminders) độc quyền cho Phân hệ Lịch công tác (`calendar.html`), ứng dụng cơ chế Chiếu ảo (Virtual Projection) không clone task bừa bãi.
+- **Files Chỉnh Sửa**:
+## 📌 [Phiên bản 2.9.6] - 31/08/2026: Tích Hợp Tag Cán Bộ / Đồng Nghiệp Phối Hợp Cùng Thực Hiện (RACI Collaborators)
+- **Hỗ Trợ Phối Hợp Nhóm Cho Cán Bộ / Cá Nhân**:
+  - Thêm ô **"👥 Cán bộ / Đồng nghiệp phối hợp cùng thực hiện"** dạng Multi-select Tagging linh hoạt (chọn nhiều người, hiển thị tag pill có nút xóa ✕).
+  - Backend tự động lưu các cán bộ phối hợp vào bảng `task_assignments` với vai trò `CONSULTED` (RACI).
+  - Tự động mở quyền hiển thị task trên danh sách và Dashboard của tất cả các cán bộ phối hợp được gán.
+- **Files Chỉnh Sửa**:
+## 📌 [Phiên bản 2.9.7] - 31/08/2026: Chuẩn Hóa Nhãn 'Người Yêu Cầu' & Text Hướng Dẫn Form Cá Nhân
+- **Tinh Chỉnh Copywriting & UX Form Cá Nhân**:
+  - Đổi tiêu đề khối từ `Người giao việc / Người yêu cầu` thành **`Người yêu cầu`** tinh tế và chính xác hơn về mặt tâm lý nghiệp vụ.
+  - Cập nhật placeholder: `🔍 Gõ tìm tên Lãnh đạo / Thầy Cô / Đơn vị yêu cầu (hoặc để trống)...`
+  - Cập nhật text hướng dẫn: `💡 Để trống nếu bạn tự chủ động lập kế hoạch cho mình, hoặc chọn người đã gửi yêu cầu/đề nghị công việc này cho bạn.`
+## 📌 [Phiên bản 2.9.8] - 31/08/2026: Tinh Chỉnh Placeholder Ô Người Yêu Cầu
+- **Hoàn Thiện Copywriting Form Cá Nhân**:
+  - Cập nhật placeholder chính xác: `🔍 Gõ tìm tên Người yêu cầu / Đơn vị yêu cầu (hoặc để trống)...`
+## 📌 [Phiên bản 2.9.9] - 31/08/2026: Tích Hợp Hệ Thống Giao Diện Sáng Dịu Mắt (Eye-Care Soft Light & Dark Mode)
+- **Hệ Thống Theme Dịu Mắt Chống Mỏi Thị Lực**:
+  - Bổ sung tab **Giao Diện & Màu Sắc** trong trang [Thiết Lập Hệ Thống (settings.html)](http://localhost:8880/settings.html).
+  - Tích hợp 3 chế độ giao diện:
+    1. `☀️ Mặc Định (Default Light)`: Nền trắng sáng tiêu chuẩn gốc để khôi phục bất cứ lúc nào.
+    2. `🌿 Sáng Dịu Mắt (Eye-Care Soft Light) - ⭐ Khuyên dùng`: Nền xám ấm `#F4F6F8`, chữ than xám dịu `#2C3E50`, chống chói và mỏi mắt khi làm việc 8h.
+    3. `🌙 Chế Độ Tối (Dark Mode)`: Nền than xám `#0F172A`, giảm ánh sáng xanh ban đêm.
+  - Tự động lưu và đồng bộ toàn bộ portal thông qua `Common.applyTheme()`.
+## 📌 [Phiên bản 2.9.10] - 31/08/2026: Tích Hợp Giao Diện SaaS Hiện Đại (Clean Slate Minimalist)
+- **Chuẩn Hóa Bộ 4 Giao Diện HueIC IMP**:
+  - Bổ sung giao diện **`💎 SaaS Hiện Đại (Clean Slate Minimalist)`** chuẩn quốc tế:
+    - Nền Slate 50 (`#F8FAFC`) triệt tiêu ánh sáng chói lóa.
+    - Chữ Slate 900 (`#0F172A`), viền mảnh `#CBD5E1` kèm hiệu ứng ring focus xanh `#3B82F6`.
+    - Bóng mờ khuếch tán siêu nhẹ, bố cục phẳng thoáng đãng.
+  - Cung cấp trọn vẹn 4 tùy chọn trong `settings.html`: `Mặc Định`, `SaaS Hiện Đại`, `Sáng Dịu Mắt`, `Chế Độ Tối`.
+## 📌 [Phiên bản 2.9.11] - 31/08/2026: Tối Giản 2 Giao Diện Chuẩn & Nâng Cấp Tương Phản Dark Mode
+- **Quy Chuẩn 2 Theme Cốt Lõi**:
+  - Loại bỏ các theme rườm rà, tập trung tuyệt đối vào 2 chế độ:
+    1. **`🌿 Sáng Dịu Mắt (Eye-Care Soft Light)`**: Mặc định toàn hệ thống, nền xám ấm `#F4F6F8`, chống mỏi mắt 8h.
+    2. **`🌙 Chế Độ Tối (Modern Dark Mode)`**: Tăng cường tối đa độ tương phản cho phông chữ (`#FFFFFF`, `#F8FAFC`, `#CBD5E1`), bảng biểu, form nhập liệu sắc nét, rõ ràng.
+## 📌 [Phiên bản 2.9.12] - 31/08/2026: Tinh Chỉnh Nhãn 'Người Phối Hợp Cùng Thực Hiện' & Placeholder
+- **Chuẩn Hóa Copywriting Khối Phối Hợp**:
+  - Đổi tiêu đề: **`👥 Người phối hợp cùng thực hiện`** `(Tùy chọn)`.
+  - Đổi placeholder: `🔍 Gõ tìm tên Người phối hợp để thêm vào danh sách...`
+  - Đồng bộ trên cả 2 trang `tasks-list.html` và `tasks.html`.
+## 📌 [Phiên bản 2.9.13] - 31/08/2026: Nâng Cấp Màu Sắc Trực Quan & Mặc Định Cho Việc Cá Nhân (My To-Do)
+- **Tối Ưu Trải Nghiệm Khối Hình Thức Công Việc Cá Nhân**:
+  - Khi mở form hoặc chuyển sang vai trò `Cá Nhân (STAFF)`, hệ thống luôn kích hoạt mặc định chế độ **`📝 Việc Cá Nhân (My To-Do)`**.
+  - Tăng cường màu sắc nhận diện nổi bật cho thẻ Active:
+    - `📝 Việc Cá Nhân (Active)`: Nền Indigo đậm đà `bg-indigo-100`, viền `border-2 border-indigo-600`, hiệu ứng `ring-2 ring-indigo-200`, nút gửi chuyển thành `Lưu Việc Cá Nhân` (màu chàm `bg-indigo-700`).
+    - `💡 Đề Xuất Trưởng Phòng (Active)`: Nền Amber ấm `bg-amber-100`, viền `border-2 border-amber-600`, nút gửi chuyển thành `Gửi Đề Xuất Cho Trưởng Phòng` (màu hổ phách `bg-amber-700`).
+  - Thẻ Inactive có nền xám nhẹ `bg-white`, viền mảnh `border-slate-200` tạo độ tương phản cực kỳ rõ ràng.
+## 📌 [Phiên bản 2.9.14] - 31/08/2026: Tối Ưu Hóa Khoảng Cách & Thiết Kế Gọn Gàng Đa Thiết Bị (PC & Mobile)
+- **Thu Gọn Chiều Cao Form & Tối Ưu Trải Nghiệm Di Động**:
+  - Gộp **Người yêu cầu** và **Người phối hợp** thành bố cục lưới 2 cột (`grid grid-cols-1 sm:grid-cols-2 gap-2.5`) giúp giảm 50% chiều cao khu vực nhân sự trên PC/Tablet và tự động xếp chồng mượt mà trên Mobile.
+  - Tinh giản khoảng cách toàn form từ `space-y-4` xuống `space-y-3` (`p-4 sm:p-5`), giảm đệm padding ô nhập liệu `py-1.5` để form hiển thị trọn vẹn trong một màn hình, không bị tràn dài.
+  - Trên Mobile: Gộp cụm **Số ngày (2/5)** và **Hạn chót (3/5)** nằm chung trên 1 dòng duy nhất (`grid grid-cols-5 gap-2 sm:contents`), loại bỏ khoảng trống thừa và giữ nguyên touch target chuẩn ngón tay cái.
+## 📌 [Phiên bản 2.9.15] - 31/08/2026: Tiêu Đề Modal Động Theo Hình Thức 'Công Việc Cá Nhân' vs 'Đề Xuất Nhiệm Vụ'
+- **Đồng Bộ Tiêu Đề & Phụ Đề Modal Theo Sub-mode Thực Tế**:
+  - Khi chọn **`📝 Việc Cá Nhân (My To-Do)`**:
+    - Tiêu đề modal: **`Công Việc Cá Nhân`**
+    - Phụ đề: `Tự lập danh sách việc cần làm cho chính mình (My To-Do)`
+## 📌 [Phiên bản 2.9.17] - 31/08/2026: Chuẩn Hóa Màu Sắc Thương Hiệu Xanh HueIC Đồng Nhất & Hài Hòa
+- **Tái Cấu Trúc Trực Quan Hài Hòa 100% Cho Modal Giao/Đề Xuất Nhiệm Vụ**:
+  - Biểu tượng Header luôn giữ chuẩn màu xanh thương hiệu **HueIC Navy Blue `bg-blue-800 text-white`**, chỉ thay đổi biểu tượng bên trong (`fa-user-pen` cho việc cá nhân, `fa-lightbulb` ánh vàng cho đề xuất). Loại bỏ hoàn toàn khối màu cam gây chói mắt.
+  - Thẻ chọn `Việc cá nhân`: Màu xanh dương dịu mắt `bg-blue-50 border-2 border-blue-600`.
+  - Thẻ chọn `Đề xuất trưởng phòng`: Màu vàng kem ấm dịu mắt `bg-amber-50 border-2 border-amber-400`.
+  - Nút bấm hành động chính luôn giữ màu xanh **`bg-blue-800 hover:bg-blue-900`** chuẩn mực, mang tính trang trọng và nhất quán trên toàn hệ thống.
+## 📌 [Phiên bản 2.9.18] - 31/08/2026: Tinh Chỉnh Biểu Tượng Bóng Đèn Nền Trắng & Giữ Trọn Vẹn Tone Vàng Kem Yêu Thích
+- **Hoàn Thiện Thẩm Mỹ Tinh Tế Cho Đề Xuất Nhiệm Vụ**:
+  - Biểu tượng Header: Thiết kế **nền trắng tinh khôi (`bg-white`)**, viền vàng hổ phách mảnh (`border border-amber-300`), bóng đèn vàng sáng (`text-amber-500 fa-lightbulb`), tạo cảm giác sáng tạo, nhẹ nhàng và thanh thoát.
+  - Thẻ chọn `💡 Đề Xuất Cho Trưởng Phòng`: Giữ nguyên 100% màu vàng kem ấm (`bg-amber-50/90 border-2 border-amber-400 text-amber-950`) theo sở thích của người dùng.
+## 📌 [Phiên bản 2.9.19] - 31/08/2026: Đồng Bộ 100% Vector Icon & Mã Màu Giữa Logo Header và Thẻ Đề Xuất
+- **Chuẩn Hóa Icon Vector & Mã Màu Đồng Nhất**:
+  - Thay thế toàn bộ emoji hệ điều hành bằng FontAwesome SVG Vector chính xác:
+    - Thẻ Đề xuất: `<i class="fa-solid fa-lightbulb text-amber-500 text-sm"></i>`
+    - Logo Header: `<i class="fa-solid fa-lightbulb text-amber-500 text-sm"></i>` trên nền trắng viền `border-amber-300`
+    - Cả 2 vị trí đều dùng chung 100% mã màu vàng hổ phách tươi sáng `#F59E0B` (`text-amber-500`) và cùng 1 định dạng biểu tượng sắc nét trên mọi độ phân giải màn hình.
+  - Tương tự cho Thẻ Việc Cá Nhân: sử dụng đồng bộ vector `<i class="fa-solid fa-pen-to-square text-indigo-600 text-sm"></i>`.
+## 📌 [Phiên bản 2.9.20] - 31/08/2026: Chuẩn Hóa Placeholder 'Tiêu Đề Nhiệm Vụ' Cụ Thể Rõ Ràng
+- **Cải Thiện Trực Quan Hướng Dẫn Nhập Liệu (UX Copywriting)**:
+  - Cập nhật placeholder của ô Tiêu đề nhiệm vụ thành: `Nhập tên nhiệm vụ cụ thể (Ví dụ: Mua sắm thiết bị thực hành, Xây dựng đề cương CTĐT...)`.
+## 📌 [Phiên bản 2.9.21] - 31/08/2026: Tối Giản Placeholder 'Tiêu Đề Nhiệm Vụ' Gọn Gàng
+- **Tinh Giản UX Copywriting**:
+  - Rút gọn placeholder của ô Tiêu đề nhiệm vụ thành: `Nhập tên nhiệm vụ cụ thể...`.
+  - Tối giản, không dài dòng, vừa vặn hoàn hảo trên cả điện thoại di động và PC.
+  - Đồng bộ trên cả `tasks-list.html` và `tasks.html`.
+- **Files Chỉnh Sửa**:
   - `[MODIFY] frontend/tasks-list.html`
-  - `[MODIFY] frontend/settings.html`
-  - `[MODIFY] frontend/assets.html`
-  - `[MODIFY] frontend/documents.html`
+  - `[MODIFY] frontend/tasks.html`
   - `[MODIFY] HISTORY.md`
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

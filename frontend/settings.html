@@ -163,8 +163,8 @@
                     </button>
                     <button onclick="SettingsPage.switchSubTab('themes')" id="subnav-themes"
                         class="settings-subnav px-3.5 py-2 rounded-lg transition whitespace-nowrap text-slate-600 hover:text-slate-900 flex items-center space-x-1.5">
-                        <i class="fa-solid fa-palette text-amber-600"></i>
-                        <span>Màu Sắc &amp; Trạng Thái</span>
+                        <i class="fa-solid fa-wand-magic-sparkles text-amber-600"></i>
+                        <span>Giao Diện &amp; Màu Sắc</span>
                     </button>
                 </div>
 
@@ -355,8 +355,75 @@
                     </div>
                 </div>
 
-                <!-- SUBPANE 5: CẤU HÌNH MÀU SẮC & THỨ TỰ TRẠNG THÁI (SYSTEM STATUS META) -->
+                <!-- SUBPANE 5: CẤU HÌNH GIAO DIỆN DỊU MẮT & MÀU SẮC TRẠNG THÁI -->
                 <div id="subpane-themes" class="settings-subpane space-y-5 hidden">
+                    <!-- KHỐI 1: CHỌN CHẾ ĐỘ GIAO DIỆN (EYE-CARE THEMES) -->
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-xs space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                                    <i class="fa-solid fa-wand-magic-sparkles text-amber-600"></i>
+                                    <span>Chế Độ Giao Diện &amp; Tông Màu Hiển Thị (Eye-Care Theme)</span>
+                                </h3>
+                                <p class="text-xs text-slate-500 mt-0.5">Tùy biến tông màu giúp chống mỏi mắt khi làm việc lâu dài trên máy tính hoặc điện thoại.</p>
+                            </div>
+                            <span id="currentThemeBadge" class="self-start sm:self-auto px-2.5 py-1 bg-blue-50 text-blue-800 text-[11px] font-bold rounded-lg border border-blue-200 flex items-center gap-1.5">
+                                <i class="fa-solid fa-circle-check text-blue-600"></i>
+                                <span>Đang áp dụng: Sáng Dịu Mắt</span>
+                            </span>
+                        </div>
+
+                        <!-- 2 Cards Lựa Chọn Theme -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 pt-1">
+                            <!-- Card 1: Eye-Care Soft Light (Mặc Định Toàn Hệ Thống) -->
+                            <div onclick="SettingsPage.selectTheme('soft-light')" id="theme-card-soft-light"
+                                class="p-5 rounded-2xl border-2 border-amber-400 bg-amber-50/40 cursor-pointer transition flex flex-col justify-between group shadow-sm hover:shadow-md">
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center text-xl shadow-xs">
+                                            🌿
+                                        </div>
+                                        <span class="px-2.5 py-1 bg-amber-500 text-white text-[11px] font-bold rounded-lg shadow-xs flex items-center gap-1">
+                                            <i class="fa-solid fa-star text-[10px]"></i> Mặc Định Hệ Thống
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-sm text-slate-900 group-hover:text-amber-900">Sáng Dịu Mắt (Soft Light Mode)</h4>
+                                        <p class="text-xs text-slate-600 mt-1 leading-relaxed">Nền xám ấm dịu (#F4F6F8), chữ xám than (#1E293B), viền êm ái. Triệt tiêu hoàn toàn ánh sáng chói lóa, chống mỏi mắt và bảo vệ thị lực khi làm việc 8 tiếng/ngày.</p>
+                                    </div>
+                                </div>
+                                <div class="mt-5 pt-3 border-t border-amber-200/80 flex items-center justify-between">
+                                    <span class="text-xs font-bold text-amber-800 theme-status-text">Đang sử dụng</span>
+                                    <span class="w-6 h-6 rounded-full bg-amber-100 border border-amber-500 flex items-center justify-center text-xs text-amber-800 theme-check-icon"><i class="fa-solid fa-check"></i></span>
+                                </div>
+                            </div>
+
+                            <!-- Card 2: High-Contrast Modern Dark Mode -->
+                            <div onclick="SettingsPage.selectTheme('dark')" id="theme-card-dark"
+                                class="p-5 rounded-2xl border-2 border-slate-700 bg-slate-900 text-white cursor-pointer transition flex flex-col justify-between group shadow-sm hover:shadow-md">
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <div class="w-10 h-10 rounded-xl bg-slate-800 text-blue-400 flex items-center justify-center text-xl shadow-xs">
+                                            🌙
+                                        </div>
+                                        <span class="px-2.5 py-1 bg-slate-800 text-slate-200 text-[11px] font-bold rounded-lg border border-slate-700 flex items-center gap-1">
+                                            <i class="fa-solid fa-moon text-[10px]"></i> Ban Đêm (Tương Phản Cao)
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-sm text-white group-hover:text-blue-300">Chế Độ Tối (Modern Dark Mode)</h4>
+                                        <p class="text-xs text-slate-300 mt-1 leading-relaxed">Nền than xám (#0B0F19), chữ trắng sáng rõ nét (#FFFFFF), thẻ nhãn và form nhập liệu tương phản cao. Giảm phát xạ ánh sáng xanh và tối ưu làm việc ban đêm.</p>
+                                    </div>
+                                </div>
+                                <div class="mt-5 pt-3 border-t border-slate-800 flex items-center justify-between">
+                                    <span class="text-xs font-semibold text-slate-400 theme-status-text">Bấm để chọn</span>
+                                    <span class="w-6 h-6 rounded-full border border-slate-700 flex items-center justify-center text-xs theme-check-icon"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KHỐI 2: CẤU HÌNH MÀU SẮC & THỨ TỰ TRẠNG THÁI (SYSTEM STATUS META) -->
                     <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div>
                             <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
@@ -637,8 +704,8 @@
     </div>
 
     <!-- Scripts -->
-    <script src="assets/js/api.js"></script>
-    <script src="assets/js/common.js"></script>
-    <script src="assets/js/settings.js"></script>
+    <script src="assets/js/api.js?v=2.9.9"></script>
+    <script src="assets/js/common.js?v=2.9.9"></script>
+    <script src="assets/js/settings.js?v=2.9.9"></script>
 </body>
 </html>

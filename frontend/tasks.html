@@ -336,21 +336,17 @@
                 </button>
                 <button type="button" id="archetype-btn-workflow" onclick="TasksPage.switchTaskArchetype('workflow')" 
                     class="px-3 py-1.5 rounded-lg font-bold text-xs bg-blue-800 text-white shadow-xs transition shrink-0 flex items-center space-x-1.5">
-                    <span>🔄 Quy Trình Chuẩn</span>
-                </button>
-                <button type="button" id="archetype-btn-recurring" onclick="TasksPage.switchTaskArchetype('recurring')" 
-                    class="px-3 py-1.5 rounded-lg font-semibold text-xs text-slate-600 bg-slate-200/60 hover:bg-slate-200 transition shrink-0 flex items-center space-x-1.5">
-                    <span>🔁 Lặp Lại Định Kỳ</span>
+                    <span>🔄 Quy Trình Chuẩn (PDCA)</span>
                 </button>
                 <button type="button" id="archetype-btn-multi_dept" onclick="TasksPage.switchTaskArchetype('multi_dept')" 
                     class="px-3 py-1.5 rounded-lg font-semibold text-xs text-slate-600 bg-slate-200/60 hover:bg-slate-200 transition shrink-0 flex items-center space-x-1.5">
-                    <span>🏢 Liên Đơn Vị</span>
+                    <span>🏢 Phối Hợp Liên Đơn Vị</span>
                 </button>
             </div>
             
-            <form id="formCreateTask" onsubmit="TasksPage.handleCreateTask(event)" class="p-5 sm:p-6 space-y-4 text-xs overflow-y-auto flex-1">
+            <form id="formCreateTask" onsubmit="TasksPage.handleCreateTask(event)" class="p-4 sm:p-5 space-y-3 text-xs overflow-y-auto flex-1">
                 <!-- Staff Mode Selector (Chỉ hiện khi là Cá nhân) -->
-                <div id="staffModeToggleWrapper" class="hidden p-3 bg-indigo-50/80 border border-indigo-200 rounded-xl space-y-2">
+                <div id="staffModeToggleWrapper" class="hidden p-2.5 bg-indigo-50/80 border border-indigo-200 rounded-xl space-y-1.5">
                     <div class="flex items-center justify-between">
                         <span class="text-xs font-bold text-indigo-950 flex items-center space-x-1">
                             <i class="fa-solid fa-user-pen text-indigo-700"></i>
@@ -358,13 +354,19 @@
                         </span>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <button type="button" id="staffModeBtnTodo" onclick="TasksPage.setStaffTaskMode('todo')" class="p-2 rounded-lg border-2 border-indigo-700 bg-white text-indigo-950 font-bold text-left transition text-xs shadow-xs">
-                            📝 Việc Cá Nhân (My To-Do)
-                            <div class="text-[10px] font-normal text-slate-600 mt-0.5">Tự lập danh sách việc cần làm cho chính mình</div>
+                        <button type="button" id="staffModeBtnTodo" onclick="TasksPage.setStaffTaskMode('todo')" class="flex-1 p-2.5 rounded-xl border-2 border-indigo-600 bg-indigo-50/90 text-indigo-950 font-bold text-left transition text-xs shadow-xs ring-2 ring-indigo-200/60">
+                            <span class="flex items-center space-x-1.5 font-bold">
+                                <i class="fa-solid fa-pen-to-square text-indigo-600 text-sm"></i>
+                                <span>Việc Cá Nhân (My To-Do)</span>
+                            </span>
+                            <div class="text-[10px] font-normal text-slate-700 mt-0.5">Tự lập danh sách việc cần làm cho chính mình</div>
                         </button>
-                        <button type="button" id="staffModeBtnProposal" onclick="TasksPage.setStaffTaskMode('proposal')" class="p-2 rounded-lg border border-slate-200 bg-white text-slate-700 font-bold text-left hover:bg-slate-50 transition text-xs">
-                            💡 Đề Xuất Cho Trưởng Phòng
-                            <div class="text-[10px] font-normal text-slate-600 mt-0.5">Gửi đề xuất nhiệm vụ lên Trưởng đơn vị phê duyệt</div>
+                        <button type="button" id="staffModeBtnProposal" onclick="TasksPage.setStaffTaskMode('proposal')" class="flex-1 p-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 font-semibold text-left hover:bg-slate-50 transition text-xs">
+                            <span class="flex items-center space-x-1.5 font-bold">
+                                <i class="fa-solid fa-lightbulb text-amber-500 text-sm"></i>
+                                <span>Đề Xuất Cho Trưởng Phòng</span>
+                            </span>
+                            <div class="text-[10px] font-normal text-slate-500 mt-0.5">Gửi đề xuất nhiệm vụ lên Trưởng đơn vị phê duyệt</div>
                         </button>
                     </div>
                 </div>
@@ -372,54 +374,83 @@
                 <!-- 1. Tiêu đề nhiệm vụ -->
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">Tiêu đề nhiệm vụ <span class="text-red-500">*</span></label>
-                    <input type="text" id="taskTitle" required oninput="TasksPage.handleTitleInputForSuggester(this.value)" placeholder="Ví dụ: Mua sắm thiết bị máy tính thực hành hoặc Xây dựng đề cương CTĐT..." 
-                        class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-800 font-medium text-slate-900 placeholder-slate-400">
+                    <input type="text" id="taskTitle" required oninput="TasksPage.handleTitleInputForSuggester(this.value)" placeholder="Nhập tên nhiệm vụ cụ thể..." 
+                        class="w-full px-3 py-1.5 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-800 font-medium text-slate-900 placeholder-slate-400">
                     
                     <!-- Smart Workflow Suggester Pill -->
-                    <div id="taskWorkflowSuggestionBox" class="hidden mt-1.5 p-2 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg flex items-center justify-between animate-fade-in">
+                    <div id="taskWorkflowSuggestionBox" class="hidden mt-1 p-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg flex items-center justify-between animate-fade-in">
                         <div class="flex items-center space-x-2 text-blue-950 font-semibold text-[11px]">
                             <i class="fa-solid fa-wand-magic-sparkles text-blue-600"></i>
                             <span>Gợi ý quy trình: <strong id="suggestedWorkflowName" class="text-blue-800">QT Mua sắm</strong></span>
                         </div>
-                        <button type="button" onclick="TasksPage.applySuggestedWorkflow()" class="px-2.5 py-1 bg-blue-800 text-white rounded-md font-bold text-[10px] hover:bg-blue-900 shadow-xs transition">
-                            <i class="fa-solid fa-check mr-1"></i>Áp dụng ngay
+                        <button type="button" onclick="TasksPage.applySuggestedWorkflow()" class="px-2 py-0.5 bg-blue-800 text-white rounded-md font-bold text-[10px] hover:bg-blue-900 shadow-xs transition">
+                            <i class="fa-solid fa-check mr-1"></i>Áp dụng
                         </button>
                     </div>
                 </div>
 
-                <!-- 2. Mô tả & Người giao việc (khi là Cá nhân) -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div id="descColWrapper" class="sm:col-span-3">
-                        <label class="block font-bold text-slate-700 mb-1">Mô tả chi tiết yêu cầu & mục tiêu</label>
-                        <textarea id="taskDescription" rows="2" placeholder="Nội dung chỉ đạo, yêu cầu bàn giao cụ thể..." 
-                            class="w-full px-3 py-1.5 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-800 placeholder-slate-400"></textarea>
-                    </div>
+                <!-- 2. Mô tả chi tiết yêu cầu & mục tiêu (Full Width) -->
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Mô tả chi tiết yêu cầu & mục tiêu</label>
+                    <textarea id="taskDescription" rows="2" placeholder="Nội dung chỉ đạo, yêu cầu bàn giao cụ thể..." 
+                        class="w-full px-3 py-1.5 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-800 placeholder-slate-400 font-medium text-slate-900"></textarea>
+                </div>
 
-                    <!-- Ô Người giao việc có tìm kiếm (Dành cho Cá nhân) -->
-                    <div id="requesterWrapper" class="hidden relative sm:col-span-1">
-                        <label class="block font-bold text-slate-700 mb-1">
-                            <span>Người giao việc / Người yêu cầu</span>
-                        </label>
+                <!-- DÒNG NGƯỜI YÊU CẦU & NGƯỜI PHỐI HỢP (GRID 2 CỘT GỌN GÀNG CHO CÁ NHÂN) -->
+                <div id="staffPersonalGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <!-- 2.1. Ô Người yêu cầu (Dành cho Cá nhân) -->
+                    <div id="requesterWrapper" class="hidden relative p-2.5 bg-indigo-50/50 border border-indigo-100 rounded-xl space-y-1 animate-fade-in">
+                        <div class="flex items-center justify-between">
+                            <label class="block font-bold text-indigo-950 text-[11px] flex items-center">
+                                <i class="fa-solid fa-user-tag text-indigo-700 mr-1.5"></i>
+                                <span>Người yêu cầu</span>
+                            </label>
+                            <span class="text-[9.5px] text-slate-400 italic">Tùy chọn</span>
+                        </div>
                         <div class="relative">
                             <input type="text" id="taskRequester" 
                                 onfocus="TasksPage.showRequesterDropdown()" 
                                 oninput="TasksPage.filterRequesterDropdown(this.value)" 
-                                placeholder="🔍 Gõ tìm tên lãnh đạo / thầy cô..." 
+                                placeholder="🔍 Gõ tìm tên Người yêu cầu..." 
                                 autocomplete="off"
-                                class="w-full pl-3 pr-8 py-1.5 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-800 font-medium text-xs text-slate-900 placeholder-slate-400 bg-white">
+                                class="w-full pl-2.5 pr-7 py-1.5 border border-slate-300 rounded-lg focus:outline-none focus:border-indigo-800 font-medium text-xs text-slate-900 placeholder-slate-400 bg-white">
                             <button type="button" id="taskRequesterClearBtn" onclick="TasksPage.clearTaskRequester()" class="hidden absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 text-xs p-1">
                                 <i class="fa-solid fa-xmark"></i>
                             </button>
                         </div>
-                        <!-- Dropdown Menu Tinh Tế, Có Cuộn Riêng, Không Bao Giờ Tràn Vỡ Form -->
                         <div id="requesterDropdownMenu" class="hidden absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-2xl z-50 max-h-48 overflow-y-auto divide-y divide-slate-100 animate-fade-in text-xs">
                         </div>
-                        <p class="text-[10px] text-slate-400 mt-1">Chọn từ danh sách hoặc gõ tự do</p>
+                    </div>
+
+                    <!-- 2.2. Ô Người phối hợp cùng thực hiện -->
+                    <div id="collaboratorsSection" class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1 animate-fade-in sm:col-span-1">
+                        <div class="flex items-center justify-between">
+                            <label class="block font-bold text-slate-800 text-[11px] flex items-center">
+                                <i class="fa-solid fa-users text-blue-700 mr-1.5"></i>
+                                <span>Người phối hợp cùng thực hiện</span>
+                            </label>
+                            <span class="text-[9.5px] text-slate-400 italic">Tùy chọn</span>
+                        </div>
+                        <!-- Danh sách Tag Người đã chọn phối hợp -->
+                        <div id="selectedCollaboratorsList" class="flex flex-wrap gap-1 min-h-[20px]">
+                            <span class="text-[10.5px] text-slate-400 italic" id="emptyCollaboratorsMsg">Chưa có người phối hợp (Làm độc lập)</span>
+                        </div>
+                        <div class="relative">
+                            <input type="text" id="taskCollaboratorInput"
+                                onfocus="TasksPage.showCollaboratorDropdown()"
+                                oninput="TasksPage.filterCollaboratorDropdown(this.value)"
+                                placeholder="🔍 Gõ tìm tên Người phối hợp để thêm..."
+                                autocomplete="off"
+                                class="w-full pl-2.5 pr-7 py-1.5 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-800 font-medium text-xs text-slate-900 placeholder-slate-400 bg-white">
+                            <!-- Dropdown Menu -->
+                            <div id="collaboratorDropdownMenu" class="hidden absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-2xl z-50 max-h-48 overflow-y-auto divide-y divide-slate-100 animate-fade-in text-xs">
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- 3. Đơn vị chủ trì & Phân công thực hiện & Đơn vị phối hợp -->
-                <div id="deptRowWrapper" class="space-y-3">
+                <div id="deptRowWrapper" class="space-y-2.5">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label class="block font-bold text-slate-700 mb-1">Đơn vị chủ trì <span class="text-red-500">*</span></label>
@@ -442,80 +473,60 @@
                     </div>
                 </div>
 
-                <!-- 4. MỨC ĐỘ ƯU TIÊN & SỐ NGÀY & HẠN CHÓT (1 DÒNG GỌN GÀNG - CHỈ HIỆN NGÀY) -->
-                <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
-                    <!-- Cột 1: Mức độ ưu tiên (4 nút bấm 1 chạm) - 7 cols -->
+                <!-- 4. MỨC ĐỘ ƯU TIÊN & SỐ NGÀY & HẠN CHÓT (TỐI ƯU GỌN 1 HÀNG TRÊN CẢ PC VÀ MOBILE) -->
+                <div class="space-y-2 sm:space-y-0 sm:grid sm:grid-cols-12 sm:gap-3 sm:items-end">
+                    <!-- Cột 1: Mức độ ưu tiên (4 nút bấm 1 chạm) - 7 cols trên PC -->
                     <div class="sm:col-span-7">
-                        <label class="block font-bold text-slate-700 mb-1">Mức độ ưu tiên</label>
+                        <label class="block font-bold text-slate-700 mb-1 text-[11px] sm:text-xs">Mức độ ưu tiên</label>
                         <div class="grid grid-cols-4 gap-1 p-0.5 bg-slate-100/90 rounded-lg border border-slate-200">
                             <button type="button" id="priority-btn-THAP" onclick="TasksPage.setTaskPriority('THAP')" 
-                                class="py-1.5 px-1 rounded-md bg-white border border-slate-200 text-slate-600 font-semibold text-xs hover:bg-slate-50 transition text-center whitespace-nowrap">
+                                class="py-1.5 px-0.5 sm:px-1 rounded-md bg-white border border-slate-200 text-slate-600 font-semibold text-[11px] sm:text-xs hover:bg-slate-50 transition text-center whitespace-nowrap">
                                 ⚪ Thấp
                             </button>
                             <button type="button" id="priority-btn-TRUNG_BINH" onclick="TasksPage.setTaskPriority('TRUNG_BINH')" 
-                                class="py-1.5 px-1 rounded-md border-2 border-blue-700 bg-blue-50/90 text-blue-950 font-bold text-xs shadow-xs transition text-center whitespace-nowrap">
+                                class="py-1.5 px-0.5 sm:px-1 rounded-md border-2 border-blue-700 bg-blue-50/90 text-blue-950 font-bold text-[11px] sm:text-xs shadow-xs transition text-center whitespace-nowrap">
                                 🔵 T.Bình
                             </button>
                             <button type="button" id="priority-btn-CAO" onclick="TasksPage.setTaskPriority('CAO')" 
-                                class="py-1.5 px-1 rounded-md bg-white border border-slate-200 text-slate-600 font-semibold text-xs hover:bg-slate-50 transition text-center whitespace-nowrap">
+                                class="py-1.5 px-0.5 sm:px-1 rounded-md bg-white border border-slate-200 text-slate-600 font-semibold text-[11px] sm:text-xs hover:bg-slate-50 transition text-center whitespace-nowrap">
                                 🟡 Cao
                             </button>
                             <button type="button" id="priority-btn-KHAN_CAP" onclick="TasksPage.setTaskPriority('KHAN_CAP')" 
-                                class="py-1.5 px-1 rounded-md bg-white border border-slate-200 text-slate-600 font-semibold text-xs hover:bg-slate-50 transition text-center whitespace-nowrap">
+                                class="py-1.5 px-0.5 sm:px-1 rounded-md bg-white border border-slate-200 text-slate-600 font-semibold text-[11px] sm:text-xs hover:bg-slate-50 transition text-center whitespace-nowrap">
                                 🔥 Khẩn
                             </button>
                         </div>
                         <input type="hidden" id="taskPriority" value="TRUNG_BINH">
                     </div>
 
-                    <!-- Cột 2: Số ngày làm - 2 cols -->
-                    <div class="sm:col-span-2">
-                        <label class="block font-bold text-slate-700 mb-1">Số ngày</label>
-                        <div class="relative">
-                            <input type="number" id="taskDurationDays" min="1" max="365" value="7" 
-                                oninput="TasksPage.handleDurationDaysInput(this.value)" 
-                                class="w-full pl-2 pr-7 py-1.5 border border-slate-300 rounded-lg text-xs font-bold text-center focus:outline-none focus:border-blue-800 bg-white">
-                            <span class="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-medium pointer-events-none">ngày</span>
+                    <!-- Hàng phụ trên Mobile: Số ngày (1/3) & Hạn chót (2/3) -->
+                    <div class="grid grid-cols-5 gap-2 sm:contents">
+                        <!-- Cột 2: Số ngày làm - 2 cols trên PC, 2/5 trên Mobile -->
+                        <div class="col-span-2 sm:col-span-2">
+                            <label class="block font-bold text-slate-700 mb-1 text-[11px] sm:text-xs">Số ngày</label>
+                            <div class="relative">
+                                <input type="number" id="taskDurationDays" min="1" max="365" value="7" 
+                                    oninput="TasksPage.handleDurationDaysInput(this.value)" 
+                                    class="w-full pl-2 pr-6 py-1.5 border border-slate-300 rounded-lg text-xs font-bold text-center focus:outline-none focus:border-blue-800 bg-white">
+                                <span class="absolute right-1.5 top-1/2 -translate-y-1/2 text-[9.5px] text-slate-400 font-medium pointer-events-none">ngày</span>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Cột 3: Hạn chót (Chỉ ngày, không giờ phút AM/PM) - 3 cols -->
-                    <div class="sm:col-span-3">
-                        <label class="block font-bold text-slate-700 mb-1">Hạn chót</label>
-                        <input type="date" id="taskDueDate" 
-                            onchange="TasksPage.handleDueDateChange(this.value)" 
-                            class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-800 font-mono text-xs font-semibold text-slate-900 bg-white">
+                        <!-- Cột 3: Hạn chót - 3 cols trên PC, 3/5 trên Mobile -->
+                        <div class="col-span-3 sm:col-span-3">
+                            <label class="block font-bold text-slate-700 mb-1 text-[11px] sm:text-xs">Hạn chót</label>
+                            <input type="date" id="taskDueDate" 
+                                onchange="TasksPage.handleDueDateChange(this.value)" 
+                                class="w-full px-2 py-1.5 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-800 font-mono text-xs font-semibold text-slate-900 bg-white">
+                        </div>
                     </div>
                 </div>
 
                 <!-- Cảnh báo An toàn Deadline -->
-                <div id="deadlineSafetyWarning" class="hidden p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-[11px] animate-fade-in"></div>
+                <div id="deadlineSafetyWarning" class="hidden p-2 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-[10.5px] animate-fade-in"></div>
 
-                <!-- 5. Khối Lặp lại Định kỳ (Recurring Options - hiện khi chọn hình thái recurring) -->
-                <div id="recurringOptionsSection" class="hidden p-3.5 bg-indigo-50/70 border border-indigo-200 rounded-xl space-y-2">
-                    <div class="flex items-center space-x-2 text-indigo-900 font-bold text-xs">
-                        <i class="fa-solid fa-arrows-rotate text-indigo-600"></i>
-                        <span>Thiết Lập Chu Kỳ Lặp Lại (Recurring Engine)</span>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                        <div>
-                            <label class="block font-semibold text-slate-700 mb-1">Tần suất lặp lại</label>
-                            <select id="taskRecurrenceFreq" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-indigo-800">
-                                <option value="WEEKLY">Hàng tuần (Thứ 2)</option>
-                                <option value="MONTHLY">Hàng tháng (Ngày đầu tháng)</option>
-                                <option value="QUARTERLY">Hàng quý (Đầu mỗi quý)</option>
-                                <option value="SEMESTER">Theo học kỳ (Bắt đầu học kỳ mới)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block font-semibold text-slate-700 mb-1">Ghi chú chu kỳ</label>
-                            <input type="text" id="taskRecurrenceNote" placeholder="VD: Tự động khởi tạo phiên bản mới khi nghiệm thu" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-indigo-800">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 6. THIẾT LẬP QUY TRÌNH BƯỚC MỐC (WORKFLOW STEPS CHECKLIST) -->
-                <div id="workflowBuilderSection" class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                <!-- 5. THIẾT LẬP QUY TRÌNH BƯỚC MỐC (WORKFLOW STEPS CHECKLIST) -->
+                <div id="workflowBuilderSection" class="bg-slate-50 p-3 sm:p-3.5 rounded-xl border border-slate-200 space-y-2.5">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div>
                             <label class="font-bold text-slate-800 flex items-center space-x-1.5 text-xs">
@@ -828,9 +839,9 @@
     </div>
 
     <!-- Scripts -->
-    <script src="assets/js/api.js?v=2.9.1"></script>
-    <script src="assets/js/common.js?v=2.9.1"></script>
-    <script src="assets/js/tasks_dashboard.js?v=2.9.1"></script>
-    <script src="assets/js/tasks.js?v=2.9.1"></script>
+    <script src="assets/js/api.js?v=2.9.8"></script>
+    <script src="assets/js/common.js?v=2.9.8"></script>
+    <script src="assets/js/tasks_dashboard.js?v=2.9.8"></script>
+    <script src="assets/js/tasks.js?v=2.9.8"></script>
 </body>
 </html>

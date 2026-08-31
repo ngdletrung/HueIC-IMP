@@ -265,7 +265,41 @@ flowchart TD
 
 ---
 
-## 🚀 8. Hướng Dẫn Khởi Chạy (Local & Server)
+## 🔄 8. Đặc Tả Tách Biệt: Giao Việc (Task Dispatch) vs Lịch Công Tác (Calendar Recurrence)
+
+### 📌 Nguyên Tắc Kiến Trúc Cốt Lõi:
+* **Hệ Sinh Thái Giao Việc (Task Dispatch)**: Thực thi & chịu trách nhiệm, có deadline, % tiến độ và nghiệm thu. **Tuyệt đối không có Recurring** trong bảng `tasks` để ngăn ngừa hoàn toàn rác dữ liệu trên Dashboard KPI & Kanban.
+* **Hệ Sinh Thái Lịch Công Tác (Calendar Events - `calendar.html`)**: Ghi nhớ, lịch trình và nhắc nhở định kỳ (Họp giao ban thứ 2, nộp báo cáo ngày 15...). Sử dụng **Cơ chế Chiếu Ảo (Virtual Projection)** theo thời gian thực — chỉ lưu 1 bản ghi Rule trong `event_recurrence_rules`, không clone task bừa bãi.
+
+```mermaid
+flowchart TD
+    subgraph CalendarUI ["GIAO DIỆN LỊCH CÔNG TÁC (calendar.html)"]
+        OpenEventForm["Người dùng bấm 'Thêm Sự Kiện / Lịch Họp'"] --> ToggleRecurrence{Bật 'Lặp lại định kỳ'?}
+        
+        ToggleRecurrence -->|Không| CreateSingleEvent["Tạo Sự Kiện Đơn Lẻ trong 'calendar_events'"]
+        ToggleRecurrence -->|Có| SetRuleForm["Thiết lập Rule Lặp Lại:<br/>• Tần suất: Hàng tuần | Hàng tháng | Hàng năm<br/>• Kết thúc: Không bao giờ | Sau X lần | Đến ngày Y<br/>• Nhắc trước: 15 phút | 1 giờ | 1 ngày<br/>• Checkbox: ✔️ Né ngày nghỉ / Lễ Tết"]
+    end
+
+    subgraph RecurrenceStorage ["LƯU TRỮ RULE GỌN NHẸ (ZERO DATABASE CLUTTER)"]
+        SetRuleForm --> SaveRule["Lưu 1 BẢN GHI DUY NHẤT vào 'event_recurrence_rules':<br/>• event_id, freq, interval, byday, start_date, until_date<br/>• holiday_shift = TRUE"]
+    end
+
+    subgraph VirtualProjection ["CƠ CHẾ CHIẾU ẢO LÊN LỊCH (VIRTUAL PROJECTION)"]
+        UserViewsMonth["Người xem Lịch Tháng / Tuần"] --> ProjectEngine["Động cơ Chiếu Ảo (In-Memory Projection):<br/>Tính toán ngày xuất hiện trong tháng đang xem"]
+        ProjectEngine --> CheckHoliday{Trùng Lễ / Cuối tuần & Bật Né ngày nghỉ?}
+        CheckHoliday -->|Có| ShiftDay["🛡️ Tự động dời hiển thị sang ngày làm việc kế tiếp"]
+        CheckHoliday -->|Không| KeepDay["Hiển thị đúng ngày"]
+        ShiftDay & KeepDay --> RenderGrid["Render Sự Kiện lên Calendar Grid (Badge: 🔁 Lặp định kỳ)"]
+    end
+
+    subgraph ReminderEngine ["HẠ TẦNG NHẮC NHỞ ĐỊNH KỲ (APScheduler Reminders)"]
+        ScanReminders["APScheduler quét sự kiện sắp diễn ra trong 15-30 phút"] --> SendAlert["Gửi Push Notification / Email nhắc giờ họp"]
+    end
+```
+
+---
+
+## 🚀 9. Hướng Dẫn Khởi Chạy (Local & Server)
 
 ### 🔹 Khởi chạy trên Môi trường Phát triển (Windows / macOS)
 Mở PowerShell hoặc Terminal tại thư mục dự án và chạy:

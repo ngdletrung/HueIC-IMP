@@ -863,7 +863,61 @@ const SettingsPage = {
     },
 
     // 5. System Themes & Status Meta Config
+    selectTheme(themeName) {
+        Common.setTheme(themeName);
+        this.renderActiveThemeUI();
+        const themeLabels = {
+            'soft-light': 'Sáng Dịu Mắt (Eye-Care Soft Light)',
+            'dark': 'Chế Độ Tối (Modern Dark Mode)'
+        };
+        Common.showToast(`✨ Đã áp dụng giao diện: ${themeLabels[themeName] || themeName}!`, 'success');
+    },
+
+    renderActiveThemeUI() {
+        const currentTheme = Common.getTheme();
+        const badge = document.getElementById('currentThemeBadge');
+        const themeLabels = {
+            'soft-light': 'Sáng Dịu Mắt (Soft Light)',
+            'dark': 'Chế Độ Tối (Modern Dark Mode)'
+        };
+
+        if (badge) {
+            badge.innerHTML = `<i class="fa-solid fa-circle-check text-blue-600"></i><span>Đang áp dụng: ${themeLabels[currentTheme] || 'Sáng Dịu Mắt'}</span>`;
+        }
+
+        const themes = ['soft-light', 'dark'];
+        themes.forEach(t => {
+            const card = document.getElementById(`theme-card-${t}`);
+            if (!card) return;
+            const statusText = card.querySelector('.theme-status-text');
+            const checkIcon = card.querySelector('.theme-check-icon');
+
+            if (t === currentTheme) {
+                card.classList.add('ring-2', 'ring-blue-600', 'border-blue-600', 'shadow-md');
+                if (statusText) {
+                    statusText.innerText = 'Đang sử dụng';
+                    statusText.className = t === 'dark' ? 'text-xs font-bold text-blue-400 theme-status-text' : 'text-xs font-bold text-amber-800 theme-status-text';
+                }
+                if (checkIcon) {
+                    checkIcon.innerHTML = '<i class="fa-solid fa-check"></i>';
+                    checkIcon.className = t === 'dark' ? 'w-6 h-6 rounded-full bg-blue-950 border border-blue-400 flex items-center justify-center text-xs text-blue-300 theme-check-icon' : 'w-6 h-6 rounded-full bg-amber-100 border border-amber-500 flex items-center justify-center text-xs text-amber-800 theme-check-icon';
+                }
+            } else {
+                card.classList.remove('ring-2', 'ring-blue-600', 'border-blue-600', 'shadow-md');
+                if (statusText) {
+                    statusText.innerText = 'Bấm để chọn';
+                    statusText.className = 'text-xs font-semibold text-slate-400 theme-status-text';
+                }
+                if (checkIcon) {
+                    checkIcon.innerHTML = '';
+                    checkIcon.className = 'w-6 h-6 rounded-full border border-slate-300 dark:border-slate-700 flex items-center justify-center text-xs theme-check-icon';
+                }
+            }
+        });
+    },
+
     renderThemesConfig() {
+        this.renderActiveThemeUI();
         const statuses = Common.getStatusConfig();
         const priorities = Common.getPriorityConfig();
 

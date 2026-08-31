@@ -11,6 +11,9 @@ const Common = {
             return;
         }
 
+        // 0. Áp dụng giao diện (Theme: default | soft-light | dark)
+        this.applyTheme();
+
         // 1. Cập nhật thông tin Header
         const headerUserName = document.getElementById('headerUserName');
         const headerUserRole = document.getElementById('headerUserRole');
@@ -303,5 +306,191 @@ const Common = {
             statuses: JSON.parse(JSON.stringify(this.DEFAULT_STATUS_CONFIG)),
             priorities: JSON.parse(JSON.stringify(this.DEFAULT_PRIORITY_CONFIG))
         };
+    },
+
+    // ----------------------------------------------------
+    // EYE-CARE VISUAL THEME ENGINE (SOFT-LIGHT & DARK MODE)
+    // ----------------------------------------------------
+    getTheme() {
+        return localStorage.getItem('hueic_imp_theme') || 'soft-light';
+    },
+
+    setTheme(themeName) {
+        localStorage.setItem('hueic_imp_theme', themeName);
+        this.applyTheme(themeName);
+    },
+
+    applyTheme(theme = null) {
+        const t = theme || this.getTheme();
+        document.documentElement.setAttribute('data-theme', t);
+
+        let styleEl = document.getElementById('hueic-theme-styles');
+        if (!styleEl) {
+            styleEl = document.createElement('style');
+            styleEl.id = 'hueic-theme-styles';
+            document.head.appendChild(styleEl);
+        }
+
+        if (t === 'dark') {
+            styleEl.innerHTML = `
+                /* ============================================================ */
+                /* HIGH-CONTRAST MODERN DARK THEME (CHẾ ĐỘ TỐI TƯƠNG PHẢN CAO)  */
+                /* ============================================================ */
+                html[data-theme="dark"] body,
+                html[data-theme="dark"] main,
+                html[data-theme="dark"] .bg-slate-100 {
+                    background-color: #0B0F19 !important;
+                    color: #F8FAFC !important;
+                }
+                html[data-theme="dark"] header,
+                html[data-theme="dark"] .bg-white {
+                    background-color: #1E293B !important;
+                    border-color: #334155 !important;
+                    color: #F8FAFC !important;
+                }
+                html[data-theme="dark"] .bg-slate-50 {
+                    background-color: #151F32 !important;
+                    border-color: #334155 !important;
+                }
+                html[data-theme="dark"] .bg-slate-200 {
+                    background-color: #334155 !important;
+                }
+                html[data-theme="dark"] .bg-indigo-50\\/80,
+                html[data-theme="dark"] .bg-indigo-50\\/50,
+                html[data-theme="dark"] .bg-indigo-50 {
+                    background-color: #1E2238 !important;
+                    border-color: #3730A3 !important;
+                }
+
+                /* TYPOGRAPHY (CHỮ SÁNG RÕ RÀNG, DỄ ĐỌC TUYỆT ĐỐI) */
+                html[data-theme="dark"] h1,
+                html[data-theme="dark"] h2,
+                html[data-theme="dark"] h3,
+                html[data-theme="dark"] h4,
+                html[data-theme="dark"] .text-slate-900,
+                html[data-theme="dark"] .text-slate-800,
+                html[data-theme="dark"] .text-indigo-950 {
+                    color: #FFFFFF !important;
+                }
+                html[data-theme="dark"] .text-slate-700,
+                html[data-theme="dark"] .text-slate-600 {
+                    color: #E2E8F0 !important;
+                }
+                html[data-theme="dark"] .text-slate-500,
+                html[data-theme="dark"] .text-slate-400 {
+                    color: #CBD5E1 !important;
+                }
+                html[data-theme="dark"] label {
+                    color: #E2E8F0 !important;
+                }
+
+                /* FORM CONTROLS (INPUT / SELECT / TEXTAREA) */
+                html[data-theme="dark"] select,
+                html[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+                html[data-theme="dark"] textarea {
+                    background-color: #0F172A !important;
+                    border: 1px solid #475569 !important;
+                    color: #FFFFFF !important;
+                }
+                html[data-theme="dark"] select:focus,
+                html[data-theme="dark"] input:focus,
+                html[data-theme="dark"] textarea:focus {
+                    border-color: #60A5FA !important;
+                    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.25) !important;
+                    outline: none !important;
+                }
+                html[data-theme="dark"] input::placeholder,
+                html[data-theme="dark"] textarea::placeholder {
+                    color: #94A3B8 !important;
+                }
+
+                /* BORDERS & CARDS */
+                html[data-theme="dark"] .border-slate-200,
+                html[data-theme="dark"] .border-slate-100,
+                html[data-theme="dark"] .border-slate-300 {
+                    border-color: #334155 !important;
+                }
+                html[data-theme="dark"] .divide-slate-100 > * + *,
+                html[data-theme="dark"] .divide-slate-200 > * + * {
+                    border-color: #334155 !important;
+                }
+
+                /* TABLES */
+                html[data-theme="dark"] thead,
+                html[data-theme="dark"] th {
+                    background-color: #0F172A !important;
+                    color: #F1F5F9 !important;
+                    border-color: #334155 !important;
+                }
+                html[data-theme="dark"] tbody tr {
+                    border-color: #334155 !important;
+                }
+                html[data-theme="dark"] tbody tr:hover {
+                    background-color: rgba(51, 65, 85, 0.4) !important;
+                }
+                html[data-theme="dark"] td {
+                    color: #F8FAFC !important;
+                }
+
+                /* SHADOWS */
+                html[data-theme="dark"] .shadow-xs,
+                html[data-theme="dark"] .shadow-sm,
+                html[data-theme="dark"] .shadow-md,
+                html[data-theme="dark"] .shadow-lg,
+                html[data-theme="dark"] .shadow-2xl {
+                    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.7) !important;
+                }
+            `;
+        } else {
+            // Mặc định: Soft Light (Sáng Dịu Mắt)
+            styleEl.innerHTML = `
+                /* ============================================================ */
+                /* EYE-CARE SOFT LIGHT THEME (CHẾ ĐỘ SÁNG DỊU MẮT - MẶC ĐỊNH)   */
+                /* ============================================================ */
+                html body,
+                html main,
+                html .bg-slate-100 {
+                    background-color: #F4F6F8 !important;
+                }
+                html header,
+                html .bg-white {
+                    background-color: #FFFFFF !important;
+                    border-color: #E2E8F0 !important;
+                }
+                html .text-slate-900,
+                html .text-slate-800 {
+                    color: #1E293B !important;
+                }
+                html .text-slate-700,
+                html .text-slate-600 {
+                    color: #334155 !important;
+                }
+                html .text-slate-500,
+                html .text-slate-400 {
+                    color: #64748B !important;
+                }
+                html .bg-slate-50 {
+                    background-color: #F1F5F9 !important;
+                }
+                html .border-slate-200,
+                html .border-slate-100 {
+                    border-color: #E2E8F0 !important;
+                }
+                html select,
+                html input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+                html textarea {
+                    background-color: #FFFFFF !important;
+                    border: 1px solid #CBD5E1 !important;
+                    color: #1E293B !important;
+                }
+                html select:focus,
+                html input:focus,
+                html textarea:focus {
+                    border-color: #3B82F6 !important;
+                    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+                    outline: none !important;
+                }
+            `;
+        }
     }
 };

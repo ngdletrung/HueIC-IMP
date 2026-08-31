@@ -127,6 +127,7 @@ def get_tasks(
             query = query.filter(
                 (Task.created_by_id == current_user.id) |
                 (Task.assignee_id == current_user.id) |
+                (Task.assignments.any(TaskAssignment.assigned_to_id == current_user.id)) |
                 ((Task.visibility == VisibilityScope.DEPARTMENT) & (
                     (Task.leading_dept_id == current_user.department_id) |
                     (Task.assisting_dept_id == current_user.department_id)
@@ -138,6 +139,7 @@ def get_tasks(
             query = query.filter(
                 (Task.created_by_id == current_user.id) |
                 (Task.assignee_id == current_user.id) |
+                (Task.assignments.any(TaskAssignment.assigned_to_id == current_user.id)) |
                 ((Task.leading_dept_id == current_user.department_id) |
                  (Task.assisting_dept_id == current_user.department_id)) |
                 (Task.visibility == VisibilityScope.ORGANIZATIONAL)
@@ -147,7 +149,8 @@ def get_tasks(
         query = query.filter(
             (Task.visibility.in_([VisibilityScope.ORGANIZATIONAL, VisibilityScope.DEPARTMENT])) |
             (Task.created_by_id == current_user.id) |
-            (Task.assignee_id == current_user.id)
+            (Task.assignee_id == current_user.id) |
+            (Task.assignments.any(TaskAssignment.assigned_to_id == current_user.id))
         )
 
     if status:
@@ -165,11 +168,12 @@ def get_tasks(
     if parent_id is not None:
         query = query.filter(Task.parent_id == parent_id)
     if search:
-        query = query.filter(Task.title.ilike(f"%{search}%") | Task.description.ilike(f"%{search}%"))
+        s = f"%{search}%"
+        query = query.filter((Task.title.ilike(s)) | (Task.description.ilike(s)))
 
     return query.order_by(Task.created_at.desc()).offset(skip).limit(limit).all()
 
-@router.post("", response_model=TaskOut, summary="Giao nhiệm vụ / Tạo mới công việc")
+@router.post("", response_model=TaskOut, summary="Tạo mới công việc (Hỗ trợ phân rã Task con & RACI)")
 def create_task(
     task_in: TaskCreate,
     db: Session = Depends(get_db),
@@ -177,6 +181,7 @@ def create_task(
 ) -> Any:
     task_data = task_in.model_dump()
     raw_steps = task_data.pop("steps", None)
+    collaborator_ids = task_data.pop("collaborator_ids", None) or []
     task_data["created_by_id"] = current_user.id
     task_data["received_at"] = datetime.now(timezone.utc)
 
@@ -202,6 +207,21 @@ def create_task(
     db.add(task)
     db.commit()
     db.refresh(task)
+
+    # Gán các Cán bộ phối hợp vào bảng task_assignments (RACI: CONSULTED)
+    if collaborator_ids and isinstance(collaborator_ids, list) and len(collaborator_ids) > 0:
+        for col_id in collaborator_ids:
+            if col_id and col_id != task.assignee_id:
+                assignment = TaskAssignment(
+                    task_id=task.id,
+                    role=TaskAssignmentRole.CONSULTED,
+                    assigned_by_id=current_user.id,
+                    assigned_to_id=col_id,
+                    status=TaskAssignmentStatus.ACCEPTED,
+                    note="Cán bộ phối hợp cùng thực hiện"
+                )
+                db.add(assignment)
+        db.commit()
 
     # Nếu có danh sách sub-tasks con (phân rã PDCA theo parent_id)
     if raw_steps and isinstance(raw_steps, list) and len(raw_steps) > 0:
