@@ -571,6 +571,44 @@ Tài liệu này ghi lại chi tiết toàn bộ các phiên bản, mốc thời
   - `[MODIFY] frontend/assets/js/dashboard.js`
   - `[MODIFY] HISTORY.md`
 
+---
+
+## 📌 [Phiên bản 2.4.3] - 31/08/2026: Nâng Cấp Bảo Mật, Chống Brute-Force & Tích Hợp Centralized Logging
+- **Nâng Cấp Bảo Mật (Security Hardening)**:
+  - **Account Lockout Policy**: Tích hợp cơ chế tự động khóa tài khoản/IP 15 phút khi nhập sai mật khẩu quá 5 lần liên tiếp trên các endpoint `/api/v1/auth/login` và `/api/v1/auth/login/json`, trả về mã lỗi `HTTP 429 Too Many Requests`.
+  - **Security Warning**: Thêm cảnh báo tự động khi phát hiện `SECRET_KEY` mặc định chưa được thay thế trong `.env`.
+  - **Nginx Security Headers**: Bổ sung `X-Frame-Options SAMEORIGIN`, `X-Content-Type-Options nosniff`, `X-XSS-Protection "1; mode=block"`, `Referrer-Policy "strict-origin-when-cross-origin"`, `Permissions-Policy`, và giới hạn upload file 25MB.
+- **Giám Sát & Logging Tập Trung (Centralized Logging & Observability)**:
+  - Xây dựng module `backend/app/core/logging_config.py` hỗ trợ log console chuẩn Docker và log xoay vòng `logs/hueic_imp.log` (10MB/file, giữ lại 5 backups).
+  - Tích hợp **Global Exception Handler** trong `main.py` tự động sinh mã `ERR_xxxxxxxx`, ghi stack trace chi tiết ra file log và bảo vệ thông tin nội bộ máy chủ khi trả về phía client.
+- **Files Chỉnh Sửa & Tạo Mới**:
+  - `[NEW] backend/app/core/logging_config.py`
+  - `[MODIFY] backend/app/core/config.py`
+  - `[MODIFY] backend/app/api/v1/auth.py`
+  - `[MODIFY] backend/app/main.py`
+  - `[MODIFY] frontend/nginx.conf`
+  - `[MODIFY] .keywork.md` (Bổ sung Section 16)
+  - `[MODIFY] HISTORY.md`
+
+---
+
+## 📌 [Phiên bản 2.4.4] - 31/08/2026: Nâng Cấp Toàn Diện Dashboard Sang React 18 + Recharts 2
+- **Nâng Cấp Kiến Trúc Frontend Dashboard**:
+  - Chuyển đổi toàn bộ trang điều hành `index.html` sang **React 18** với JSX và thư viện biểu đồ **Recharts 2.x**.
+  - Tích hợp phông chữ **Manrope & Inter** cho trải nghiệm đồ họa số liệu chuẩn Executive GovTech.
+- **Giải Pháp Xử Lý Dữ Liệu Thưa & Trực Quan Hóa Đột Phá**:
+  - **Horizontal Stacked Bars**: Thay thế biểu đồ donut bằng 2 thanh tỷ lệ ngang cho *Cơ Cấu Tình Trạng* và *Phân Bổ Ưu Tiên*, thể hiện rõ nét tỷ lệ kể cả khi tổng số nhiệm vụ còn ít.
+  - **Vertical Recharts Bar Chart**: Chỉ lọc và hiển thị các đơn vị/cán bộ đang có công việc (`activeUnits`), sắp xếp theo % tiến độ giảm dần với màu sắc trực quan (Teal `#0E7C7B` >= 50%, Amber `#C17817` < 50%).
+  - **Smart Collapsible Table**: Bảng chi tiết ưu tiên hiển thị các đơn vị đang có việc lên đầu kèm liên kết `[Xem việc →]`; tự động gom các đơn vị 0 việc vào accordion `[showIdle]` thu gọn.
+  - **Tích Hợp Action Queue & Bộ Lọc Phạm Vi Thời Gian Thực**: Hỗ trợ chuyển đổi linh hoạt giữa Cấp Toàn Trường (12 đơn vị), Từng Đơn Vị và Từng Cán Bộ.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/index.html`
+  - `[MODIFY] frontend/assets/js/dashboard.js`
+  - `[MODIFY] .keywork.md` (Bổ sung Section 17)
+  - `[MODIFY] HISTORY.md`
+
+
+
 
 
 

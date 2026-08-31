@@ -26,6 +26,10 @@ class Settings(BaseSettings):
     SECRET_KEY: str = os.getenv("SECRET_KEY", "hueic_super_secret_jwt_key_random_string_2026_change_in_production")
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "480"))
+    
+    # Security Policy: Account Lockout & Rate Limit
+    MAX_FAILED_LOGIN_ATTEMPTS: int = int(os.getenv("MAX_FAILED_LOGIN_ATTEMPTS", "5"))
+    LOCKOUT_DURATION_MINUTES: int = int(os.getenv("LOCKOUT_DURATION_MINUTES", "15"))
 
     # Initial SuperAdmin
     FIRST_SUPERADMIN_EMAIL: str = os.getenv("FIRST_SUPERADMIN_EMAIL", "admin@hueic.edu.vn")
@@ -39,3 +43,4 @@ class Settings(BaseSettings):
         extra = "allow"
 
 settings = Settings()
+

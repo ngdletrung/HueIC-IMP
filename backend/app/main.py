@@ -1,22 +1,33 @@
-from fastapi import FastAPI
+import time
+import uuid
+import logging
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-import time
 
 from app.core.config import settings
+from app.core.logging_config import setup_logging
 from app.db.session import SessionLocal
 from app.db.init_db import init_db
 from app.api.v1 import auth, departments, users, tasks, stats, permissions, workflows
 
+# Khởi tạo logging tập trung
+logger = setup_logging()
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Kiểm tra cảnh báo bảo mật SECRET_KEY
+    if "change_in_production" in settings.SECRET_KEY or "super_secret" in settings.SECRET_KEY:
+        logger.warning("🚨 [SECURITY WARNING] Bạn đang sử dụng SECRET_KEY mặc định! Hãy tạo SECRET_KEY ngẫu nhiên mới trong file .env trước khi đưa vào môi trường Production.")
+
     # Khởi tạo DB & Dữ liệu mẫu khi Server khởi động
     db = SessionLocal()
     try:
         init_db(db)
-        print("✅ [HueIC IMP] Cơ sở dữ liệu và dữ liệu khởi tạo đã sẵn sàng!")
+        logger.info("✅ [HueIC IMP] Cơ sở dữ liệu và dữ liệu khởi tạo đã sẵn sàng!")
     except Exception as e:
-        print(f"⚠️ [HueIC IMP] Lỗi khởi tạo DB: {e}")
+        logger.error(f"⚠️ [HueIC IMP] Lỗi khởi tạo DB: {e}", exc_info=True)
     finally:
         db.close()
     yield
@@ -24,7 +35,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.PROJECT_NAME,
     description="Hệ thống Cổng Quản lý và Điều hành Nội bộ - Trường Cao đẳng Công nghiệp Huế (HueIC)",
-    version="1.0.0",
+    version="2.4.2",
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     docs_url="/docs",
     redoc_url="/redoc",
@@ -40,6 +51,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Global Exception Handler (Che giấu thông tin nhạy cảm, log stack trace an toàn)
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    error_id = str(uuid.uuid4())[:8]
+    logger.error(f"❌ [Unhandled Error ID: {error_id}] Request: {request.method} {request.url.path} - Exception: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": "Đã xảy ra lỗi nội bộ máy chủ. Vui lòng liên hệ Quản trị viên hệ thống để được hỗ trợ.",
+            "error_code": f"ERR_{error_id}"
+        }
+    )
+
 # Đăng ký các Router API
 app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["Xác thực & Tài khoản"])
 app.include_router(departments.router, prefix=f"{settings.API_V1_STR}/departments", tags=["Phòng ban & Đơn vị"])
@@ -54,5 +78,7 @@ def health_check():
     return {
         "status": "healthy",
         "timestamp": time.time(),
-        "portal": "HueIC Internal Management Portal"
+        "portal": "HueIC Internal Management Portal",
+        "version": "2.4.2"
     }
+
