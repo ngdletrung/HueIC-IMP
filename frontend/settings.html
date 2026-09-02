@@ -7,6 +7,7 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/global.css">
 </head>
 <body class="bg-slate-100 font-sans text-slate-800 antialiased">
     <div class="flex h-screen overflow-hidden">
@@ -65,6 +66,12 @@
                     <span>Thiết Lập Hệ Thống</span>
                 </a>
 
+                <a href="database.html" id="nav-database"
+                    class="nav-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition duration-150 text-slate-300 hover:bg-slate-800 hover:text-white">
+                    <i class="fa-solid fa-database w-5 mr-3 text-center"></i>
+                    <span>Cơ Sở Dữ Liệu</span>
+                </a>
+
                 <a href="assets.html" id="nav-assets"
                     class="nav-link flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition duration-150">
                     <i class="fa-solid fa-boxes-stacked w-5 mr-3 text-center"></i>
@@ -83,15 +90,15 @@
             </nav>
 
             <!-- Bottom Credits -->
-            <div class="p-3 bg-slate-950/80 border-t border-slate-800/80 text-[11px] leading-relaxed text-slate-400">
-                <div class="text-slate-300 font-medium">
+            <div class="p-3 bg-slate-950/80 border-t border-slate-800/80 text-xs leading-relaxed text-slate-300">
+                <div class="text-slate-200 font-semibold text-xs">
                     © 09/2026 <span class="font-bold text-white">HueIC-IMP</span>
                 </div>
-                <div class="text-[10px] text-slate-400 mt-0.5">
-                    Idea & Direction by <span class="text-blue-400 font-medium">Nguyen Dinh Le Trung</span>
+                <div class="text-[11.5px] text-slate-300 mt-1">
+                    Idea & Direction by <span class="text-blue-400 font-bold">Nguyen Dinh Le Trung</span>
                 </div>
-                <div class="text-[9.5px] text-slate-500 flex items-center gap-1 mt-0.5">
-                    <i class="fa-solid fa-wand-magic-sparkles text-amber-400 text-[8.5px]"></i>
+                <div class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-1">
+                    <i class="fa-solid fa-wand-magic-sparkles text-amber-400 text-[10px]"></i>
                     <span>Built with AI Assistance.</span>
                 </div>
             </div>
@@ -135,36 +142,41 @@
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
                         <h2 class="text-xl font-black text-slate-900 tracking-tight">Thiết Lập & Quản Trị Hệ Thống</h2>
-                        <p class="text-xs text-slate-500 mt-0.5">Cấu hình cơ cấu 12 đơn vị HueIC, danh sách nhân sự và ma trận phân quyền chi tiết (RBAC)</p>
+                        <p class="text-xs text-slate-500 mt-0.5">Cấu hình cơ cấu <span id="settingsDeptCountSubtitle">12</span> đơn vị HueIC, danh sách nhân sự và ma trận phân quyền chi tiết (RBAC)</p>
                     </div>
                 </div>
 
                 <!-- SUB-NAVIGATION BAR (MOBILE HORIZONTAL TOUCH-SCROLL) -->
                 <div class="flex bg-slate-200/80 p-1 rounded-xl max-w-fit overflow-x-auto text-xs font-bold space-x-1">
                     <button onclick="SettingsPage.switchSubTab('departments')" id="subnav-departments"
-                        class="settings-subnav px-3.5 py-2 rounded-lg transition whitespace-nowrap bg-white text-blue-900 shadow-xs flex items-center space-x-1.5">
+                        class="settings-subnav px-3.5 py-2 rounded-lg transition-all whitespace-nowrap bg-violet-600 text-white shadow-sm flex items-center space-x-1.5"
+                        data-active="bg-violet-600 text-white shadow-sm">
                         <i class="fa-solid fa-building-columns"></i>
-                        <span>Phòng / Khoa (12 Đơn vị)</span>
+                        <span id="subnavDeptLabel">1. Phòng / Khoa (<span id="subnavDeptCount">12</span> Đơn vị)</span>
                     </button>
                     <button onclick="SettingsPage.switchSubTab('users')" id="subnav-users"
-                        class="settings-subnav px-3.5 py-2 rounded-lg transition whitespace-nowrap text-slate-600 hover:text-slate-900 flex items-center space-x-1.5">
+                        class="settings-subnav px-3.5 py-2 rounded-lg transition-all whitespace-nowrap text-slate-500 hover:bg-slate-300/60 hover:text-slate-800 flex items-center space-x-1.5"
+                        data-active="bg-indigo-700 text-white shadow-sm">
                         <i class="fa-solid fa-users-gear"></i>
-                        <span>Cán Bộ & Nhân Sự</span>
+                        <span>2. Cán Bộ &amp; Nhân Sự</span>
                     </button>
                     <button onclick="SettingsPage.switchSubTab('permissions')" id="subnav-permissions"
-                        class="settings-subnav px-3.5 py-2 rounded-lg transition whitespace-nowrap text-slate-600 hover:text-slate-900 flex items-center space-x-1.5">
+                        class="settings-subnav px-3.5 py-2 rounded-lg transition-all whitespace-nowrap text-slate-500 hover:bg-slate-300/60 hover:text-slate-800 flex items-center space-x-1.5"
+                        data-active="bg-blue-600 text-white shadow-sm">
                         <i class="fa-solid fa-shield-halved"></i>
-                        <span>Phân Quyền Chi Tiết (RBAC)</span>
+                        <span>3. Phân Quyền Chi Tiết (RBAC)</span>
                     </button>
                     <button onclick="SettingsPage.switchSubTab('workflows')" id="subnav-workflows"
-                        class="settings-subnav px-3.5 py-2 rounded-lg transition whitespace-nowrap text-slate-600 hover:text-slate-900 flex items-center space-x-1.5">
+                        class="settings-subnav px-3.5 py-2 rounded-lg transition-all whitespace-nowrap text-slate-500 hover:bg-slate-300/60 hover:text-slate-800 flex items-center space-x-1.5"
+                        data-active="bg-green-600 text-white shadow-sm">
                         <i class="fa-solid fa-route"></i>
-                        <span>Quy Trình Mẫu (Workflows)</span>
+                        <span>4. Quy Trình Mẫu (Workflows)</span>
                     </button>
                     <button onclick="SettingsPage.switchSubTab('themes')" id="subnav-themes"
-                        class="settings-subnav px-3.5 py-2 rounded-lg transition whitespace-nowrap text-slate-600 hover:text-slate-900 flex items-center space-x-1.5">
-                        <i class="fa-solid fa-wand-magic-sparkles text-amber-600"></i>
-                        <span>Giao Diện &amp; Màu Sắc</span>
+                        class="settings-subnav px-3.5 py-2 rounded-lg transition-all whitespace-nowrap text-slate-500 hover:bg-slate-300/60 hover:text-slate-800 flex items-center space-x-1.5"
+                        data-active="bg-yellow-500 text-slate-900 shadow-sm">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>5. Giao Diện &amp; Màu Sắc</span>
                     </button>
                 </div>
 
@@ -172,49 +184,61 @@
                 <div id="subpane-departments" class="settings-subpane space-y-4">
                     <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3">
                         <div class="flex items-center space-x-2">
-                            <div class="relative min-w-[240px]">
+                            <div class="relative min-w-[200px]">
                                 <input type="text" id="searchDeptInput" onkeyup="SettingsPage.filterDepartments()" placeholder="Tìm theo mã hoặc tên đơn vị..." 
                                     class="w-full pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg bg-slate-50 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-800">
                                 <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-400 text-xs"></i>
                             </div>
+
+                            <select id="filterDeptType" onchange="SettingsPage.filterDepartments()" class="px-2.5 py-1.5 border border-slate-200 rounded-lg bg-slate-50 text-xs font-semibold text-slate-700 focus:outline-none focus:border-blue-800">
+                                <option value="">-- Tất cả loại hình đơn vị --</option>
+                                <option value="LEVEL1">🏛️ Đơn vị Cấp 1 (Trực thuộc BGH)</option>
+                                <option value="LEVEL2">↳ Đơn vị Cấp 2 (Tổ / Ban / Xưởng)</option>
+                                <option value="FACULTY">🎓 Khối Khoa đào tạo</option>
+                                <option value="DEPARTMENT">🏢 Khối Phòng chức năng</option>
+                                <option value="CENTER">🏛️ Khối Trung tâm</option>
+                                <option value="SECTION">👥 Khối Tổ / Ban</option>
+                            </select>
+
                             <span id="deptCountLabel" class="text-xs font-semibold text-slate-500">Đang tải...</span>
                         </div>
 
                         <div class="flex items-center space-x-2">
-                            <!-- View mode toggles -->
+                            <!-- View mode toggles: Bảng trước (Mặc định) -> Thẻ sau -->
                             <div class="flex bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs">
-                                <button id="btnViewCards" onclick="SettingsPage.setDeptViewMode('cards')" class="px-2.5 py-1 rounded font-bold bg-white text-blue-800 shadow-xs transition" title="Hiển thị dạng thẻ">
-                                    <i class="fa-solid fa-grip mr-1"></i>Thẻ
-                                </button>
-                                <button id="btnViewTable" onclick="SettingsPage.setDeptViewMode('table')" class="px-2.5 py-1 rounded font-bold text-slate-500 hover:text-slate-800 transition" title="Hiển thị dạng bảng">
+                                <button id="btnViewTable" onclick="SettingsPage.setDeptViewMode('table')" class="px-2.5 py-1 rounded font-bold bg-white text-blue-800 shadow-xs transition" title="Hiển thị dạng bảng">
                                     <i class="fa-solid fa-table-list mr-1"></i>Bảng
+                                </button>
+                                <button id="btnViewCards" onclick="SettingsPage.setDeptViewMode('cards')" class="px-2.5 py-1 rounded font-bold text-slate-500 hover:text-slate-800 transition" title="Hiển thị dạng thẻ">
+                                    <i class="fa-solid fa-grip mr-1"></i>Thẻ
                                 </button>
                             </div>
 
                             <button onclick="SettingsPage.openCreateDeptModal()" class="px-3.5 py-2 bg-blue-800 hover:bg-blue-900 text-white text-xs font-bold rounded-lg shadow transition flex items-center space-x-1.5">
                                 <i class="fa-solid fa-plus"></i>
-                                <span>Thêm Đơn Vị</span>
+                                <span>Thêm Đơn Vị / Tổ</span>
                             </button>
                         </div>
                     </div>
 
-                    <!-- Cards View Grid -->
-                    <div id="departmentsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Cards View Grid (Mặc định ẩn) -->
+                    <div id="departmentsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 hidden">
                         <!-- Dynamic Cards -->
                     </div>
 
-                    <!-- Table View Container -->
-                    <div id="departmentsTableContainer" class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden hidden">
+                    <!-- Table View Container (Mặc định hiển thị) -->
+                    <div id="departmentsTableContainer" class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
                         <div class="overflow-x-auto">
                             <table class="w-full text-left">
                                 <thead class="bg-slate-50 text-slate-600 font-bold border-b border-slate-200 text-xs">
                                     <tr>
                                         <th class="px-4 py-3 w-12 text-center whitespace-nowrap">#</th>
                                         <th class="px-4 py-3 whitespace-nowrap">Mã viết tắt</th>
-                                        <th class="px-4 py-3 whitespace-nowrap">Tên Đơn Vị / Phòng / Khoa</th>
+                                        <th class="px-4 py-3 whitespace-nowrap">Tên Đơn Vị / Phòng / Khoa / Tổ</th>
+                                        <th class="px-4 py-3 whitespace-nowrap">Loại hình / Cấp bậc</th>
+                                        <th class="px-4 py-3 whitespace-nowrap">Trực thuộc (Đơn vị cha)</th>
                                         <th class="px-4 py-3 whitespace-nowrap">Số điện thoại</th>
                                         <th class="px-4 py-3 whitespace-nowrap">Email liên hệ</th>
-                                        <th class="px-4 py-3 whitespace-nowrap">Mô tả chức năng</th>
                                         <th class="px-4 py-3 text-center whitespace-nowrap">Trạng thái</th>
                                         <th class="px-4 py-3 text-right whitespace-nowrap">Thao tác</th>
                                     </tr>
@@ -229,15 +253,47 @@
 
                 <!-- SUBPANE 2: CÁN BỘ & NHÂN SỰ -->
                 <div id="subpane-users" class="settings-subpane space-y-4 hidden">
-                    <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-xs gap-3">
                         <div>
                             <h3 class="font-bold text-sm text-slate-800">Danh Sách Cán Bộ Giảng Viên</h3>
-                            <p class="text-xs text-slate-400 mt-0.5">Quản lý tài khoản, vai trò và phân bổ đơn vị trực thuộc</p>
+                            <p class="text-xs text-slate-400 mt-0.5">Quản lý tài khoản, 4 nhóm vai trò chuẩn và phân bổ đơn vị trực thuộc</p>
                         </div>
-                        <button onclick="SettingsPage.openCreateUserModal()" class="px-4 py-2 bg-blue-800 hover:bg-blue-900 text-white text-xs font-bold rounded-lg shadow transition flex items-center space-x-2">
+                        <button onclick="SettingsPage.openCreateUserModal()" class="px-4 py-2 bg-blue-800 hover:bg-blue-900 text-white text-xs font-bold rounded-lg shadow transition flex items-center space-x-2 self-start md:self-auto">
                             <i class="fa-solid fa-user-plus"></i>
                             <span>Thêm Cán Bộ</span>
                         </button>
+                    </div>
+
+                    <!-- Filter Bar for Users -->
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3 text-xs">
+                        <div class="flex flex-wrap items-center gap-2.5 flex-1 min-w-[280px]">
+                            <!-- Search -->
+                            <div class="relative min-w-[200px] flex-1 sm:flex-initial">
+                                <input type="text" id="filterUserSearch" onkeyup="SettingsPage.filterUsers()" placeholder="Tìm theo tên, email, tài khoản..." 
+                                    class="w-full pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg bg-slate-50 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-800">
+                                <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-400 text-xs"></i>
+                            </div>
+
+                            <!-- Role Filter (4 Nhóm Vai Trò) -->
+                            <select id="filterUserRole" onchange="SettingsPage.filterUsers()" 
+                                class="px-3 py-1.5 border border-slate-200 rounded-lg bg-slate-50 text-xs font-bold text-blue-900 focus:outline-none focus:border-blue-800">
+                                <option value="">-- Tất cả 4 Nhóm Vai Trò --</option>
+                                <option value="SUPERADMIN">👑 1/ Nhóm Quản trị</option>
+                                <option value="BGH">🏛️ 2/ BGH (Ban Giám Hiệu)</option>
+                                <option value="MANAGEMENT">👔 3/ Quản Lý (Trưởng / Phó ĐV)</option>
+                                <option value="STAFF">👤 4/ Nhân Viên</option>
+                            </select>
+
+                            <!-- Department Filter -->
+                            <select id="filterUserDeptSelect" onchange="SettingsPage.filterUsers()" 
+                                class="px-3 py-1.5 border border-slate-200 rounded-lg bg-slate-50 text-xs font-semibold text-slate-700 focus:outline-none focus:border-blue-800">
+                                <option value="">-- Tất cả Đơn vị / Phòng / Khoa --</option>
+                            </select>
+                        </div>
+
+                        <div class="flex items-center space-x-2">
+                            <span id="userCountLabel" class="text-xs font-semibold text-slate-500">Đang tải...</span>
+                        </div>
                     </div>
 
                     <div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
@@ -249,7 +305,7 @@
                                         <th class="px-4 py-3">Tài khoản</th>
                                         <th class="px-4 py-3">Email</th>
                                         <th class="px-4 py-3">Đơn vị / Phòng / Khoa</th>
-                                        <th class="px-4 py-3">Vai trò</th>
+                                        <th class="px-4 py-3">Vai trò (4 Nhóm)</th>
                                         <th class="px-4 py-3">Chức vụ</th>
                                         <th class="px-4 py-3 text-right">Thao tác</th>
                                     </tr>
@@ -262,61 +318,149 @@
                     </div>
                 </div>
 
-                <!-- SUBPANE 3: PHÂN QUYỀN CHI TIẾT (RBAC) -->
+                <!-- SUBPANE 3: PHÂN QUYỀN CHI TIẾT (RBAC 2 CHẾ ĐỘ: THEO ROLE & THEO CÁN BỘ) -->
                 <div id="subpane-permissions" class="settings-subpane space-y-4 hidden">
+                    
+                    <!-- RBAC Mode Switcher Bar -->
+                    <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div class="flex items-center space-x-2 bg-slate-100 p-1 rounded-lg border border-slate-200 w-fit">
+                            <button type="button" id="btnRbacModeRole" onclick="SettingsPage.switchRbacMode('role')"
+                                class="px-3.5 py-1.5 rounded-md text-xs font-bold transition-all flex items-center space-x-1.5 bg-violet-700 text-white shadow-sm cursor-pointer"
+                                data-active="bg-violet-700 text-white shadow-sm">
+                                <i class="fa-solid fa-layer-group"></i>
+                                <span>1. Cấu Hình Quyền Gốc Theo Vai Trò (Role Baseline)</span>
+                            </button>
+                            <button type="button" id="btnRbacModeUser" onclick="SettingsPage.switchRbacMode('user')"
+                                class="px-3.5 py-1.5 rounded-md text-xs font-bold transition-all flex items-center space-x-1.5 text-slate-500 hover:bg-slate-200 hover:text-slate-800 cursor-pointer"
+                                data-active="bg-indigo-700 text-white shadow-sm">
+                                <i class="fa-solid fa-user-gear"></i>
+                                <span>2. Cấu Hình Tùy Biến Theo Cán Bộ (User Overrides)</span>
+                            </button>
+                        </div>
+                        <div class="text-[11px] text-slate-500 font-medium italic hidden md:block">
+                            <span id="rbacModeHelpText">⚙️ Đang chỉnh sửa bộ quyền gốc & quyền truy cập Module cho toàn bộ Role</span>
+                        </div>
+                    </div>
+
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
                         
-                        <!-- Cột Trái: Danh Sách Chọn Cán Bộ -->
-                        <div class="lg:col-span-4 bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col h-[600px]">
-                            <div class="pb-3 border-b border-slate-100">
-                                <h3 class="font-bold text-sm text-slate-800 mb-2">Chọn Cán Bộ Cần Cấu Hình</h3>
+                        <!-- Cột Trái: Danh Sách Chọn Role (Khi ở Role Mode) hoặc Chọn Cán Bộ (Khi ở User Mode) -->
+                        <div class="lg:col-span-4 bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col h-[660px]">
+                            
+                            <!-- Header & Filter khi ở Role Mode -->
+                            <div id="permRoleListHeader" class="pb-3 border-b border-slate-100 space-y-1">
+                                <h3 class="font-bold text-sm text-slate-800 flex items-center justify-between">
+                                    <span>Chọn Vai Trò Chuẩn</span>
+                                    <span class="text-[11px] font-bold text-purple-800 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200">5 Vai Trò</span>
+                                </h3>
+                                <p class="text-[10.5px] text-slate-400">Chọn vai trò để thiết lập bộ quyền chuẩn và module cho toàn bộ tài khoản mang vai trò này.</p>
+                            </div>
+
+                            <!-- List 5 Roles -->
+                            <div id="permRolesList" class="pt-3 space-y-2">
+                                <!-- Dynamic Role Items -->
+                            </div>
+
+                            <!-- Header & Filter khi ở User Mode (Ẩn mặc định) -->
+                            <div id="permUserListHeader" class="pb-3 border-b border-slate-100 space-y-2 hidden">
+                                <h3 class="font-bold text-sm text-slate-800 flex items-center justify-between">
+                                    <span>Chọn Cán Bộ Cần Cấu Hình</span>
+                                    <span id="permUserCount" class="text-[11px] font-bold text-blue-800 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">0 người</span>
+                                </h3>
+                                
                                 <div class="relative">
                                     <input type="text" id="searchPermUser" onkeyup="SettingsPage.filterPermUsers()" placeholder="Tìm theo tên hoặc username..." 
                                         class="w-full pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg bg-slate-50 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-800">
                                     <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-400 text-xs"></i>
                                 </div>
+
+                                <select id="filterPermUserDept" onchange="SettingsPage.filterPermUsers()" 
+                                    class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg bg-slate-50 text-xs font-medium text-slate-700 focus:outline-none focus:border-blue-800">
+                                    <option value="">-- Tất cả 12 Đơn vị HueIC --</option>
+                                    <!-- Dynamic dept options -->
+                                </select>
                             </div>
 
-                            <div class="flex-1 overflow-y-auto pt-3 space-y-2" id="permUsersList">
+                            <!-- List Users -->
+                            <div class="flex-1 overflow-y-auto pt-3 space-y-2 pr-1 hidden" id="permUsersList">
                                 <!-- Dynamic user items -->
-                            </div>
-                            
-                            <div class="pt-2 border-t border-slate-100 text-[11px] text-slate-400 flex justify-between">
-                                <span>Tổng số cán bộ:</span>
-                                <span id="permUserCount" class="font-bold text-slate-700">0</span>
                             </div>
                         </div>
 
-                        <!-- Cột Phải: Ma Trận 13 Quyền Checkboxes (4 Nhóm) -->
-                        <div class="lg:col-span-8 bg-white p-5 rounded-xl border border-slate-200 shadow-xs flex flex-col justify-between h-[600px] overflow-hidden">
-                            <div class="overflow-y-auto pr-2 space-y-5 flex-1">
-                                <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-2">
+                        <!-- Cột Phải: Ma Trận 5 Nhóm Quyền & Module -->
+                        <div class="lg:col-span-8 bg-white p-5 rounded-xl border border-slate-200 shadow-xs flex flex-col justify-between h-[660px] overflow-hidden">
+                            <div class="overflow-y-auto pr-2 space-y-4 flex-1">
+                                
+                                <!-- User Header & Actions -->
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-3">
                                     <div>
                                         <div class="flex items-center space-x-2">
                                             <h3 class="font-bold text-base text-slate-900" id="selectedUserFullName">-</h3>
-                                            <span id="selectedUserPermCount" class="px-2 py-0.5 bg-blue-100 text-blue-900 rounded font-mono font-bold text-xs">0 / 12</span>
+                                            <span id="selectedUserPermCount" class="px-2 py-0.5 bg-blue-100 text-blue-900 rounded-full font-mono font-bold text-xs">0 / 16 quyền</span>
                                         </div>
-                                        <p class="text-xs text-slate-400 mt-0.5" id="selectedUserMeta">Đang nạp thông tin...</p>
+                                        <div class="text-xs text-slate-500 mt-1" id="selectedUserMeta">Đang nạp thông tin...</div>
                                     </div>
-                                    <div class="flex items-center space-x-2">
-                                        <button type="button" onclick="SettingsPage.resetCurrentPermissionsToDefault()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition flex items-center space-x-1" title="Gợi ý quyền theo vai trò">
-                                            <i class="fa-solid fa-wand-magic-sparkles text-amber-600"></i>
-                                            <span>Gợi ý theo vai trò</span>
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <button type="button" onclick="SettingsPage.revertUnsavedPermissions()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition flex items-center space-x-1 border border-slate-200 shadow-2xs" title="Hủy các thay đổi chưa lưu và khôi phục về trạng thái ban đầu">
+                                            <i class="fa-solid fa-rotate-left text-slate-500"></i>
+                                            <span>Hoàn Tác</span>
+                                        </button>
+                                        <button type="button" onclick="SettingsPage.confirmAndRestoreDefaultPermissions()" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 shadow-2xs" title="Khôi phục toàn bộ quyền về chuẩn mặc định 100% theo vai trò gốc">
+                                            <i class="fa-solid fa-arrows-rotate text-amber-600"></i>
+                                            <span>Khôi Phục Mặc Định Gốc</span>
                                         </button>
                                     </div>
                                 </div>
 
-                                <!-- Dynamic Permission Groups -->
+                                <!-- Smart Diff & Role Benchmark Bar (Thời gian thực) -->
+                                <div id="permSmartDiffBar" class="p-2.5 bg-gradient-to-r from-slate-50 via-blue-50/40 to-slate-50 border border-slate-200/90 rounded-xl flex flex-wrap items-center justify-between gap-2 text-xs">
+                                    <div class="flex flex-wrap items-center gap-2" id="permDiffMetricsContainer">
+                                        <span class="text-[11px] font-bold text-slate-600 flex items-center gap-1">
+                                            <i class="fa-solid fa-scale-balanced text-blue-700"></i> Đối chiếu chuẩn:
+                                        </span>
+                                        <span id="diffMetricStandard" class="px-2 py-0.5 bg-white border border-slate-200 rounded text-[11px] font-semibold text-slate-700">
+                                            🔒 0 quyền chuẩn
+                                        </span>
+                                        <span id="diffMetricAdded" class="px-2 py-0.5 bg-emerald-50 border border-emerald-200 rounded text-[11px] font-bold text-emerald-800 hidden">
+                                            ➕ +0 cấp thêm
+                                        </span>
+                                        <span id="diffMetricRevoked" class="px-2 py-0.5 bg-red-50 border border-red-200 rounded text-[11px] font-bold text-red-800 hidden">
+                                            ⛔ -0 thu hồi
+                                        </span>
+                                        <span id="diffMetricWarning" class="px-2 py-0.5 bg-amber-50 border border-amber-300 rounded text-[11px] font-bold text-amber-900 hidden animate-pulse">
+                                            ⚠️ Có quyền nhạy cảm
+                                        </span>
+                                    </div>
+                                    <div class="text-[10.5px] text-slate-400 font-medium italic">
+                                        Hệ thống tự động so khớp theo Role
+                                    </div>
+                                </div>
+
+                                <!-- Preset Quick Bar -->
+                                <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl flex flex-wrap items-center justify-between gap-2 text-xs">
+                                    <span class="font-bold text-slate-700 text-[11px] flex items-center gap-1">
+                                        <i class="fa-solid fa-bolt text-amber-500"></i> Gán nhanh mẫu quyền theo nhóm:
+                                    </span>
+                                    <div class="flex flex-wrap gap-1.5" id="quickPresetButtonGroup">
+                                        <button type="button" id="btnPreset_admin" onclick="SettingsPage.applyRolePreset('admin')" class="px-2.5 py-1 bg-violet-50 hover:bg-violet-700 hover:text-white text-violet-950 border border-violet-300 rounded-lg text-[11px] font-bold transition-all shadow-xs cursor-pointer">👑 1/ SuperAdmin</button>
+                                        <button type="button" id="btnPreset_bgh" onclick="SettingsPage.applyRolePreset('bgh')" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-700 hover:text-white text-indigo-950 border border-indigo-300 rounded-lg text-[11px] font-bold transition-all shadow-xs cursor-pointer">🏛️ 2/ Ban Giám Hiệu</button>
+                                        <button type="button" id="btnPreset_dept_head" onclick="SettingsPage.applyRolePreset('dept_head')" class="px-2.5 py-1 bg-blue-50 hover:bg-blue-700 hover:text-white text-blue-950 border border-blue-300 rounded-lg text-[11px] font-bold transition-all shadow-xs cursor-pointer">👔 3/ Trưởng ĐV</button>
+                                        <button type="button" id="btnPreset_dept_vice" onclick="SettingsPage.applyRolePreset('dept_vice')" class="px-2.5 py-1 bg-green-50 hover:bg-green-700 hover:text-white text-green-950 border border-green-300 rounded-lg text-[11px] font-bold transition-all shadow-xs cursor-pointer">🎖️ 4/ Phó ĐV</button>
+                                        <button type="button" id="btnPreset_staff" onclick="SettingsPage.applyRolePreset('staff')" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-600 hover:text-white text-amber-950 border border-amber-300 rounded-lg text-[11px] font-bold transition-all shadow-xs cursor-pointer">👤 5/ Nhân Viên</button>
+                                    </div>
+                                </div>
+
+                                <!-- Dynamic 4 Permission Groups -->
                                 <div id="permissionGroupsContainer" class="space-y-4">
-                                    <!-- Dynamic Checkboxes -->
+                                    <!-- Dynamic Checkboxes Group Cards -->
                                 </div>
                             </div>
 
                             <div class="pt-4 border-t border-slate-100 flex justify-between items-center bg-white">
-                                <span class="text-xs text-slate-400">Thay đổi có hiệu lực ngay lập tức sau khi lưu</span>
+                                <span class="text-[11px] text-slate-400">Thay đổi quyền hạn có hiệu lực ngay lập tức sau khi lưu</span>
                                 <button type="button" id="btnSavePerms" onclick="SettingsPage.saveUserPermissions()" class="px-6 py-2 bg-blue-800 hover:bg-blue-900 text-white text-xs font-bold rounded-lg shadow transition flex items-center space-x-1.5">
                                     <i class="fa-solid fa-floppy-disk"></i>
-                                    <span>Lưu Phân Quyền</span>
+                                    <span>Lưu Cấu Hình Phân Quyền</span>
                                 </button>
                             </div>
                         </div>
@@ -398,24 +542,40 @@
                                 </div>
                             </div>
 
-                            <!-- Card 2: High-Contrast Modern Dark Mode -->
+                            <!-- Card 2: Studio Default Dark Mode (#101010 / #CCCCCC / #007ACC) -->
                             <div onclick="SettingsPage.selectTheme('dark')" id="theme-card-dark"
-                                class="p-5 rounded-2xl border-2 border-slate-700 bg-slate-900 text-white cursor-pointer transition flex flex-col justify-between group shadow-sm hover:shadow-md">
+                                class="p-5 rounded-2xl border-2 border-slate-700 bg-[#101010] text-white cursor-pointer transition flex flex-col justify-between group shadow-sm hover:shadow-md">
                                 <div class="space-y-3">
                                     <div class="flex items-center justify-between">
-                                        <div class="w-10 h-10 rounded-xl bg-slate-800 text-blue-400 flex items-center justify-center text-xl shadow-xs">
+                                        <div class="w-10 h-10 rounded-xl bg-[#1E1E1E] text-blue-400 flex items-center justify-center text-xl shadow-xs border border-[#2D2D2D]">
                                             🌙
                                         </div>
-                                        <span class="px-2.5 py-1 bg-slate-800 text-slate-200 text-[11px] font-bold rounded-lg border border-slate-700 flex items-center gap-1">
-                                            <i class="fa-solid fa-moon text-[10px]"></i> Ban Đêm (Tương Phản Cao)
+                                        <span class="px-2.5 py-1 bg-[#1E1E1E] text-[#CCCCCC] text-[11px] font-bold rounded-lg border border-[#2D2D2D] flex items-center gap-1">
+                                            <i class="fa-solid fa-moon text-[10px] text-[#007ACC]"></i> Default Dark
                                         </span>
                                     </div>
                                     <div>
-                                        <h4 class="font-bold text-sm text-white group-hover:text-blue-300">Chế Độ Tối (Modern Dark Mode)</h4>
-                                        <p class="text-xs text-slate-300 mt-1 leading-relaxed">Nền than xám (#0B0F19), chữ trắng sáng rõ nét (#FFFFFF), thẻ nhãn và form nhập liệu tương phản cao. Giảm phát xạ ánh sáng xanh và tối ưu làm việc ban đêm.</p>
+                                        <h4 class="font-bold text-sm text-white group-hover:text-sky-400">Chế Độ Tối (Default Dark Theme)</h4>
+                                        <p class="text-xs text-[#CCCCCC] mt-1 leading-relaxed">Nền tối chuẩn studio (<code class="bg-[#1E1E1E] px-1 py-0.5 rounded text-sky-400">#101010</code>), chữ sáng rõ nét (<code class="bg-[#1E1E1E] px-1 py-0.5 rounded text-sky-400">#CCCCCC</code>), điểm nhấn (<code class="bg-[#1E1E1E] px-1 py-0.5 rounded text-sky-400">#007ACC</code>). Tương phản chuẩn xác, chống lóa mắt tuyệt đối.</p>
+                                    </div>
+
+                                    <!-- Swatches Display -->
+                                    <div class="flex items-center gap-2 pt-2 text-[10px] font-mono">
+                                        <div class="flex items-center gap-1 bg-[#181818] border border-[#2D2D2D] px-2 py-1 rounded">
+                                            <span class="w-2.5 h-2.5 rounded-full bg-[#101010] border border-slate-600 inline-block"></span>
+                                            <span class="text-slate-400">BG: #101010</span>
+                                        </div>
+                                        <div class="flex items-center gap-1 bg-[#181818] border border-[#2D2D2D] px-2 py-1 rounded">
+                                            <span class="w-2.5 h-2.5 rounded-full bg-[#CCCCCC] inline-block"></span>
+                                            <span class="text-slate-400">FG: #CCCCCC</span>
+                                        </div>
+                                        <div class="flex items-center gap-1 bg-[#181818] border border-[#2D2D2D] px-2 py-1 rounded">
+                                            <span class="w-2.5 h-2.5 rounded-full bg-[#007ACC] inline-block"></span>
+                                            <span class="text-slate-400">Accent: #007ACC</span>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="mt-5 pt-3 border-t border-slate-800 flex items-center justify-between">
+                                <div class="mt-4 pt-3 border-t border-[#2D2D2D] flex items-center justify-between">
                                     <span class="text-xs font-semibold text-slate-400 theme-status-text">Bấm để chọn</span>
                                     <span class="w-6 h-6 rounded-full border border-slate-700 flex items-center justify-center text-xs theme-check-icon"></span>
                                 </div>
@@ -468,6 +628,38 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- KHỐI 3: CẤU HÌNH MÀU TAB ACTIVE (THEO THỨ TỰ HIỂN THỊ) -->
+                    <div class="bg-white p-5 rounded-xl border border-rose-100 shadow-xs space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                                    <i class="fa-solid fa-swatchbook text-rose-500"></i>
+                                    <span>3. Màu Sắc Tab Active &amp; Bảng 10 Màu Chuẩn — Tùy Chỉnh Theo Thứ Tự Hiển Thị</span>
+                                </h3>
+                                <p class="text-xs text-slate-500 mt-0.5">Chọn màu nổi bật cho từng tab khi được bấm vào. Thứ tự hiển thị đúng như thanh điều hướng bên trên. Màu được lưu vào trình duyệt.</p>
+                            </div>
+                            <div class="flex items-center gap-2 self-start sm:self-auto">
+                                <button onclick="SettingsPage.resetTabColors()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-lg transition flex items-center gap-1.5">
+                                    <i class="fa-solid fa-rotate-left"></i>
+                                    <span>Mặc định</span>
+                                </button>
+                                <button onclick="SettingsPage.saveTabColors()" class="px-3.5 py-1.5 bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold rounded-lg shadow transition flex items-center gap-1.5">
+                                    <i class="fa-solid fa-floppy-disk"></i>
+                                    <span>Lưu màu</span>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Preview thanh tab live -->
+                        <div id="tabColorPreviewBar" class="flex flex-wrap gap-2 p-3 bg-slate-100 rounded-xl border border-slate-200 min-h-[44px]">
+                            <!-- Rendered by JS -->
+                        </div>
+                        <!-- Danh sách rows cấu hình theo đúng thứ tự tab -->
+                        <div id="tabColorConfigList" class="space-y-2.5">
+                            <!-- Rendered by JS -->
+                        </div>
+                    </div>
+
                 </div>
 
             </main>
@@ -509,15 +701,38 @@
             </div>
             <form id="formDept" onsubmit="SettingsPage.handleSaveDept(event)" class="p-6 space-y-4 text-xs overflow-y-auto flex-1">
                 <input type="hidden" id="formDeptId">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Cấp bậc / Đơn vị trực thuộc (Đơn vị cha)</label>
+                        <select id="formDeptParent" 
+                            class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-slate-50 font-medium text-slate-800 focus:outline-none focus:border-blue-800">
+                            <option value="">🏛️ Đơn vị Cấp 1 (Trực thuộc Ban Giám Hiệu)</option>
+                            <!-- Dynamic Parent Dept Options -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Phân loại loại hình *</label>
+                        <select id="formDeptType" required
+                            class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-slate-50 font-medium text-slate-800 focus:outline-none focus:border-blue-800">
+                            <option value="DEPARTMENT">🏢 Phòng chức năng / Ban</option>
+                            <option value="FACULTY">🎓 Khoa đào tạo chuyên môn</option>
+                            <option value="CENTER">🏛️ Trung tâm / Viện trực thuộc</option>
+                            <option value="SECTION">👥 Tổ / Ban chuyên môn / Tổ công tác</option>
+                            <option value="WORKSHOP">⚙️ Xưởng thực hành / Phòng Lab / KTX</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">Mã viết tắt *</label>
-                        <input type="text" id="formDeptCode" required placeholder="VD: CNTT, ĐT..." 
+                        <input type="text" id="formDeptCode" required placeholder="VD: TO_PM, BAN_CDS..." 
                             class="w-full px-3 py-2 border border-slate-300 rounded-lg font-mono font-bold uppercase focus:outline-none focus:border-blue-800">
                     </div>
                     <div class="md:col-span-2">
-                        <label class="block font-bold text-slate-700 mb-1">Tên đơn vị đầy đủ *</label>
-                        <input type="text" id="formDeptName" required placeholder="VD: Khoa Công nghệ Thông tin" 
+                        <label class="block font-bold text-slate-700 mb-1">Tên đơn vị / Tổ / Ban *</label>
+                        <input type="text" id="formDeptName" required placeholder="VD: Tổ Công nghệ Phần mềm" 
                             class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-800">
                     </div>
                 </div>
@@ -594,11 +809,12 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block font-bold text-slate-700 mb-1">Vai trò hệ thống *</label>
-                        <select id="formUserRole" required class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-blue-800 font-semibold">
-                            <option value="STAFF">Cán bộ / Giảng viên (STAFF)</option>
-                            <option value="DEPT_HEAD">Trưởng / Phó đơn vị (DEPT_HEAD)</option>
-                            <option value="SUPERADMIN">Quản trị viên toàn quyền (SUPERADMIN)</option>
+                        <label class="block font-bold text-slate-700 mb-1">Vai trò hệ thống (4 Nhóm chuẩn) *</label>
+                        <select id="formUserRole" required class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-blue-800 font-bold text-slate-800">
+                            <option value="STAFF">👤 4/ Nhân Viên (Chuyên viên / Giảng viên / Cán bộ)</option>
+                            <option value="DEPT_HEAD">👔 3/ Quản Lý (Trưởng / Phó Đơn vị, Tổ / Ban trưởng)</option>
+                            <option value="BGH">🏛️ 2/ BGH (Ban Giám Hiệu)</option>
+                            <option value="SUPERADMIN">👑 1/ Nhóm Quản Trị (Quản trị hệ thống toàn quyền)</option>
                         </select>
                     </div>
                 </div>
@@ -704,8 +920,9 @@
     </div>
 
     <!-- Scripts -->
-    <script src="assets/js/api.js?v=2.9.9"></script>
-    <script src="assets/js/common.js?v=2.9.9"></script>
-    <script src="assets/js/settings.js?v=2.9.9"></script>
+    <script src="assets/js/api.js?v=2.9.53"></script>
+    <script src="assets/js/common.js?v=2.9.53"></script>
+    <script src="assets/js/settings.js?v=2.9.53"></script>
 </body>
 </html>
+

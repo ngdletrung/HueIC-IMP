@@ -42,9 +42,122 @@ const Common = {
         // 3. Cập nhật trạng thái Active của Menu Sidebar
         this.setActiveNav(activePage);
 
-        // 4. Nạp Badge Cảnh báo số việc cần xử lý
+        // 4. Áp dụng Phân Quyền Hiển Thị Module trên Sidebar & Chặn Truy Cập Trái Phép
+        this.applyModulePermissions(activePage);
+
+        // 5. Nạp Badge Cảnh báo số việc cần xử lý
         this.loadSidebarBadges();
+
+        // 6. Khởi động Trung Tâm Thông Báo Điều Hành
+        this.NotificationCenter.init();
     },
+
+    hasPermission(permCode) {
+        if (!this.currentUser) return false;
+        const role = this.currentUser.role;
+        if (role === 'SUPERADMIN') return true;
+
+        const roleDefaults = {
+            'SUPERADMIN': [
+                "module:dashboard", "module:tasks", "module:calendar", "module:assets", "module:documents", "module:database", "module:settings",
+                "scope:school", "scope:dept", "scope:personal",
+                "task:dispatch_school", "task:dispatch_dept", "task:todo_personal", "task:edit", "task:progress",
+                "task:approve_proposal", "task:approve_complete", "task:extend_deadline", "task:delete",
+                "dept:manage", "user:manage", "workflow:manage", "perm:manage"
+            ],
+            'BGH': [
+                "module:dashboard", "module:tasks", "module:calendar", "module:assets", "module:documents", "module:settings",
+                "scope:school", "scope:dept", "scope:personal",
+                "task:dispatch_school", "task:dispatch_dept", "task:todo_personal", "task:edit", "task:progress",
+                "task:approve_proposal", "task:approve_complete", "task:extend_deadline", "task:delete",
+                "dept:manage", "user:manage", "workflow:manage", "perm:manage"
+            ],
+            'DEPT_HEAD': [
+                "module:tasks",
+                "scope:dept", "scope:personal",
+                "task:dispatch_dept", "task:todo_personal", "task:edit", "task:progress",
+                "task:approve_proposal", "task:approve_complete", "task:extend_deadline"
+            ],
+            'DEPT_VICE': [
+                "module:tasks",
+                "scope:dept", "scope:personal",
+                "task:dispatch_dept", "task:todo_personal", "task:edit", "task:progress",
+                "task:approve_proposal", "task:approve_complete"
+            ],
+            'STAFF': [
+                "module:tasks",
+                "scope:personal",
+                "task:todo_personal", "task:progress"
+            ]
+        };
+
+        const base = roleDefaults[role] || roleDefaults['STAFF'];
+        const userCustom = Array.isArray(this.currentUser.permissions) ? this.currentUser.permissions : [];
+        const allPerms = new Set([...base, ...userCustom]);
+
+        return allPerms.has(permCode);
+    },
+
+    applyModulePermissions(activePage = 'dashboard') {
+        const u = this.currentUser;
+        if (!u) return;
+
+        // 1. Danh sách Module Sidebar Mapping
+        const moduleMap = [
+            { id: 'nav-dashboard', perm: 'module:dashboard' },
+            { id: 'nav-tasks', perm: 'module:tasks' },
+            { id: 'nav-calendar', perm: 'module:calendar' },
+            { id: 'nav-assets', perm: 'module:assets' },
+            { id: 'nav-documents', perm: 'module:documents' },
+            { id: 'nav-database', perm: 'module:database' },
+            { id: 'nav-settings', perm: 'module:settings' }
+        ];
+
+        const isQTDT = u.department && u.department.code === 'QTĐT';
+
+        moduleMap.forEach(item => {
+            const el = document.getElementById(item.id);
+            if (!el) return;
+
+            let hasAccess = this.hasPermission(item.perm);
+            if (item.id === 'nav-assets' && isQTDT) hasAccess = true;
+            if (item.id === 'nav-settings') {
+                // Cho phép truy cập Settings nếu có module:settings hoặc có quyền quản trị bất kỳ
+                hasAccess = this.hasPermission('module:settings') || this.hasPermission('dept:manage') || this.hasPermission('user:manage') || this.hasPermission('perm:manage') || this.hasPermission('workflow:manage');
+            }
+
+            if (!hasAccess) {
+                el.classList.add('hidden');
+            } else {
+                el.classList.remove('hidden');
+            }
+        });
+
+        // 2. Chặn truy cập trực tiếp bằng URL nếu không có quyền
+        const pagePermissionGuards = {
+            'dashboard': 'module:dashboard',
+            'calendar': 'module:calendar',
+            'database': 'module:database',
+            'assets': 'module:assets',
+            'documents': 'module:documents',
+            'settings': 'module:settings'
+        };
+
+        if (pagePermissionGuards[activePage]) {
+            const requiredPerm = pagePermissionGuards[activePage];
+            let allowed = this.hasPermission(requiredPerm);
+            if (activePage === 'assets' && isQTDT) allowed = true;
+            if (activePage === 'settings') {
+                allowed = this.hasPermission('module:settings') || this.hasPermission('dept:manage') || this.hasPermission('user:manage') || this.hasPermission('perm:manage') || this.hasPermission('workflow:manage');
+            }
+
+            if (!allowed) {
+                alert('⛔ Bạn không có quyền truy cập vào phân hệ này. Hệ thống sẽ chuyển hướng bạn về Bảng công việc.');
+                window.location.href = 'tasks.html';
+            }
+        }
+    },
+
 
     async loadSidebarBadges() {
         const badge = document.getElementById('navBadgeTasks');
@@ -92,14 +205,14 @@ const Common = {
 
     setActiveNav(activePage) {
         document.querySelectorAll('.nav-link').forEach(link => {
-            link.classList.remove('bg-blue-900', 'text-white');
-            link.classList.add('text-slate-300', 'hover:bg-blue-900/50');
+            link.classList.remove('bg-blue-700', 'bg-blue-900', 'text-white', 'shadow-md', 'hover:bg-blue-900/50');
+            link.classList.add('text-slate-300', 'hover:bg-slate-800');
         });
 
         const activeNav = document.getElementById(`nav-${activePage}`);
         if (activeNav) {
-            activeNav.classList.remove('text-slate-300', 'hover:bg-blue-900/50');
-            activeNav.classList.add('bg-blue-900', 'text-white');
+            activeNav.classList.remove('text-slate-300', 'hover:bg-slate-800');
+            activeNav.classList.add('bg-blue-700', 'text-white', 'shadow-md');
         }
     },
 
@@ -334,35 +447,35 @@ const Common = {
         if (t === 'dark') {
             styleEl.innerHTML = `
                 /* ============================================================ */
-                /* HIGH-CONTRAST MODERN DARK THEME (CHẾ ĐỘ TỐI TƯƠNG PHẢN CAO)  */
+                /* DEFAULT DARK THEME (STUDIO DARK: #101010 / #CCCCCC / #007ACC)*/
                 /* ============================================================ */
                 html[data-theme="dark"] body,
                 html[data-theme="dark"] main,
                 html[data-theme="dark"] .bg-slate-100 {
-                    background-color: #0B0F19 !important;
-                    color: #F8FAFC !important;
+                    background-color: #101010 !important;
+                    color: #CCCCCC !important;
                 }
                 html[data-theme="dark"] header,
                 html[data-theme="dark"] .bg-white {
-                    background-color: #1E293B !important;
-                    border-color: #334155 !important;
-                    color: #F8FAFC !important;
+                    background-color: #1E1E1E !important;
+                    border-color: #2D2D2D !important;
+                    color: #CCCCCC !important;
                 }
                 html[data-theme="dark"] .bg-slate-50 {
-                    background-color: #151F32 !important;
-                    border-color: #334155 !important;
+                    background-color: #161616 !important;
+                    border-color: #2D2D2D !important;
                 }
                 html[data-theme="dark"] .bg-slate-200 {
-                    background-color: #334155 !important;
+                    background-color: #2D2D2D !important;
                 }
                 html[data-theme="dark"] .bg-indigo-50\\/80,
                 html[data-theme="dark"] .bg-indigo-50\\/50,
                 html[data-theme="dark"] .bg-indigo-50 {
-                    background-color: #1E2238 !important;
-                    border-color: #3730A3 !important;
+                    background-color: #181C28 !important;
+                    border-color: #1E3A8A !important;
                 }
 
-                /* TYPOGRAPHY (CHỮ SÁNG RÕ RÀNG, DỄ ĐỌC TUYỆT ĐỐI) */
+                /* TYPOGRAPHY (FOREGROUND #CCCCCC, HEADINGS #FFFFFF) */
                 html[data-theme="dark"] h1,
                 html[data-theme="dark"] h2,
                 html[data-theme="dark"] h3,
@@ -374,62 +487,81 @@ const Common = {
                 }
                 html[data-theme="dark"] .text-slate-700,
                 html[data-theme="dark"] .text-slate-600 {
-                    color: #E2E8F0 !important;
+                    color: #CCCCCC !important;
                 }
                 html[data-theme="dark"] .text-slate-500,
                 html[data-theme="dark"] .text-slate-400 {
-                    color: #CBD5E1 !important;
+                    color: #94A3B8 !important;
                 }
                 html[data-theme="dark"] label {
-                    color: #E2E8F0 !important;
+                    color: #CCCCCC !important;
                 }
 
                 /* FORM CONTROLS (INPUT / SELECT / TEXTAREA) */
                 html[data-theme="dark"] select,
                 html[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
                 html[data-theme="dark"] textarea {
-                    background-color: #0F172A !important;
-                    border: 1px solid #475569 !important;
+                    background-color: #161616 !important;
+                    border: 1px solid #3E3E3E !important;
                     color: #FFFFFF !important;
                 }
                 html[data-theme="dark"] select:focus,
                 html[data-theme="dark"] input:focus,
                 html[data-theme="dark"] textarea:focus {
-                    border-color: #60A5FA !important;
-                    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.25) !important;
+                    border-color: #007ACC !important;
+                    box-shadow: 0 0 0 3px rgba(0, 122, 204, 0.3) !important;
                     outline: none !important;
                 }
                 html[data-theme="dark"] input::placeholder,
                 html[data-theme="dark"] textarea::placeholder {
-                    color: #94A3B8 !important;
+                    color: #71717A !important;
+                }
+
+                /* ACCENT BUTTONS & BADGES (#007ACC) */
+                html[data-theme="dark"] .bg-blue-800,
+                html[data-theme="dark"] .bg-blue-900 {
+                    background-color: #007ACC !important;
+                }
+                html[data-theme="dark"] .bg-blue-800:hover,
+                html[data-theme="dark"] .bg-blue-900:hover {
+                    background-color: #0066AA !important;
+                }
+                html[data-theme="dark"] .text-blue-800,
+                html[data-theme="dark"] .text-blue-700,
+                html[data-theme="dark"] .text-blue-600 {
+                    color: #38BDF8 !important;
+                }
+                html[data-theme="dark"] .border-blue-800,
+                html[data-theme="dark"] .border-blue-700 {
+                    border-color: #007ACC !important;
                 }
 
                 /* BORDERS & CARDS */
                 html[data-theme="dark"] .border-slate-200,
                 html[data-theme="dark"] .border-slate-100,
                 html[data-theme="dark"] .border-slate-300 {
-                    border-color: #334155 !important;
+                    border-color: #2D2D2D !important;
                 }
                 html[data-theme="dark"] .divide-slate-100 > * + *,
                 html[data-theme="dark"] .divide-slate-200 > * + * {
-                    border-color: #334155 !important;
+                    border-color: #2D2D2D !important;
                 }
 
                 /* TABLES */
                 html[data-theme="dark"] thead,
                 html[data-theme="dark"] th {
-                    background-color: #0F172A !important;
-                    color: #F1F5F9 !important;
-                    border-color: #334155 !important;
+                    background-color: #161616 !important;
+                    color: #FFFFFF !important;
+                    border-color: #2D2D2D !important;
                 }
                 html[data-theme="dark"] tbody tr {
-                    border-color: #334155 !important;
+                    border-color: #2D2D2D !important;
                 }
                 html[data-theme="dark"] tbody tr:hover {
-                    background-color: rgba(51, 65, 85, 0.4) !important;
+                    background-color: rgba(255, 255, 255, 0.04) !important;
                 }
                 html[data-theme="dark"] td {
-                    color: #F8FAFC !important;
+                    color: #CCCCCC !important;
                 }
 
                 /* SHADOWS */
@@ -438,7 +570,7 @@ const Common = {
                 html[data-theme="dark"] .shadow-md,
                 html[data-theme="dark"] .shadow-lg,
                 html[data-theme="dark"] .shadow-2xl {
-                    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.7) !important;
+                    box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.8) !important;
                 }
             `;
         } else {
@@ -491,6 +623,193 @@ const Common = {
                     outline: none !important;
                 }
             `;
+        }
+    },
+
+    // ----------------------------------------------------
+    // TRUNG TÂM THÔNG BÁO ĐIỀU HÀNH THỜI GIAN THỰC (NOTIFICATION CENTER)
+    // ----------------------------------------------------
+    NotificationCenter: {
+        items: [],
+        unreadCount: 0,
+        timer: null,
+
+        init() {
+            this.injectNotificationBell();
+            this.fetch();
+            if (this.timer) clearInterval(this.timer);
+            this.timer = setInterval(() => this.fetch(), 20000);
+
+            // Đóng menu khi click ra ngoài
+            document.addEventListener('click', (e) => {
+                const wrapper = document.getElementById('headerNotificationWrapper');
+                const menu = document.getElementById('notifDropdownMenu');
+                if (wrapper && menu && !wrapper.contains(e.target)) {
+                    menu.classList.add('hidden');
+                }
+            });
+        },
+
+        injectNotificationBell() {
+            if (document.getElementById('headerNotificationWrapper')) return;
+            const headerUserName = document.getElementById('headerUserName');
+            const targetContainer = headerUserName ? headerUserName.closest('.flex.items-center') : document.querySelector('header .flex.items-center.space-x-2');
+            if (!targetContainer) return;
+
+            const bellHtml = `
+                <div class="relative inline-block text-left mr-2 sm:mr-3" id="headerNotificationWrapper">
+                    <button type="button" onclick="Common.NotificationCenter.toggleDropdown()" 
+                        class="relative p-2 text-slate-500 hover:text-blue-900 hover:bg-slate-100 rounded-full transition cursor-pointer" title="Thông báo hệ thống">
+                        <i class="fa-regular fa-bell text-base sm:text-lg"></i>
+                        <span id="notifBadge" class="hidden absolute top-0.5 right-0.5 min-w-[17px] h-[17px] bg-red-600 text-white text-[9.5px] font-black rounded-full flex items-center justify-center px-1 shadow-xs border-2 border-white animate-pulse">0</span>
+                    </button>
+                    <div id="notifDropdownMenu" class="hidden absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 z-50 animate-scale-in overflow-hidden flex flex-col max-h-[460px]">
+                        <div class="px-4 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                            <div class="flex items-center space-x-2">
+                                <i class="fa-solid fa-bell text-blue-800 text-xs"></i>
+                                <span class="font-bold text-xs text-slate-800">Thông Báo Điều Hành</span>
+                                <span id="notifUnreadBadge" class="text-[10px] bg-blue-100 text-blue-800 font-bold px-1.5 py-0.2 rounded-full">0 mới</span>
+                            </div>
+                            <button type="button" onclick="Common.NotificationCenter.markAllRead()" class="text-[11px] font-semibold text-blue-700 hover:underline cursor-pointer">
+                                Đọc tất cả
+                            </button>
+                        </div>
+                        <div id="notifListContainer" class="divide-y divide-slate-100 overflow-y-auto flex-1 text-xs">
+                            <div class="p-6 text-center text-slate-400">Đang tải thông báo...</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            targetContainer.insertAdjacentHTML('beforebegin', bellHtml);
+        },
+
+        async fetch() {
+            try {
+                if (!API.getToken()) return;
+                const data = await API.getNotifications(25);
+                this.items = data.items || [];
+                this.unreadCount = data.unread_count || 0;
+                this.renderBadge();
+            } catch (err) {
+                // Ignore token errors
+            }
+        },
+
+        renderBadge() {
+            const badge = document.getElementById('notifBadge');
+            const unreadBadge = document.getElementById('notifUnreadBadge');
+            if (badge) {
+                if (this.unreadCount > 0) {
+                    badge.innerText = this.unreadCount > 99 ? '99+' : this.unreadCount;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+            if (unreadBadge) {
+                unreadBadge.innerText = `${this.unreadCount} mới`;
+            }
+        },
+
+        toggleDropdown() {
+            const menu = document.getElementById('notifDropdownMenu');
+            if (!menu) return;
+            const isHidden = menu.classList.contains('hidden');
+            if (isHidden) {
+                this.renderList();
+                menu.classList.remove('hidden');
+            } else {
+                menu.classList.add('hidden');
+            }
+        },
+
+        renderList() {
+            const container = document.getElementById('notifListContainer');
+            if (!container) return;
+
+            if (this.items.length === 0) {
+                container.innerHTML = `
+                    <div class="p-8 text-center space-y-2">
+                        <i class="fa-regular fa-bell-slash text-2xl text-slate-300"></i>
+                        <p class="text-xs text-slate-400">Không có thông báo mới</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const iconMap = {
+                'PROPOSAL_APPROVED': { icon: '🎉', bg: 'bg-emerald-50 text-emerald-700' },
+                'PROPOSAL_CHANGES_REQUESTED': { icon: '⚠️', bg: 'bg-amber-50 text-amber-700' },
+                'PROPOSAL_REJECTED': { icon: '❌', bg: 'bg-rose-50 text-rose-700' },
+                'PROPOSAL_RESUBMITTED': { icon: '🔄', bg: 'bg-blue-50 text-blue-700' },
+                'ASSIGNMENT': { icon: '🎯', bg: 'bg-indigo-50 text-indigo-700' },
+                'COLLABORATION_REQUEST': { icon: '🤝', bg: 'bg-purple-50 text-purple-700' },
+                'COLLABORATION_ACCEPTED': { icon: '✅', bg: 'bg-green-50 text-green-700' }
+            };
+
+            container.innerHTML = this.items.map(item => {
+                const conf = iconMap[item.type] || { icon: '📌', bg: 'bg-slate-50 text-slate-700' };
+                const timeStr = Common.formatDateTime(item.created_at);
+                const unreadClass = !item.is_read ? 'bg-blue-50/40 font-semibold' : 'bg-white opacity-80';
+
+                return `
+                    <div onclick="Common.NotificationCenter.handleClickNotification(${item.id}, ${item.task_id || 0})" 
+                        class="p-3 hover:bg-slate-50 transition cursor-pointer flex items-start space-x-2.5 ${unreadClass}">
+                        <div class="w-8 h-8 rounded-full ${conf.bg} flex items-center justify-center text-sm shrink-0 mt-0.5 font-bold shadow-2xs">
+                            ${conf.icon}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between gap-1">
+                                <span class="font-bold text-slate-900 text-xs truncate">${item.title}</span>
+                                <span class="text-[9.5px] text-slate-400 font-mono shrink-0">${timeStr}</span>
+                            </div>
+                            <p class="text-[11.5px] text-slate-600 line-clamp-2 mt-0.5 leading-snug">${item.message}</p>
+                        </div>
+                        ${!item.is_read ? '<span class="w-2 h-2 rounded-full bg-blue-600 shrink-0 mt-2"></span>' : ''}
+                    </div>
+                `;
+            }).join('');
+        },
+
+        async handleClickNotification(notifId, taskId) {
+            try {
+                await API.markNotificationRead(notifId);
+                const notif = this.items.find(n => n.id === notifId);
+                if (notif) notif.is_read = true;
+                if (this.unreadCount > 0) this.unreadCount--;
+                this.renderBadge();
+                this.renderList();
+
+                const menu = document.getElementById('notifDropdownMenu');
+                if (menu) menu.classList.add('hidden');
+
+                if (taskId && taskId > 0) {
+                    if (window.location.pathname.includes('tasks-list.html') || window.location.pathname.includes('tasks.html')) {
+                        if (typeof TasksPage !== 'undefined' && TasksPage.openTaskDetail) {
+                            TasksPage.openTaskDetail(taskId);
+                        } else {
+                            window.location.href = `tasks-list.html?task_id=${taskId}`;
+                        }
+                    } else {
+                        window.location.href = `tasks-list.html?task_id=${taskId}`;
+                    }
+                }
+            } catch (err) {
+                console.error('Lỗi click notification:', err);
+            }
+        },
+
+        async markAllRead() {
+            try {
+                await API.markAllNotificationsRead();
+                this.items.forEach(n => n.is_read = true);
+                this.unreadCount = 0;
+                this.renderBadge();
+                this.renderList();
+                Common.showToast('Đã đánh dấu đã đọc tất cả thông báo', 'success');
+            } catch (err) {
+                Common.showToast('Không thể cập nhật thông báo', 'error');
+            }
         }
     }
 };

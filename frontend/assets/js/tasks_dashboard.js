@@ -467,7 +467,7 @@
           tone: "teal",
           note: "Đang triển khai",
           onClick: () => {
-            const qs = selectedDept ? `status=DANG_THUC_HIEN&dept_id=${selectedDept.id}` : "status=DANG_THUC_HIEN";
+            const qs = selectedDept ? `status=dang-thuc-hien&dept_id=${selectedDept.id}` : "status=dang-thuc-hien";
             window.location.href = `tasks-list.html?${qs}`;
           },
         },
@@ -479,7 +479,7 @@
           tone: pending > 0 ? "amber" : "grey",
           note: "Chờ phê duyệt",
           onClick: () => {
-            const qs = selectedDept ? `status=CHO_DUYET&dept_id=${selectedDept.id}` : "status=CHO_DUYET";
+            const qs = selectedDept ? `status=cho-duyet&dept_id=${selectedDept.id}` : "status=cho-duyet";
             window.location.href = `tasks-list.html?${qs}`;
           },
         },
@@ -503,7 +503,7 @@
           tone: done > 0 ? "green" : "grey",
           note: `${completionRate}% đã nghiệm thu`,
           onClick: () => {
-            const qs = selectedDept ? `status=HOAN_THANH&dept_id=${selectedDept.id}` : "status=HOAN_THANH";
+            const qs = selectedDept ? `status=hoan-thanh&dept_id=${selectedDept.id}` : "status=hoan-thanh";
             window.location.href = `tasks-list.html?${qs}`;
           },
         },
@@ -649,13 +649,30 @@
       if (statusItem.code === "TRE_HAN") {
         window.location.href = "tasks-list.html?quick_filter=overdue";
       } else {
-        window.location.href = `tasks-list.html?status=${statusItem.code}`;
+        const slugMap = {
+          CHUA_BAT_DAU: "chua-bat-dau",
+          DANG_THUC_HIEN: "dang-thuc-hien",
+          CHO_DUYET: "cho-duyet",
+          HOAN_THANH: "hoan-thanh",
+          TAM_DUNG: "tam-dung",
+          TU_CHOI: "tu-choi",
+          HUY_BO: "huy-bo"
+        };
+        const slug = slugMap[statusItem.code] || String(statusItem.code).toLowerCase();
+        window.location.href = `tasks-list.html?status=${slug}`;
       }
     };
 
     // Handle clicking a Priority item
     const handlePriorityClick = (priorityItem) => {
-      window.location.href = `tasks-list.html?priority=${priorityItem.code}`;
+      const slugMap = {
+        KHAN_CAP: "khan-cap",
+        CAO: "cao",
+        TRUNG_BINH: "trung-binh",
+        THAP: "thap"
+      };
+      const slug = slugMap[priorityItem.code] || String(priorityItem.code).toLowerCase();
+      window.location.href = `tasks-list.html?priority=${slug}`;
     };
 
     if (loading) {
@@ -667,13 +684,15 @@
       );
     }
 
+    const deptTotalCount = Array.isArray(departments) ? departments.length : 12;
+
     const scopeTitleText = selectedDept
       ? `Tổng quan tiến độ: [${selectedDept.code}] ${selectedDept.name}`
       : "Tổng quan hoạt động & tiến độ";
 
     const scopeSubtitleText = selectedDept
       ? `Theo dõi thực thi ${scopedTasks.length} công việc thuộc đơn vị ${selectedDept.name} — cập nhật theo thời gian thực`
-      : "Theo dõi thực thi công việc của 12 đơn vị HueIC — cập nhật theo thời gian thực";
+      : `Theo dõi thực thi công việc của ${deptTotalCount} đơn vị HueIC — cập nhật theo thời gian thực`;
 
     const chartTitleText = selectedDept
       ? `Tiến độ theo Cán bộ / Nhiệm vụ [${selectedDept.code}]`
@@ -681,7 +700,7 @@
 
     const chartSubText = selectedDept
       ? `Hiển thị ${active.length} cán bộ / nhiệm vụ đang thực hiện trong đơn vị`
-      : `Chỉ hiển thị ${active.length} đơn vị đang có công việc — trong tổng số 12`;
+      : `Chỉ hiển thị ${active.length} đơn vị đang có công việc — trong tổng số ${deptTotalCount}`;
 
     const tableTitleText = selectedDept
       ? `Bảng theo dõi chi tiết [${selectedDept.code}] ${selectedDept.name}`

@@ -1,0 +1,32 @@
+﻿/* =====================================================
+   HueIC IMP — Global UI Standards
+   © 09/2026 HueIC-IMP | Idea & Direction by Nguyen Dinh Le Trung
+   ===================================================== */
+
+/* ─── 1. FOCUS RING CHUẨN HOÁ TOÀN HỆ THỐNG ─── */
+input:focus,
+input:focus-visible,
+textarea:focus,
+textarea:focus-visible,
+select:focus,
+select:focus-visible {
+  outline: none !important;
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18) !important;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+input[type="checkbox"]:focus,
+input[type="radio"]:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.22) !important;
+}
+
+/* ─── 2. SCROLLBAR MỎNG HÀI HÒA ─── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: #f1f5f9; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* ─── 3. TRANSITION MỀM MẠI CHO CÁC BUTTON ─── */
+button { transition: background-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease; }

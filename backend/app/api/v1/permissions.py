@@ -5,7 +5,7 @@ from typing import List, Dict, Any
 from app.db.session import get_db
 from app.models.user import User, UserRole
 from app.schemas.user import UserOut, UserPermissionsUpdate
-from app.core.permissions import SYSTEM_PERMISSIONS_CATALOG, get_default_permissions_for_role
+from app.core.permissions import SYSTEM_PERMISSIONS_CATALOG, ROLE_PRESET_PERMISSIONS, get_default_permissions_for_role
 from app.api.deps import get_current_user, require_permission
 
 router = APIRouter()
@@ -14,8 +14,15 @@ router = APIRouter()
 def get_permissions_catalog(
     current_user: User = Depends(get_current_user)
 ) -> List[Dict[str, Any]]:
-    """Trả về cấu trúc cây nhóm quyền phục vụ hiển thị Checkbox trên giao diện"""
+    """Trả về cấu trúc cây 4 nhóm quyền phục vụ hiển thị Checkbox trên giao diện"""
     return SYSTEM_PERMISSIONS_CATALOG
+
+@router.get("/presets", summary="Danh mục các bộ quyền mẫu chuẩn theo Chức danh")
+def get_permission_presets(
+    current_user: User = Depends(get_current_user)
+) -> Dict[str, List[str]]:
+    """Trả về các bộ quyền mẫu cho BGH, Trưởng đơn vị, Phó đơn vị, Cán bộ"""
+    return ROLE_PRESET_PERMISSIONS
 
 @router.get("/users/{user_id}", summary="Lấy danh sách mã quyền của một người dùng")
 def get_user_permissions(
@@ -23,6 +30,15 @@ def get_user_permissions(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
+    # Kiểm tra quyền: Chỉ xem quyền của chính mình hoặc người có quyền perm:manage / BGH
+    can_view = (
+        current_user.id == user_id or
+        current_user.role in [UserRole.SUPERADMIN, UserRole.BGH] or
+        (current_user.permissions and "perm:manage" in current_user.permissions)
+    )
+    if not can_view:
+        raise HTTPException(status_code=403, detail="Bạn không có quyền xem cấu hình phân quyền của người dùng khác.")
+
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="Không tìm thấy người dùng.")
@@ -73,3 +89,21 @@ def reset_user_permissions_to_default(
     db.commit()
     db.refresh(user)
     return user
+
+@router.put("/presets/{role_key}", summary="Cập nhật mẫu quyền gốc chuẩn cho Vai trò")
+def update_role_preset(
+    role_key: str,
+    perms_in: UserPermissionsUpdate,
+    current_user: User = Depends(require_permission("perm:manage"))
+) -> Any:
+    """Cho phép SuperAdmin cập nhật bộ quyền gốc chuẩn của từng Role"""
+    key = role_key.lower().strip()
+    if key not in ROLE_PRESET_PERMISSIONS:
+        raise HTTPException(status_code=400, detail=f"Vai trò '{role_key}' không hợp lệ. Các vai trò hợp lệ: admin, bgh, dept_head, dept_vice, staff")
+    
+    ROLE_PRESET_PERMISSIONS[key] = perms_in.permissions
+    return {
+        "role_key": key,
+        "permissions": ROLE_PRESET_PERMISSIONS[key],
+        "message": f"Đã cập nhật bộ quyền gốc chuẩn cho vai trò {key} thành công!"
+    }

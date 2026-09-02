@@ -31,7 +31,7 @@ def get_users(
 def create_user(
     user_in: UserCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles([UserRole.SUPERADMIN, UserRole.DEPT_HEAD]))
+    current_user: User = Depends(require_roles([UserRole.SUPERADMIN, UserRole.BGH, UserRole.DEPT_HEAD]))
 ) -> Any:
     existing_username = db.query(User).filter(User.username == user_in.username).first()
     if existing_username:

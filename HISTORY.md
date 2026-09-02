@@ -982,10 +982,1290 @@ Tài liệu này ghi lại chi tiết toàn bộ các phiên bản, mốc thời
   - Rút gọn placeholder của ô Tiêu đề nhiệm vụ thành: `Nhập tên nhiệm vụ cụ thể...`.
   - Tối giản, không dài dòng, vừa vặn hoàn hảo trên cả điện thoại di động và PC.
   - Đồng bộ trên cả `tasks-list.html` và `tasks.html`.
+## 📌 [Phiên bản 2.9.22] - 01/09/2026: Khắc Phục Triệt Để Lỗi Nạp Phân Quyền RBAC Trong Thiết Lập Hệ Thống
+- **Nguyên Nhân Gốc Rễ (Root Cause)**:
+  - Hàm `SettingsPage.loadPermissionsView()` và `selectPermUser()` trong `settings.js` giả định cấu trúc trả về cũ (`res.user`, `res.assigned_permissions`, `catalog.groups`), trong khi API backend `/permissions/catalog` và `/permissions/users/{id}` trả về danh sách nhóm mảng `List[Dict]` và `res.permissions`.
+  - Điều này dẫn đến lỗi `TypeError: Cannot read properties of undefined` khiến giao diện hiển thị thông báo "Lỗi nạp quyền tài khoản" / "Lỗi tải cấu hình phân quyền".
+- **Giải Pháp Xử Lý**:
+  - Tái cấu trúc toàn bộ luồng nạp và hiển thị ma trận phân quyền trong `settings.js`:
+    - Đọc chính xác mảng `this.permissionCatalog` từ backend với đầy đủ tên nhóm, mô tả và danh sách mã quyền.
+    - Đọc chính xác `res.permissions` khi chọn từng nhân sự.
+    - Bổ sung hiển thị mô tả quyền chi tiết (`description`) và mã quyền (`code`) font monospace gọn gàng dưới từng checkbox.
+    - Cập nhật chuẩn các tính năng tiện ích: "Chọn tất cả nhóm", "Gợi ý theo vai trò", và "Lưu Phân Quyền".
+## 📌 [Phiên bản 2.9.23] - 01/09/2026: Nâng Cấp Chuẩn Dark Theme Studio/Developer (#101010, #CCCCCC, #007ACC)
+- **Chuẩn Hóa Bảng Màu Chế Độ Tối Cao Cấp (Studio Default Dark)**:
+  - `Background`: **`#101010`** (Nền đen sâu chuẩn studio/OLED, triệt tiêu hoàn toàn ánh sáng xanh).
+  - `Foreground`: **`#CCCCCC`** (Chữ sáng dịu chống lóa, tiêu đề chính `#FFFFFF` tương phản sắc nét).
+  - `Accent`: **`#007ACC`** (Điểm nhấn xanh lập trình viên/VS Code tràn đầy năng lượng).
+## 📌 [Phiên bản 2.9.24] - 01/09/2026: Tái Cấu Trúc Toàn Diện Hệ Thống Phân Quyền 3 Tầng Thực Tế (HueIC Authority Model)
+- **Tái Thiết Kế Ma Trận Phân Quyền RBAC**:
+  - Phân định rõ ràng 3 tầng: **Vai Trò Chức Danh** $\leftrightarrow$ **Phạm Vi Quan Sát Dữ Liệu** $\leftrightarrow$ **Thẩm Quyền Tác Vụ**.
+  - Bổ sung vai trò chức danh mới: **`DEPT_VICE` (Phó Trưởng Đơn Vị / Phó Khoa / Phó Phòng)** hỗ trợ cơ chế ủy quyền điều hành khi Trưởng đơn vị vắng mặt.
+  - Chuẩn hóa **4 nhóm quyền nghiệp vụ thực tế**:
+    1. 🌐 **Phạm Vi Quan Sát**: Toàn trường (`scope:school`), Nội bộ đơn vị (`scope:dept`), Cá nhân (`scope:personal`).
+    2. 📋 **Giao Việc & Điều Hành**: Giao việc trường (`task:dispatch_school`), Phân công đơn vị (`task:dispatch_dept`), Việc cá nhân (`task:todo_personal`), Báo cáo tiến độ (`task:progress`).
+    3. 💡 **Phê Duyệt & Nghiệm Thu**: Duyệt đề xuất (`task:approve_proposal`), Ký nghiệm thu (`task:approve_complete`), Duyệt gia hạn (`task:extend_deadline`), Xóa việc (`task:delete`).
+    4. 🏢 **Quản Trị Hệ Thống**: 12 Đơn vị (`dept:manage`), Cán bộ (`user:manage`), Quy trình (`workflow:manage`), Phân quyền (`perm:manage`).
+  - Giao diện trực quan với **Bộ lọc 12 Đơn vị HueIC** và tính năng **1-Click "Áp Dụng Mẫu Chuẩn Theo Chức Danh"** cùng thanh gán nhanh mẫu quyền (`BGH`, `Trưởng ĐV`, `Phó ĐV`, `Cán Bộ`).
+## 📌 [Phiên bản 2.9.25] - 01/09/2026: Đặt Chế Độ Xem Bảng (Table View) Nằm Trước & Là Mặc Định Cho Danh Mục Đơn Vị
+- **Tối Ưu Trải Nghiệm Quản Lý 12 Đơn Vị HueIC**:
+  - Đảo vị trí nút chuyển đổi chế độ xem: **`[Bảng]` nằm trước**, **`[Thẻ]` nằm sau**.
+  - Đặt chế độ xem **`Bảng (Table View)` là mặc định** khi truy cập trang Thiết Lập Hệ Thống (`settings.html`).
+  - Container bảng hiển thị sẵn ngay khi tải trang, giúp người quản trị tra cứu nhanh danh sách 12 phòng/khoa, số điện thoại, email và số lượng nhân sự.
+## 📌 [Phiên bản 2.9.26] - 01/09/2026: Chuẩn Hóa Thuật Ngữ Tiếng Việt 'Bảng Thẻ Việc' Thay Cho 'Bảng Thẻ Kanban'
+- **Thuần Việt Hóa & Thân Thiện Người Dùng**:
+  - Đổi tên tab **`Bảng Thẻ Kanban`** thành **`Bảng Thẻ Việc`** trên toàn bộ các thanh điều hướng phân hệ công việc.
+  - Đồng bộ trên các trang: `tasks-list.html`, `tasks.html`, `tasks-calendar.html`, và trang chủ `index.html`.
+## 📌 [Phiên bản 2.9.27] - 01/09/2026: Tự Động Tính Toán Động Số Lượng Đơn Vị (Dynamic Department Count) Toàn Hệ Thống
+- **Động Hóa Hoàn Toàn Nhãn & Bộ Đếm Đơn Vị**:
+  - Loại bỏ hoàn toàn các con số cứng (hardcoded `12`).
+  - Nhãn tab subnav: `Phòng / Khoa (${this.departments.length} Đơn vị)`.
+  - Phụ đề trang thiết lập: `Cấu hình cơ cấu ${this.departments.length} đơn vị HueIC...`.
+  - Nhãn hiển thị đếm đơn vị: `${this.departments.length} Đơn vị`.
+  - Bộ lọc dropdown chọn đơn vị trong Dashboard, Lịch công tác, Phân quyền RBAC và Báo cáo tiến độ: Tự động cập nhật theo `this.departments.length`.
+  - Khi thêm mới hoặc xóa bớt đơn vị, tất cả các vị trí tự động cập nhật ngay lập tức mà không cần reload cứng.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/settings.html`
+  - `[MODIFY] frontend/assets/js/settings.js`
+## 📌 [Phiên bản 2.9.28] - 01/09/2026: Triển Khai Mô Hình Cơ Cấu Tổ Chức Cây Đa Tầng (Hierarchical Department & Section Tree)
+- **Kiến Trúc Tổ Chức Đa Tầng Thực Tế Trường Cao Đẳng**:
+  - Mở rộng CSDL bảng `departments`: bổ sung `parent_id` (tự tham chiếu), `type` (Phân loại: `FACULTY`, `DEPARTMENT`, `CENTER`, `SECTION`, `WORKSHOP`, `BGH`), và `order_index`.
+  - Hỗ trợ đơn vị Cấp 1 (trực thuộc BGH) và đơn vị Cấp 2 (Tổ bộ môn, Tổ công tác, Xưởng thực hành thuộc Khoa/Phòng/Trung tâm).
+  - Nâng cấp modal form **"Thêm / Sửa Đơn Vị / Tổ"**:
+    - Thêm ô chọn **"Đơn vị cấp trên trực thuộc (Đơn vị cha)"**.
+    - Thêm ô chọn **"Phân loại loại hình"** với biểu tượng trực quan.
+  - Nâng cấp **Bảng & Thẻ hiển thị**:
+    - Hiển thị thụt đầu dòng `↳ [Mã] Tên Bộ Môn` cho đơn vị cấp 2 kèm badge `Thuộc [Mã ĐV] Tên Đơn vị cha`.
+    - Bổ sung bộ lọc Cấp bậc: Lọc theo Đơn vị Cấp 1, Đơn vị Cấp 2 (Tổ/Bộ môn), hoặc theo từng khối loại hình.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] backend/app/models/department.py`
+  - `[MODIFY] backend/app/db/init_db.py`
+  - `[MODIFY] backend/app/schemas/department.py`
+  - `[MODIFY] backend/app/api/v1/departments.py`
+  - `[MODIFY] frontend/settings.html`
+  - `[MODIFY] frontend/assets/js/settings.js`
+  - `[MODIFY] .keywork.md`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.29] - 01/09/2026: Triển Khai Phân Hệ Quản Trị Cơ Sở Dữ Liệu & Trung Tâm Dữ Liệu (HueIC Data Center & DB Studio) & Chuẩn Hóa Typography Credits
+- **Phân Hệ Cơ Sở Dữ Liệu (Database Studio - `database.html`)**:
+  - Xây dựng module backend chuyên dụng `backend/app/api/v1/database.py` (bảo vệ quyền SuperAdmin).
+  - Tích hợp 4 Tab chức năng hoàn chỉnh:
+    1. **Tổng Quan & Sức Khỏe CSDL**: Dung lượng CSDL (`pg_database_size`), số lượng bản ghi từng bảng, cổng kết nối Port 8882, nút "Dọn Dẹp & Tối Ưu CSDL" (`VACUUM ANALYZE`).
+    2. **Trình Duyệt Bảng (Table Inspector)**: Xem dạng lưới dữ liệu chi tiết, phân trang an toàn, metadata kiểu dữ liệu từng cột.
+    3. **Trung Tâm Xuất / Nhập Dữ Liệu (Import & Export)**: Xuất 1-Click Full JSON Backup hoặc CSV từng bảng; Nhập dữ liệu hàng loạt từ CSV kèm tính năng Preview xem trước và kiểm tra tính hợp lệ.
+    4. **Trình Truy Vấn SQL An Toàn (Safe SQL Studio)**: Hỗ trợ chạy các câu lệnh `SELECT/WITH/EXPLAIN` kèm các mẫu truy vấn phân tích có sẵn.
+- **Tích Hợp Menu Điều Hướng Đồng Bộ**:
+  - Bổ sung menu `🗄️ Cơ Sở Dữ Liệu` vào nhóm `QUẢN TRỊ` trên Sidebar và Mobile Drawer của tất cả các trang (`index.html`, `tasks.html`, `tasks-list.html`, `tasks-calendar.html`, `calendar.html`, `settings.html`, `assets.html`, `documents.html`, `database.html`).
+- **Nâng Cấp Kích Thước Chữ Chân Trang (Typography Credits)**:
+  - Tăng 1 size (`text-xs` / `text-[11.5px]`) cho dòng credits `© 09/2026 HueIC-IMP / Idea & Direction by Nguyen Dinh Le Trung / Built with AI Assistance` để nâng cao tính thẩm mỹ và độ rõ nét.
+- **Files Chỉnh Sửa**:
+  - `[NEW] backend/app/api/v1/database.py`
+  - `[MODIFY] backend/app/main.py`
+  - `[NEW] frontend/database.html`
+  - `[NEW] frontend/assets/js/database.js`
+  - `[MODIFY] frontend/assets/js/api.js`
+  - `[MODIFY] frontend/index.html`
+  - `[MODIFY] frontend/settings.html`
+  - `[MODIFY] frontend/tasks.html`
+  - `[MODIFY] frontend/tasks-list.html`
+  - `[MODIFY] frontend/calendar.html`
+  - `[MODIFY] frontend/tasks-calendar.html`
+  - `[MODIFY] frontend/assets.html`
+## 📌 [Phiên bản 2.9.30] - 01/09/2026: Hiệu Chỉnh Schema Bảng Tasks & Khắc Phục Lỗi SQL Query Presets
+- **Khắc phục lỗi UndefinedColumn**:
+  - Cập nhật đúng tên trường `progress_percent` (thay vì `progress`), `due_date` (thay vì `deadline`), và `created_by_id` (thay vì `creator_id`) trong toàn bộ schema `backend/app/api/v1/database.py`.
+  - Hiệu chỉnh câu truy vấn mẫu SQL Preset trên `frontend/database.html`:
+    - `📊 Thống kê tiến độ việc`: `SELECT status, count(*) as total_tasks, ROUND(CAST(avg(progress_percent) AS numeric), 1) as avg_progress FROM tasks GROUP BY status;`
+    - `⚠️ Việc đang trễ hạn`: `SELECT t.id, t.title, t.due_date, t.progress_percent, u.full_name as assignee FROM tasks t LEFT JOIN users u ON t.assignee_id = u.id WHERE t.due_date < NOW() AND t.status != 'HOAN_THANH';`
+## 📌 [Phiên bản 2.9.31] - 01/09/2026: Triển Khai Trình Định Dạng Dữ Liệu Thông Minh (Smart Data Formatter) & Chuẩn Hóa Clean URL Slugs
+- **Trình Định Dạng Dữ Liệu Thông Minh (`database.js` & `database.html`)**:
+  - Không còn hiển thị mã thô như `DANG_THUC_HIEN`, `CHUA_BAT_DAU`, `HOAN_THANH`, `SUPERADMIN` trên giao diện.
+  - Tự động chuyển đổi thành Pill Badge trực quan, đa sắc thái (Xanh dương, Xanh lá, Vàng hổ phách, Tím, Đỏ).
+  - Tự động hiển thị thanh tiến độ mini cho cột `progress_percent` và định dạng ngày giờ Việt Nam chuẩn `HH:mm dd/MM/yyyy`.
+  - Tích hợp nút chuyển đổi chế độ **"✨ Định Dạng Thông Minh / 🔤 Dữ Liệu Thô (Raw)"** cho phép Admin linh hoạt quan sát.
+- **Chuẩn Hóa Clean URL Slugs Thân Thiện**:
+  - Chuyển đổi toàn bộ đường link lọc từ Tasks Dashboard sang định dạng Kebab-case chữ thường: `tasks-list.html?status=dang-thuc-hien` (thay vì `status=DANG_THUC_HIEN`), `status=cho-duyet`, `status=hoan-thanh`, `priority=khan-cap`...
+  - Nâng cấp `tasks.js` tự động nhận diện và chuyển đổi thông minh mọi biến thể URL (`dang-thuc-hien`, `in-progress`, `DANG_THUC_HIEN`).
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/assets/js/database.js`
+  - `[MODIFY] frontend/database.html`
+  - `[MODIFY] frontend/assets/js/tasks_dashboard.js`
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] .keywork.md`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.32] - 01/09/2026: Chuẩn Hóa Thuật Ngữ Đơn Vị Cấp 2 Sang "Tổ / Ban"
+- **Đồng Bộ Thuật Ngữ "Tổ / Ban" Toàn Hệ Thống**:
+  - Chuyển đổi toàn bộ tên gọi và nhãn `Tổ / Bộ Môn` $\rightarrow$ `Tổ / Ban` trên toàn bộ các trang giao diện (`settings.html`, `database.html`, `settings.js`, `database.js`) và backend model schema (`database.py`).
+  - Cập nhật các bộ lọc phân loại đơn vị: `↳ Đơn vị Cấp 2 (Tổ / Ban / Xưởng)` và `Khối Tổ / Ban`.
+  - Cập nhật form thêm mới đơn vị: `Tên đơn vị / Tổ / Ban *`.
+  - Cập nhật nhãn Pill Badge loại hình: `👥 Tổ / Ban`.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] backend/app/api/v1/database.py`
+  - `[MODIFY] frontend/assets/js/database.js`
+  - `[MODIFY] frontend/assets/js/settings.js`
+  - `[MODIFY] frontend/settings.html`
+  - `[MODIFY] frontend/database.html`
+  - `[MODIFY] .keywork.md`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.33] - 01/09/2026: Chuẩn Hóa 4 Nhóm Vai Trò Cán Bộ & Bộ Lọc Quản Trị Nhân Sự Chuyên Sâu
+- **Chuẩn Hóa 4 Nhóm Vai Trò Cán Bộ Toàn Hệ Thống**:
+  - 1/ **Nhóm Quản Trị** (`SUPERADMIN`): Quản trị viên hệ thống toàn quyền, kỹ thuật & bảo mật.
+  - 2/ **BGH** (`BGH`): Hiệu trưởng, các Phó Hiệu trưởng (Lãnh đạo cấp cao toàn trường).
+  - 3/ **Quản Lý** (`DEPT_HEAD`, `DEPT_VICE`): Trưởng / Phó Đơn vị, Khoa, Phòng, Tổ / Ban trưởng.
+  - 4/ **Nhân Viên** (`STAFF`): Cán bộ, Giảng viên, Chuyên viên, Nhân viên.
+- **Nâng Cấp Giao Diện Quản Trị Cán Bộ (`settings.html` & `settings.js`)**:
+  - Tích hợp thanh công cụ tìm kiếm và lọc đa chiều: Lọc theo 4 Nhóm Vai Trò, Lọc theo Đơn vị trực thuộc, Tìm kiếm tức thì theo tên/email/tài khoản.
+  - Cập nhật Pill Badge trực quan, phân biệt rõ ràng 4 nhóm đối tượng.
+  - Cập nhật Form Thêm/Sửa Cán bộ với danh mục 4 nhóm vai trò rõ ràng.
+- **Cập Nhật Backend & Schema**:
+  - Bổ sung `BGH` vào `UserRole` enum (`backend/app/models/user.py`, `backend/app/db/init_db.py`, `backend/app/core/permissions.py`).
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] backend/app/models/user.py`
+  - `[MODIFY] backend/app/db/init_db.py`
+  - `[MODIFY] backend/app/core/permissions.py`
+  - `[MODIFY] backend/app/api/v1/users.py`
+  - `[MODIFY] frontend/settings.html`
+  - `[MODIFY] frontend/assets/js/settings.js`
+  - `[MODIFY] frontend/assets/js/database.js`
+  - `[MODIFY] .keywork.md`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.34] - 01/09/2026: Đồng Bộ Màu Sắc Nhận Diện Xanh Đậm (Blue-800) Cho Tab & Chế Độ Việc Cá Nhân
+- **Đồng Bộ Màu Nút Chuyển Đổi Vai Trò & Chế Độ Việc Cá Nhân (`tasks.html`, `tasks-list.html`, `tasks.js`)**:
+  - Khi người dùng ở chế độ "👤 Cá Nhân", nút `role-pill-STAFF` trên Header Modal chuyển sang màu nền xanh đậm nổi bật: `bg-blue-800 text-white font-bold shadow-xs`, hoàn toàn đồng bộ với nút hành động chính **`Lưu Việc Cá Nhân`** (`bg-blue-800 text-white`).
+  - Thẻ chọn `Việc Cá Nhân (My To-Do)` và Icon tiêu đề được cập nhật sang tông xanh dương chuẩn (`bg-blue-800 text-white`, `border-blue-700 bg-blue-50/90`), tạo sự hài hòa, bắt mắt và chỉn chu tuyệt đối.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] frontend/tasks.html`
+  - `[MODIFY] frontend/tasks-list.html`
+  - `[MODIFY] .keywork.md`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.35] - 01/09/2026: Nâng Cấp Thiết Kế Phân Vùng Thẻ Nổi (Elevated Grouped Cards UI) Cho Modal Tạo Việc
+- **Tái Cấu Trúc Toàn Bộ Canvas & Các Khối Nhập Liệu (`tasks.html` & `tasks-list.html`)**:
+  - Đặt nền Canvas form sang tông xám khói hiện đại `bg-slate-100/70` chuẩn thiết kế Enterprise UI (Linear, Stripe).
+  - Phân tách các nhóm thông tin thành 5 Thẻ Trắng Cao Cấp độc lập (`bg-white border border-slate-200/90 rounded-2xl shadow-xs`):
+    1. *Khối Hình Thức Cá Nhân (Staff Mode)*.
+    2. *Khối Thông Tin Chính (Tiêu đề & Mô tả nhiệm vụ)*.
+    3. *Khối Nhân Sự / Phối Hợp / Người Yêu Cầu*.
+    4. *Khối Thời Hạn & Mức Độ Ưu Tiên*.
+    5. *Khối Quy Trình Thực Hiện Từng Bước (Workflow Pipeline)*.
+  - Các ô input/textarea/select có trạng thái nghỉ nền xám nhẹ `bg-slate-50/50` và tự động chuyển sang nền trắng tinh khôi `focus:bg-white` cùng quầng sáng xanh `focus:ring-2 focus:ring-blue-100` khi nhấp vào.
+  - Giúp mắt người dùng phân biệt tức thì các phân vùng và định vị vị trí nhập liệu nhanh chóng, không bị chói mắt.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/tasks.html`
+  - `[MODIFY] frontend/tasks-list.html`
+  - `[MODIFY] .keywork.md`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.36] - 01/09/2026: Khóa Chuẩn Chế Độ Cá Nhân & Đồng Bộ Thiết Kế Chuẩn Cho Cấp Trưởng Đơn Vị & BGH
+- **Khóa Chuẩn Chế Độ Cá Nhân (Personal To-Do Mode)**:
+  - Giữ cố định 100% kiến trúc và thẩm mỹ chuẩn của Tab Cá Nhân đã được phê duyệt.
+- **Đồng Bộ Hoàn Toàn Sang Cấp Trưởng Đơn Vị (`DEPT_HEAD`) & BGH**:
+  - Khi chuyển sang tab `🏢 Trưởng Đơn Vị`, nút Pill trên Header và nút hành động chính **`Phân Công Nội Bộ`** đều đồng bộ màu xanh đậm `bg-blue-800 text-white font-bold shadow-xs`.
+  - Icon tiêu đề: `bg-blue-800 text-white` kèm icon `<i class="fa-solid fa-users-gear"></i>`.
+  - Khối đơn vị chủ trì: Khóa cứng đúng đơn vị của Trưởng phòng/Khoa `bg-slate-100 font-bold text-blue-900 border-slate-200 rounded-xl`.
+  - Toàn bộ các khối chọn nhân sự phân công, phối hợp, mức độ ưu tiên, hạn chót và quy trình bước mốc đều áp dụng hệ thống Elevated Grouped Cards trên nền Canvas `bg-slate-100/70`.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] .keywork.md`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.37] - 01/09/2026: Tối Giản Modal Giao Việc & Mặc Định Quy Trình 2 Bước Cho Việc Cá Nhân
+- **Loại Bỏ Thanh Archetype Phụ Trùng Lặp (`tasks.html` & `tasks-list.html`)**:
+  - Gỡ bỏ hoàn toàn thanh `⚡ Việc Nhanh / 🔄 Quy Trình Chuẩn / 🏢 Phối Hợp Liên Đơn Vị` (`archetypeBarSection`) trên Header Form để giải phóng không gian, tránh gây rối mắt và loại bỏ cảm giác dư thừa.
+- **Mặc Định Quy Trình 2 Bước Chuẩn Cho Tab Cá Nhân (`tasks.js`)**:
+  - Khi mở Modal hoặc chuyển sang tab `👤 Cá Nhân`, hệ thống tự động khởi tạo sẵn Workflow Pipeline 2 bước:
+    - *Bước 1: Tiếp nhận & Triển khai thực hiện*
+    - *Bước 2: Hoàn tất & Báo cáo kết quả / Lưu trữ*
+  - Cho phép người dùng chỉnh sửa tiêu đề bước, bổ sung thêm bước hoặc xóa bước tức thì.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] frontend/tasks.html`
+  - `[MODIFY] frontend/tasks-list.html`
+  - `[MODIFY] .keywork.md`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.38] - 01/09/2026: Chuẩn Hóa Mặc Định "Không Dùng Quy Trình Mẫu" (Công Việc Đơn Lẻ) Cho Toàn Hệ Thống
+- **Mặc Định Không Tự Động Nạp Bước Quy Trình Cho Cả 3 Cấp (BGH, Trưởng Đơn Vị, Cá Nhân)**:
+  - Khi mở Modal tạo việc, Dropdown quy trình luôn mặc định là `-- Không dùng quy trình mẫu (Công việc đơn lẻ) --`.
+  - Danh sách bước mốc mặc định để trống (`[]`) kèm hướng dẫn rõ ràng. Mặc định là nhiệm vụ 1 bước trực tiếp (Giao việc $\rightarrow$ Thực hiện $\rightarrow$ Hoàn thành).
+  - Chỉ khi người dùng chủ động chọn mẫu trong danh mục hoặc bấm `+ Thêm bước`, hệ thống mới khởi tạo và gắn các bước mốc.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] frontend/tasks.html`
+  - `[MODIFY] frontend/tasks-list.html`
+  - `[MODIFY] .keywork.md`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.39] - 01/09/2026: Nâng Cấp Nút "Hủy Bỏ" & Chuẩn Hóa Cặp Nút Hành Động Primary-Secondary
+- **Thiết Kế Lại Nút Hủy Bỏ (`tasks.html` & `tasks-list.html`)**:
+  - Thay thế nút nền xám phẳng bị chìm bằng nút Card trắng sang trọng có viền thanh lịch: `bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-300 hover:border-slate-400 rounded-xl font-bold shadow-xs`.
+  - Bổ sung icon `<i class="fa-solid fa-xmark text-slate-400 text-xs"></i>` và nhãn `Hủy bỏ` rõ ràng.
+  - Đồng bộ bo góc `rounded-xl` với nút chính **`Lưu Việc Cá Nhân / Giao Nhiệm Vụ`** (`bg-blue-800 text-white font-bold shadow-xs`) tạo thành cặp nút đối trọng cân xứng và chuyên nghiệp.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/tasks.html`
+  - `[MODIFY] frontend/tasks-list.html`
+  - `[MODIFY] .keywork.md`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.40] - 01/09/2026: Nâng Cấp Nút "Hủy Bỏ" Sang Tông Đỏ Soft Red Thanh Lịch & Chuẩn Nhận Diện
+- **Tông Đỏ Nhẹ (Soft Red Crimson Identity)**:
+  - Cập nhật nút Hủy bỏ sang tông đỏ thanh lịch `bg-red-50/80 hover:bg-red-100 text-red-700 hover:text-red-800 border border-red-200 hover:border-red-300 rounded-xl font-bold shadow-xs`.
+  - Icon đỏ: `<i class="fa-solid fa-xmark text-red-500 text-xs"></i> <span>Hủy bỏ</span>`.
+  - Báo hiệu trực quan thao tác Đóng / Hủy bỏ rõ ràng mà vẫn tinh tế, không bị nhầm lẫn với nút Xóa dữ liệu vĩnh viễn nguy hiểm.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/tasks.html`
+  - `[MODIFY] frontend/tasks-list.html`
+  - `[MODIFY] .keywork.md`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.41] - 01/09/2026: Triển Khai Giao Thức Phối Hợp 2 Chiều & Trung Tâm Lọc Nhanh Phê Duyệt Thông Minh (Approval Hub)
+- **Giao Thức Phối Hợp Liên Đơn Vị 2 Chiều (2-Way Collaboration Protocol)**:
+  - Bổ sung `CollaborationStatus` enum (`NONE`, `CHO_XAC_NHAN`, `DA_TIEP_NHAN`, `TU_CHOI`) và các trường CSDL: `collaboration_status`, `collaboration_reject_reason`, `assisting_assignee_id`, `collaboration_accepted_at`, `collaboration_rejected_at`.
+  - Tự động đánh dấu `CHO_XAC_NHAN` khi Trưởng Đơn Vị tạo việc có chọn đơn vị phối hợp (thay vì áp đặt tự động).
+  - Bổ sung 3 API endpoints backend:
+    - `POST /api/v1/tasks/{id}/collaboration/accept`: Tiếp nhận đề nghị phối hợp, chỉ định cán bộ đầu mối của đơn vị phối hợp, thêm vào RACI (Consulted) và ghi lịch sử trao đổi.
+    - `POST /api/v1/tasks/{id}/collaboration/reject`: Từ chối đề nghị phối hợp kèm lý do bắt buộc.
+    - `POST /api/v1/tasks/{id}/collaboration/escalate-bgh`: Chuyển đề nghị phối hợp lên BGH chỉ đạo bắt buộc.
+- **Cơ Cấu Tab Trưởng Đơn Vị & Hình Thức Công Việc Trong Modal**:
+  - Bổ sung 2 thẻ chọn: `🏢 Việc Nội Bộ Đơn Vị` và `🏛️ Đề Xuất Lên Ban Giám Hiệu`.
+  - Tự động thay đổi tiêu đề, cấu trúc form và nút bấm tương ứng.
+- **Trung Tâm Lọc Nhanh Phê Duyệt Thông Minh (Smart Quick Filter Pills & Live Badges)**:
+  - Bổ sung 2 nút lọc nhanh trên đầu trang danh sách (`tasks-list.html`):
+    - 💡 **`Đề xuất chờ duyệt`** (`badgeProposalCount`): Đếm số lượng và lọc danh sách đề xuất từ cấp dưới theo thời gian thực.
+    - 🤝 **`Chờ tiếp nhận phối hợp`** (`badgePendingCollabCount`): Đếm số lượng và lọc các nhiệm vụ chờ đơn vị mình tiếp nhận phối hợp.
+  - Bổ sung nhãn trực quan `💡 Đề xuất` và huy hiệu trạng thái đơn vị phối hợp (`🤝 Chờ [Code] nhận`, `🤝 [Code] phối hợp`, `❌ [Code] từ chối`) trong bảng danh sách PC và thẻ Mobile Touch Cards.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] backend/app/models/task.py`
+  - `[MODIFY] backend/app/schemas/task.py`
+  - `[MODIFY] backend/app/db/init_db.py`
+  - `[MODIFY] backend/app/api/v1/tasks.py`
+  - `[MODIFY] frontend/tasks.html`
+  - `[MODIFY] frontend/tasks-list.html`
+  - `[MODIFY] frontend/assets/js/tasks.js`
+## 📌 [Phiên bản 2.9.42] - 01/09/2026: Chuẩn Hóa Thứ Tự Luồng Tư Duy 8 Thẻ Lọc Nhanh & Bổ Sung Thẻ "Chưa Đến Hạn"
+- **Chuẩn Hóa Luồng Tư Duy Điều Hành (Cognitive Executive Sequence)**:
+  - Sắp xếp lại 8 nút lọc nhanh trên `tasks-list.html` theo đúng luồng tự nhiên:
+    1. `Tất cả` (Bức tranh tổng thể toàn bộ công việc)
+    2. `🎯 Việc của tôi` (Trọng tâm số 1 của mọi nhân sự & lãnh đạo)
+    3. `💡 Đề xuất chờ duyệt` (Hộp thư tờ trình cần lãnh đạo phê chuẩn)
+    4. `🤝 Đề xuất phối hợp` (Yêu cầu phối hợp từ đơn vị khác)
+    5. `🔥 Khẩn cấp` (Nhiệm vụ đột xuất, hỏa tốc)
+    6. `🚨 Quá hạn` (Báo động đỏ - Việc trễ hạn cần xử lý/đôn đốc ngay)
+    7. `⏳ Sắp đến hạn (48h)` (Cảnh báo vàng - Việc phải xong trong 2 ngày tới)
+    8. `🟢 Chưa đến hạn` (Việc đang chạy đúng tiến độ, thời hạn còn xa > 48h)
+- **Tích Hợp Live Badges Đếm Số Lượng Toàn Diện**:
+  - Bổ sung đếm realtime và badge cho cả `🔥 Khẩn cấp` (`badgeUrgentCount`) và `🟢 Chưa đến hạn` (`badgeOnTrackCount`).
+  - Cập nhật logic lọc `ontrack` trong `tasks.js`: Lọc các nhiệm vụ chưa hoàn thành, không quá hạn và không sắp đến hạn.
+- **Files Chỉnh Sửa**:
+## 📌 [Phiên bản 2.9.43] - 01/09/2026: Bổ Sung Tài Khoản Mẫu Nhân Viên QTĐT Phục Vụ Kiểm Thử
+- **Cấu Hình Tài Khoản Mẫu Nhân Viên (Staff Demo Account)**:
+  - Tên đầy đủ: `Nguyễn Đình Lê Trung`
+  - Username: `ndltrung` (hỗ trợ đăng nhập cả bằng username `ndltrung` lẫn email `ndltrung@hueic.edu.vn`)
+  - Mật khẩu: `HueIC@123`
+  - Đơn vị: `Phòng Quản trị - Đầu tư (QTĐT)`
+  - Vai trò: `4. Nhân Viên` (`STAFF`), chức vụ: `Nhân viên Phòng Quản trị - Đầu tư`.
+- **Trang Đăng Nhập (`login.html`)**:
+  - Bổ sung nút bấm 1-chạm đăng nhập nhanh cho tài khoản `👤 Nhân Viên` (`ndltrung / HueIC@123`) trên màn hình đăng nhập bên cạnh `SuperAdmin` và `Trưởng Phòng QTĐT`.
+- **Hạt Giống CSDL (`init_db.py`)**:
+  - Bổ sung `ndltrung` vào danh sách tài khoản mẫu ban đầu.
+## 📌 [Phiên bản 2.9.44] - 01/09/2026: Chuẩn Hóa Khoảng Cách Modal Giao Việc & Thiết Lập Nguyên Tắc Planning-First Bất Di Bất Dịch
+- **Tinh Chỉnh UI/UX Modal Giao Việc (`tasks.html`, `tasks-list.html`)**:
+  - Tăng khoảng cách đệm (padding `p-4 sm:p-5`), độ giãn cách (`space-y-4`, `gap-3.5`) và label margins (`mb-1.5`) giữa các khối thông tin: Tiêu đề nhiệm vụ, Mô tả chi tiết yêu cầu, Người phối hợp, Đơn vị chủ trì & Phân công thực hiện.
+  - Loại bỏ hoàn toàn cảm giác chật chội, tạo không gian thoáng đãng, dễ đọc và trực quan.
+- **Bổ Sung Nguyên Tắc Cốt Lõi Mục 42 & Directive 5 (`.keywork.md`, `AGENTS.md`)**:
+  - **Quy trình Lập Kế hoạch & Phê duyệt trước khi thực hiện (Planning-First & Approval-Gated Execution)**: Bắt buộc lập bản kế hoạch chi tiết, thảo luận phản biện đa chiều và chỉ thực hiện code khi được người dùng duyệt chính thức.
+## 📌 [Phiên bản 2.9.45] - 01/09/2026: Tinh Chỉnh Tỷ Lệ Khoảng Cách (Spacing) Chuẩn Công Thái Học Cho Modal Giao Việc
+- **Thu Hẹp Khoảng Cách Dải Phân Cách Giữa Các Khối Card**:
+  - Giảm khoảng cách ngoài giữa các Card từ `space-y-4.5` (18px) xuống `space-y-2.5` (10px).
+  - Giảm padding lề ngoài form từ `p-6` xuống `p-3.5 sm:p-4`, giúp các Card liền mạch, gọn gàng và giảm hành trình cuộn trang.
+- **Tối Ưu Padding Bên Trong Khối Card**:
+  - Giảm padding trong từ `p-5` về `p-3.5`.
+  - Duy trì độ thoáng hợp lý giữa Tiêu đề và Mô tả (`space-y-2.5`, `mb-1`), không bị dính sát nhãn mà vẫn tiết kiệm không gian.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/tasks.html`
+  - `[MODIFY] frontend/tasks-list.html`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.46] - 01/09/2026: Chuẩn Hóa Mô Hình Quản Trị 2 Pha (Pha 1: Giao Việc Mới $\rightarrow$ Pha 2: Triển Khai & Phân Công)
+- **Chuẩn Hóa Pha 1 - Giao Nhiệm Vụ Mới (Chỉ Đạo / Khởi Tạo)**:
+  - Tinh gọn tối đa Modal tạo việc: Loại bỏ khối dựng bước thủ công rườm rà lúc tạo nhanh; chuyển thành ô chọn Mẫu quy trình SOP chuẩn (mặc định: *Công việc đơn lẻ*).
+  - Giúp BGH, Trưởng phòng và Cán bộ giao việc/lập việc trong vòng 20-30 giây mà không bị quá tải thông tin.
+- **Nâng Cấp Pha 2 - Triển Khai & Phân Công (Thực Thi / Tác Nghiệp)**:
+  - Chuẩn hóa toàn bộ tên gọi và hành động sang **`[📋 Triển Khai & Phân Công]`**.
+  - Thiết kế chuyên sâu Modal Triển khai: Lập lộ trình bước mốc (Milestones), phân công đích danh cán bộ trong đơn vị phụ trách từng bước, đặt hạn chót cho từng bước con.
+  - Tích hợp nút hành động trực tiếp trong Cây RACI và Stepper Timeline của Modal Chi tiết nhiệm vụ.
+- **Bổ Sung Nguyên Tắc Cốt Lõi Mục 43 (`.keywork.md`)**:
+  - Ghi nhận nguyên tắc tách bạch 2 Pha quản trị vào `.keywork.md`.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/tasks.html`
+  - `[MODIFY] frontend/tasks-list.html`
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] .keywork.md`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.47] - 01/09/2026: Sửa Logic Hiển Thị Nút "Triển Khai & Phân Công" - Chỉ Dành Cho Người Nhận Việc Từ Cấp Trên
+- **Vấn đề**: Nút `[📋 Triển Khai & Phân Công]` trước đây xuất hiện ở mọi task, kể cả task do chính người dùng tự tạo (sai nghiệp vụ).
+- **Giải pháp**: Áp dụng điều kiện `canDelegate`:
+  - `role` phải là `DEPT_HEAD` hoặc `DEPT_VICE` (Trưởng/Phó phòng).
+  - `department_id` của người dùng phải trùng với `leading_dept_id` của task (Đơn vị chủ trì = phòng của mình).
+  - `created_by_id` của task KHÁC với `id` của người dùng hiện tại (cấp trên tạo, không phải mình tự tạo).
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/assets/js/tasks.js` (hàm `renderDetailRaciTree` và `renderDetailWorkflowTimeline`)
+  - `[MODIFY] frontend/tasks.html` (cache buster → v2.9.47)
+  - `[MODIFY] frontend/tasks-list.html` (cache buster → v2.9.47)
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.48] - 01/09/2026: Chuẩn Hóa Từ Ngữ Form "Giao Nhiệm Vụ Mới" (Công việc → Nhiệm vụ)
+- **Thay đổi từ ngữ** trong Form Giao Nhiệm Vụ Mới (3 tab BGH, Trưởng đơn vị, Cá nhân):
+  - `Hình thức công việc cho Cá nhân` → **`Hình thức nhiệm vụ cho Cá nhân`**
+  - `Hình thức công việc cho Trưởng Đơn Vị` → **`Hình thức nhiệm vụ cho Trưởng Đơn Vị`**
+  - `Tự lập danh sách việc cần làm cho chính mình` → **`Tự lập danh sách nhiệm vụ cần hoàn thành của chính mình`**
+  - `Mặc định: Công việc đơn lẻ` → **`Mặc định: Nhiệm vụ trực tiếp (không phân bước)`**
+  - `-- Không dùng quy trình mẫu (Công việc đơn lẻ) --` → **`-- Nhiệm vụ trực tiếp (Không dùng quy trình mẫu) --`**
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/tasks.html`
+  - `[MODIFY] frontend/tasks-list.html`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.49] - 01/09/2026: Chuẩn Hóa Logic Đa Vai Trò & Tùy Chọn Tự Phụ Trách trong Triển Khai Phân Công
+- **Chuẩn Hóa Quyền Triển Khai & Phân Công Đa Vai Trò (Multi-Role Support)**:
+  - Admin kỹ thuật thuần túy (`SUPERADMIN` không phụ trách đơn vị) không can thiệp nghiệp vụ phân chia bước của đơn vị.
+  - Người dùng có quyền `SUPERADMIN` hoặc `BGH` nhưng đồng thời được gán phụ trách một đơn vị cụ thể (kiêm nhiệm) sẽ thực hiện đầy đủ chức năng Triển khai & Phân công cho đơn vị của mình khi tiếp nhận nhiệm vụ từ cấp trên/đơn vị khác.
+  - Loại trừ nhân viên thừa hành (`STAFF`) và các trường hợp tự tạo nhiệm vụ.
+- **Trải Nghiệm Phân Công Linh Hoạt (Tự làm hoặc Giao cho nhân viên)**:
+  - Trong Modal Triển khai & Phân công, danh sách nhân sự được ưu tiên đưa người phụ trách (`⭐ [Chính tôi]`) lên đầu danh sách để dễ dàng chọn tự làm các bước trọng yếu.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] frontend/tasks.html` (cache buster → v2.9.49)
+  - `[MODIFY] frontend/tasks-list.html` (cache buster → v2.9.49)
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.50] - 01/09/2026: Kiến Trúc Phân Quyền Chi Tiết Đa Chiều Thông Minh (4-Layer Smart RBAC Stack)
+- **Chuẩn Hóa 4 Lớp Dữ Liệu Phân Quyền**:
+  - **Lớp 1: Role (Vai trò hệ thống)**: `SUPERADMIN`, `BGH`, `DEPT_HEAD`, `DEPT_VICE`, `STAFF`.
+  - **Lớp 2: Chức vụ (Position / Administrative Authority)**: *Hiệu trưởng, Phó Hiệu trưởng, Trưởng phòng, Tổ trưởng, Chuyên viên chính...*
+  - **Lớp 3: Phòng / Ban (Department Scope)**: Xác định ranh giới quản lý dữ liệu trong phạm vi đơn vị `department_id`.
+  - **Lớp 4: User (Cá nhân / Custom Overrides & Delegation)**: Quyền đặc thù ghi đè hoặc cấp thêm cho từng tài khoản cá nhân.
+- **Nâng Cấp Giao Diện Ma Trận Phân Quyền (`settings.html` & `settings.js`)**:
+  - Hiển thị đầy đủ thông tin nhận diện 4 Lớp của cán bộ được chọn (Role badge, Chức vụ, Đơn vị trực thuộc, Tên đăng nhập).
+  - Cập nhật script cache buster lên `v=2.9.50`.
+- **Ghi Nhận Nguyên Tắc Cốt Lõi Mục 44 (`.keywork.md`)**:
+  - Bổ sung nguyên tắc Phân quyền Đa chiều Thông minh vào `.keywork.md`.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/assets/js/settings.js`
+  - `[MODIFY] frontend/settings.html`
+  - `[MODIFY] .keywork.md`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.51] - 01/09/2026: Nâng Cấp Ma Trận Phân Quyền Thông Minh, Smart Diff & Cơ Chế Khôi Phục Mặc Định (Restore) An Toàn
+- **Cơ Chế Khôi Phục Mặc Định An Toàn (Restore & Revert Engine)**:
+  - Bổ sung nút **`[🔄 Khôi Phục Mặc Định Gốc]`**: Cho phép người quản trị với 1 chạm có thể reset 100% quyền của cán bộ về chuẩn mặc định theo đúng Vai trò (Role) của họ khi lỡ tích nhầm, xóa sạch mọi override sai lệch.
+  - Bổ sung nút **`[↩️ Hoàn Tác]`**: Hủy các thay đổi checkbox chưa lưu để quay về trạng thái đã lưu trong CSDL.
+- **Ma Trận Đối Chiếu Thông Minh (Smart Diff Bar)**:
+  - Tự động so sánh số quyền đang chọn với mẫu chuẩn của Role theo thời gian thực:
+    - `🔒 Chuẩn theo Role` (số quyền kế thừa).
+    - `➕ Cấp thêm (Override)` (hiện pill xanh nếu có quyền mở rộng).
+    - `⛔ Đã thu hồi` (hiện pill đỏ nếu tước quyền gốc của Role).
+- **Cảnh Báo Vượt Cấp & Tagging Trực Quan trên Checkbox**:
+  - Tự động phát hiện và gắn nhãn `⚠️ Vượt cấp` nếu tài khoản Nhân viên (STAFF) được tích các quyền nhạy cảm cấp trường (`scope:school`, `task:dispatch_school`, `task:delete`, `user:manage`, `perm:manage`).
+  - Gắn nhãn `🔒 Gốc Role`, `➕ Cấp thêm`, `⛔ Đã thu hồi` và đổi viền màu thẻ tương ứng trên từng quyền.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/assets/js/settings.js`
+  - `[MODIFY] frontend/settings.html` (cache buster → v2.9.51)
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.52] - 01/09/2026: Khởi Tạo 9 Nhiệm Vụ Mẫu 3 Chiều & Bổ Sung Tài Khoản Mẫu Hiệu Trưởng (BGH) Đăng Nhập 1 Chạm
+- **Khởi Tạo 9 Nhiệm Vụ Mẫu Nghiệp Vụ Thực Tế**:
+  - **Nguyễn Đình Lê Trung (Nhân viên QTĐT)**: 3 nhiệm vụ (1 việc tự tạo My To-Do kiểm tra điều hòa, 2 đề xuất lên Trưởng phòng về trang bị phòng Lab 3 và chống ngập sân thể thao).
+  - **Trần Tiến Dũng (Trưởng phòng QTĐT)**: 3 nhiệm vụ (1 việc nội bộ lập HSMT bảo trì phân công cán bộ theo bước mốc, 1 đề xuất lên BGH nâng công suất trạm biến áp, 1 việc phối hợp liên phòng QTĐT 🤝 CNTT).
+  - **Trần Hữu Châu Giang (Hiệu Trưởng - BGH)**: 3 nhiệm vụ chỉ đạo cấp trường (Sửa chữa KTX đón tân sinh viên, Xây dựng kiến trúc Quản trị số HueIC IMP, Tổ chức ngày hội tuyển sinh & khai giảng).
+- **Cập Nhật Màn Hình Đăng Nhập (`login.html`)**:
+  - Bổ sung nút đăng nhập nhanh 1 chạm cho **Hiệu Trưởng (`thcgiang` / `HueIC@123`)** bên cạnh SuperAdmin, Trưởng Phòng và Nhân Viên.
+- **Khắc Phục & Chuẩn Hóa UTF-8 Toàn Diện**:
+  - Xóa bỏ các bản ghi bị lỗi font do piping PowerShell và tái tạo chuẩn xác 100% tiếng Việt UTF-8 có dấu cho toàn bộ 9 nhiệm vụ mẫu.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/login.html`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.53] - 01/09/2026: Nâng Cấp Toàn Diện Phân Quyền Theo Vai Trò (Role Baseline) & Kiểm Soát Hiển Thị Phân Hệ / Module Khi Đăng Nhập
+- **Cấu Hình Phân Quyền 2 Chế Độ (Role Baseline & User Overrides)**:
+  - **Chế độ 1 - Phân quyền theo Vai trò (Role Baseline Mode)**: Cho phép Quản trị viên trực tiếp lựa chọn 5 vai trò chuẩn (`👑 SuperAdmin`, `🏛️ BGH`, `👔 Trưởng ĐV`, `🎖️ Phó ĐV`, `👤 Nhân Viên`) để thiết lập bộ quyền chuẩn và danh mục module được phép truy cập mặc định cho toàn bộ tài khoản mang vai trò đó.
+  - **Chế độ 2 - Phân quyền theo Cán bộ (User Overrides Mode)**: Cho phép tinh chỉnh quyền chi tiết từng cá nhân với đầy đủ Smart Diff, Thẻ tag trạng thái (`🔒 Gốc Role`, `➕ Cấp thêm`, `⛔ Đã thu hồi`, `⚠️ Vượt cấp`), nút Hoàn tác và Khôi phục mặc định gốc 100%.
+- **Bổ Sung Nhóm Quyền Phân Hệ / Module (Module Access Group)**:
+  - Bổ sung 7 mã quyền phân hệ: `module:dashboard`, `module:tasks`, `module:calendar`, `module:assets`, `module:documents`, `module:database`, `module:settings`.
+- **Cơ Chế Kiểm Soát Hiển Thị Module & Chặn Truy Cập Trái Phép Khi Đăng Nhập (`applyModulePermissions`)**:
+  - Khi người dùng đăng nhập (`Common.init()`), hệ thống tự động tính toán tổng hợp quyền: $\text{Active Perms} = \text{Role Base Perms} \cup \text{User Custom Perms}$.
+  - Tự động ẩn các Menu Sidebar (`#nav-dashboard`, `#nav-tasks`, `#nav-calendar`, `#nav-assets`, `#nav-documents`, `#nav-database`, `#nav-settings`) nếu người dùng không có quyền truy cập module.
+  - Tự động chặn truy cập trực tiếp bằng URL (Redirect Guard) về trang công việc nếu cố tình truy cập vào các phân hệ bị cấm (như CSDL hoặc Cài đặt).
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] backend/app/core/permissions.py`
+  - `[MODIFY] backend/app/api/v1/permissions.py`
+  - `[MODIFY] frontend/assets/js/api.js`
+  - `[MODIFY] frontend/assets/js/common.js`
+  - `[MODIFY] frontend/assets/js/settings.js`
+  - `[MODIFY] frontend/settings.html` (cache buster → v2.9.53)
+  - `[MODIFY] .keywork.md` (Mục 44.3 & 44.4)
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.54] - 01/09/2026: Chuẩn Hóa 100% Ma Trận Phân Quyền Module & Kiểm Soát Subtabs Cài Đặt và Chuyển Hướng Đăng Nhập
+- **Chuẩn Hóa Ma Trận Quyền Gốc Theo Yêu Cầu Người Dùng**:
+  - `👑 SuperAdmin`: Toàn quyền 100% tất cả các Module và Subtabs Cài đặt.
+  - `🏛️ Ban Giám Hiệu (BGH)`: Truy cập Dashboard cấp trường, Tasks (toàn trường), Calendar, Assets, Documents, Settings (toàn bộ Subtabs).
+  - `👔 Trưởng Đơn Vị (DEPT_HEAD) & 🎖️ Phó Đơn Vị (DEPT_VICE)`:
+    - Mặc định chỉ thấy phân hệ `Quản Lý Công Việc (Tasks)` trong phạm vi đơn vị mình (`scope:dept`).
+    - Riêng Trưởng/Phó đơn vị QTĐT được xem thêm `Quản Trị Cơ Sở Vật Chất (Assets)`.
+    - Khi vào `Thiết Lập (Settings)`: Mặc định chỉ thấy 2 Subtabs công khai (`Quy Trình Mẫu (Workflows)` & `Giao Diện & Màu Sắc`), ẩn hoàn toàn 3 Subtabs quản trị (`Phòng/Khoa`, `Cán Bộ`, `Phân Quyền RBAC`) trừ khi được cấp thêm quyền.
+  - `👤 Cán Bộ / Nhân Viên (STAFF)`:
+    - Mặc định chỉ thấy `Quản Lý Công Việc (Tasks)` của chính mình / phối hợp (`scope:personal`).
+    - Trong `Thiết Lập (Settings)`: Chỉ thấy `Quy Trình Mẫu (Workflows)` & `Giao Diện & Màu Sắc`.
+- **Chuyển Hướng Đăng Nhập Thông Minh (Smart Landing Page)**:
+  - SuperAdmin & BGH: Sau khi đăng nhập tự động chuyển hướng đến `index.html` (Dashboard điều hành cấp trường).
+  - Trưởng phòng & Nhân viên: Sau khi đăng nhập tự động chuyển hướng thẳng vào `tasks.html` (Bảng Quản lý công việc tác nghiệp).
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] backend/app/core/permissions.py`
+  - `[MODIFY] frontend/assets/js/common.js`
+  - `[MODIFY] frontend/assets/js/settings.js`
+  - `[MODIFY] frontend/login.html`
+  - `[MODIFY] README.md` (Đặc tả mô hình vận hành 2 pha, phối hợp 2 chiều và ma trận RBAC trực quan)
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.55] - 01/09/2026: Đồng Bộ Chuẩn Bản Quyền & Tác Giả Hệ Thống (Copyright & Authorship Standard)
+- **Chuẩn Hóa Khối Thông Tin Bản Quyền Bất Biến**:
+  - Đồng bộ chuẩn thông tin:
+    ```
+    © 09/2026 HueIC-IMP
+    Idea & Direction by Nguyen Dinh Le Trung
+    Built with AI Assistance.
+    ```
+  - Cập nhật trên toàn bộ các tệp giao diện: `index.html`, `tasks.html`, `tasks-list.html`, `calendar.html`, `settings.html`, `assets.html`, `documents.html`, `database.html`, `login.html`.
+  - Cập nhật footer tài liệu `README.md` và ghi nhận vào `.keywork.md` (Mục 45).
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/calendar.html`
+  - `[MODIFY] frontend/login.html`
+  - `[MODIFY] README.md`
+  - `[MODIFY] .keywork.md` (Mục 45)
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.56] - 01/09/2026: UI – Màu Sắc Active Đặc Trưng Riêng Cho Từng Subnav Tab (Settings)
+- **Vấn Đề**: Tất cả 5 subnav tab trong Thiết Lập đều dùng cùng màu `bg-white text-blue-900` khi active, không phân biệt được từng tab.
+- **Giải Pháp**: Mỗi tab được gán màu active đặc trưng riêng qua attribute `data-active`:
+  - 🏛️ **Phòng / Khoa** → `bg-blue-700 text-white` (Institutional Blue)
+  - 👥 **Cán Bộ & Nhân Sự** → `bg-emerald-600 text-white` (HR Green)
+  - 🛡️ **Phân Quyền (RBAC)** → `bg-violet-600 text-white` (Security Purple)
+  - 🔄 **Quy Trình (Workflows)** → `bg-amber-500 text-white` (Process Amber)
+  - 🎨 **Giao Diện & Màu Sắc** → `bg-rose-500 text-white` (Design Rose)
+- **Inactive State**: Cải thiện hover state thành `hover:bg-slate-300/60 hover:text-slate-800` để dễ nhận biết hơn.
+- **Logic JS**: `switchSubTab()` trong `settings.js` đọc `btn.dataset.active` để áp màu động — không còn hardcode class.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/settings.html` (data-active attribute + initial active class)
+  - `[MODIFY] frontend/assets/js/settings.js` (switchSubTab logic)
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.57] - 01/09/2026: Chuẩn Hóa Viền Xanh Focus Ring Toàn App, Cấu Hình Bảng Màu Thứ Tự Tabs & Phân Biệt Nút Tác Vụ
+- **Chuẩn Hóa Focus Ring Toàn Hệ Thống (`assets/css/global.css`)**:
+  - Tạo tệp `global.css` và nhúng vào toàn bộ 10 trang HTML.
+  - Quy chuẩn viền xanh dịu mắt (`border-color: #2563eb`, `box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18)`) cho toàn bộ `input`, `textarea`, `select`, `checkbox`, `radio` khi click/focus — giải quyết triệt để tình trạng "chỗ có chỗ không".
+- **Cấu Hình Màu Sắc Theo Thứ Tự Tab Trong Phân Hệ Thiết Lập**:
+  - Bổ sung **KHỐI 3** vào tab *Giao Diện & Màu Sắc* cho phép người dùng tùy biến và xem trước trực tiếp (Live Preview) bảng màu Active của 5 Subnav Tabs và 2 nút Chế độ RBAC theo đúng thứ tự logic hiển thị từ trái qua phải.
+  - Hỗ trợ lưu vào `localStorage` và nút khôi phục mặc định an toàn.
+- **Đồng Bộ Màu Sắc Phân Cấp Vai Trò & Nút Gán Nhanh**:
+  - Nút Gán nhanh mẫu quyền theo nhóm (`Ban Giám Hiệu`, `Trưởng ĐV`, `Phó ĐV`, `Nhân Viên`) và danh sách chọn Vai trò gốc được đồng bộ màu sắc phân cấp chuẩn.
+- **Bảo Toàn Chuẩn Mực Nút Tác Vụ (Action Buttons)**:
+  - Giữ nguyên thiết kế trung tính cho nhóm nút tác vụ (`Hoàn Tác`, `Khôi Phục Mặc Định Gốc`, `Hủy`, `Đóng`) theo **Nguyên Tắc Bất Biến Số 46** trong `.keywork.md`.
+- **Files Chỉnh Sửa**:
+  - `[NEW] frontend/assets/css/global.css`
+  - `[MODIFY] frontend/*.html` (Nhúng global.css vào 10 trang HTML)
+  - `[MODIFY] frontend/settings.html`
+  - `[MODIFY] frontend/assets/js/settings.js`
+  - `[MODIFY] .keywork.md` (Mục 46)
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.58] - 01/09/2026: Đồng Bộ Thứ Tự Đánh Số 1..5 Chuẩn Xác Toàn Diện Cho Toàn Bộ Nhóm Nút
+- **Khắc Phục Lỗi Trùng Lặp & Thiếu Thứ Tự**:
+  - **Thanh 5 Subnav Tabs**: Đánh số tường minh `1. Phòng / Khoa` $\rightarrow$ `2. Cán Bộ & Nhân Sự` $\rightarrow$ `3. Phân Quyền Chi Tiết (RBAC)` $\rightarrow$ `4. Quy Trình Mẫu (Workflows)` $\rightarrow$ `5. Giao Diện & Màu Sắc`.
+  - **Danh Sách Vai Trò Cột Trái**: Sửa lỗi đánh số trùng `3/` cho Phó Đơn Vị $\rightarrow$ Chuẩn hóa thành `1/ SuperAdmin`, `2/ BGH`, `3/ Trưởng ĐV`, `4/ Phó ĐV`, `5/ Nhân Viên`.
+  - **Thanh Gán Nhanh Mẫu Quyền**: Bổ sung đầy đủ nút số `1/ SuperAdmin` và đồng bộ thứ tự chuẩn `1/ SuperAdmin`, `2/ BGH`, `3/ Trưởng ĐV`, `4/ Phó ĐV`, `5/ Nhân Viên`.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/settings.html`
+  - `[MODIFY] frontend/assets/js/settings.js`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.59] - 01/09/2026: Kế Thừa Bảng Màu Ngữ Nghĩa & Phân Cấp Vai Trò Chuẩn Xác
+- **Kế Thừa Màu Sắc Ngữ Nghĩa Chế Độ RBAC**:
+  - `1. Cấu Hình Quyền Gốc Theo Vai Trò (Role Baseline)`: Thừa hưởng màu Xanh dương (`bg-blue-700`) của **Tab 1. Phòng / Khoa**.
+  - `2. Cấu Hình Tùy Biến Theo Cán Bộ (User Overrides)`: Thừa hưởng màu Xanh lá (`bg-emerald-600`) của **Tab 2. Cán Bộ & Nhân Sự**.
+- **Đồng Bộ Màu Nền Phân Cấp Vai Trò (Cả 5 Role Cards & 5 Nút Gán Nhanh)**:
+  - 👑 `1/ SuperAdmin`: Tím đậm quyền lực (`bg-purple-50` $\rightarrow$ Active `bg-purple-900 text-white`)
+  - 🏛️ `2/ Ban Giám Hiệu`: Xanh chàm điều hành (`bg-indigo-50` $\rightarrow$ Active `bg-indigo-900 text-white`)
+  - 👔 `3/ Trưởng Đơn Vị`: Xanh dương quản lý (`bg-blue-50` $\rightarrow$ Active `bg-blue-900 text-white`)
+  - 🎖️ `4/ Phó Đơn Vị`: Hổ phách phối hợp (`bg-amber-50` $\rightarrow$ Active `bg-amber-900 text-white`)
+  - 👤 `5/ Nhân Viên`: Than tinh tế thực thi (`bg-slate-100` $\rightarrow$ Active `bg-slate-800 text-white`)
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/settings.html`
+  - `[MODIFY] frontend/assets/js/settings.js`
+  - `[MODIFY] .keywork.md` (Mục 46.3)
+  - `[MODIFY] HISTORY.md`
+
+
+## 📌 [Phiên bản 2.9.60] - 01/09/2026: Sửa Màu Phó ĐV & Thiết Lập Hệ Thống 10 Màu Chuẩn Hiện Đại
+- **Sửa Lỗi Màu Phó Đơn Vị (🎖️ 4/)**: Thay Amber (cam vàng) → Teal (xanh phối hợp). Chuỗi màu phân cấp vai trò nay liền mạch: Violet → Indigo → Blue → **Teal** → Slate (toàn phổ cool-spectrum).
+- **Thiết Lập Hệ Thống 10 Màu Chuẩn Hiện Đại (HueIC App Palette)**:
+  Nghiên cứu từ Radix UI, shadcn/ui, Linear, Vercel, Stripe, Tailwind v3 — Ghi nhận thành **Nguyên Tắc Bất Biến Số 47** trong `.keywork.md`:
+  | # | Màu | HEX | Ngữ Nghĩa |
+  |---|---|---|---|
+  | 1 | Violet-600 | `#7c3aed` | SuperAdmin / Premium |
+  | 2 | Indigo-700 | `#4338ca` | BGH / Executive |
+  | 3 | Blue-700 | `#1d4ed8` | Phòng Khoa / Management |
+  | 4 | Teal-600 | `#0d9488` | Phó ĐV / Coordination |
+  | 5 | Emerald-600 | `#059669` | Nhân Sự / HR |
+  | 6 | Cyan-600 | `#0891b2` | Operations |
+  | 7 | Amber-500 | `#f59e0b` | Workflow / Process |
+  | 8 | Orange-600 | `#ea580c` | Alert / Khẩn |
+  | 9 | Rose-500 | `#f43f5e` | Design / UI |
+  | 10 | Slate-600 | `#475569` | Nhân Viên / Neutral |
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/settings.html`
+  - `[MODIFY] frontend/assets/js/settings.js`
+  - `[MODIFY] .keywork.md` (Mục 47 — App Palette 10 màu)
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.61] - 01/09/2026: Tối Ưu Bố Cục Ngang Gọn Gàng & Ánh Xạ Chuẩn Xác 5 Vai Trò Vào 5 Màu Đầu Tiên (1..5)
+- **Tối Ưu Bố Cục Ngang Gọn Gàng Cho Toàn Bộ 3 Khối Cấu Hình**:
+  - Thay thế toàn bộ layout thẻ dọc dài dòng chiếm diện tích bằng **Grid ngang hiện đại (1 dòng / 2 dòng)** cho cả:
+    1. *Quy chuẩn Trạng thái công việc (Status)* $\rightarrow$ 3 cột ngang gọn.
+    2. *Quy chuẩn Mức độ ưu tiên (Priority)* $\rightarrow$ 2 cột ngang gọn.
+    3. *Màu Sắc Tab Active* $\rightarrow$ 7 cột ngang gọn với Live Preview tích hợp.
+  - Loại bỏ các text phụ thừa (`subnav #departments`, v.v.) và sửa lỗi lặp số thứ tự.
+- **Ánh Xạ Chuẩn 100% 5 Vai Trò Vào 5 Màu Đầu Tiên Của Bảng 10 Màu**:
+  - 👑 `1/ SuperAdmin` $\rightarrow$ **Màu #1: Violet** (`#7c3aed`)
+  - 🏛️ `2/ Ban Giám Hiệu` $\rightarrow$ **Màu #2: Indigo** (`#4338ca`)
+  - 👔 `3/ Trưởng Đơn Vị` $\rightarrow$ **Màu #3: Blue** (`#1d4ed8`)
+  - 🎖️ `4/ Phó Đơn Vị` $\rightarrow$ **Màu #4: Teal** (`#0d9488`)
+  - 👤 `5/ Cán Bộ / NV` $\rightarrow$ **Màu #5: Emerald** (`#059669`)
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/settings.html`
+  - `[MODIFY] frontend/assets/js/settings.js`
+  - `[MODIFY] .keywork.md` (Mục 47)
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.62] - 01/09/2026: Đánh Số Thứ Tự Khối 3 & Mở Rộng Đầy Đủ 10 Slots Màu Chuẩn
+- **Đánh Số Thứ Tự Khối 3**: Thêm số `3.` vào tiêu đề thành: `3. Màu Sắc Tab Active & Bảng 10 Màu Chuẩn — Tùy Chỉnh Theo Thứ Tự Hiển Thị`.
+- **Mở Rộng Đầy Đủ 10 Slots Màu Chuẩn (10-Column Grid)**:
+  - Bổ sung 3 slot màu còn lại (`8. Màu #8 - Cyan`, `9. Màu #9 - Orange`, `10. Màu #10 - Slate`) để thanh Palette có đầy đủ 10 màu chuẩn.
+  - Bố cục responsive 10 cột ngang trên 1 hàng duy nhất trên màn hình lớn (`xl:grid-cols-10`), cực kỳ tinh tế và nhỏ gọn.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/settings.html`
+  - `[MODIFY] frontend/assets/js/settings.js`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.64] - 01/09/2026: Đồng Bộ Trọn Bộ 10 Màu Cho Cả Thanh Live Preview & Bảng Điều Khiển
+- **Đồng Bộ Hoàn Hảo 10 Màu (1..10)**:
+  - Thanh **Live Preview bar (dãy trên)** hiển thị chuẩn xác trọn vẹn 10 viên pill màu tương ứng 1-1 với **10 ô điều khiển Color Picker (dãy dưới)**.
+  - Loại bỏ hoàn toàn việc gán số thứ tự sai (6, 7) cho các nút sub-mode con (`Role Base`, `Overrides`).
+  - Ánh xạ trực tiếp live khi điều chỉnh màu từ bảng 10 màu sang các phân hệ Tab và Role tương ứng.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/assets/js/settings.js`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.65] - 01/09/2026: Tách Biệt 100% Màu 4, 5, 6 & Thiết Kế Dãy Chọn Màu Nằm Trên Đúng 1 Dòng Duy Nhất
+- **Khắc Phục Trùng Tông Màu 4, 5, 6**:
+  - Màu #4: **Teal** (`#0d9488` - Xanh ngọc đậm)
+  - Màu #5: **Green** (`#16a34a` - Xanh lá tươi rực)
+  - Màu #6: **Yellow** (`#eab308` - Vàng chanh tươi sáng, tách biệt 100% khỏi màu xanh lá)
+- **Thiết Kế 1 Hàng Duy Nhất (Single Horizontal Line)**:
+  - Dãy 10 ô điều khiển bên dưới chuyển sang bố cục chip ngang thu nhỏ `flex items-center justify-between` nằm thẳng tắp trên đúng **1 hàng ngang duy nhất (1 line)**, không bị rớt dòng hay chiếm không gian.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/assets/js/settings.js`
+  - `[MODIFY] .keywork.md` (Mục 47.1)
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.66] - 01/09/2026: Cập Nhật Chuẩn Hóa Thứ Tự 10 Màu Hệ Thống & Áp Dụng Cho Tất Cả Các Tab / Nút Liền Kề
+- **Thứ Tự 10 Màu Chuẩn Cố Định**:
+  1. `Violet` (`#7c3aed`) $\rightarrow$ Tab 1. Phòng/Khoa & Role 1. SuperAdmin
+  2. `Indigo` (`#4338ca`) $\rightarrow$ Tab 2. Cán Bộ & NV & Role 2. Ban Giám Hiệu
+  3. `Blue` (`#2563eb`) $\rightarrow$ Tab 3. Phân Quyền & Role 3. Trưởng Đơn Vị
+  4. `Green` (`#16a34a`) $\rightarrow$ Tab 4. Quy Trình & Role 4. Phó Đơn Vị
+  5. `Yellow` (`#eab308`) $\rightarrow$ Tab 5. Giao Diện & Role 5. Cán Bộ / NV
+  6. `Orange` (`#f97316`)
+  7. `Teal` (`#0d9488`)
+  8. `Red` (`#dc2626`)
+  9. `Pink` (`#db2777`)
+  10. `Slate` (`#475569`)
+- **Áp Dụng Đồng Bộ**:
+  - 5 Tab Điều Hướng Chính tại `settings.html`.
+  - 5 Nút Gán Nhanh Quyền Nhóm tại `settings.html`.
+  - 5 Card Vai Trò RBAC tại `settings.js`.
+  - 2 Nút Chế Độ RBAC (`Role Baseline` $\rightarrow$ Violet, `User Overrides` $\rightarrow$ Indigo).
+  - Ngoại trừ các nút chức năng (Hủy, Hoàn Tác, Khôi Phục, Xác Nhận / Lưu) giữ nguyên màu chuẩn neutral/primary.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/settings.html`
+  - `[MODIFY] frontend/assets/js/settings.js`
+  - `[MODIFY] .keywork.md` (Mục 48)
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.67] - 01/09/2026: Tối Giản Hóa Khối Trạng Thái & Mức Độ Ưu Tiên (Xóa Mã Code Trùng Lặp)
+- **Loại Bỏ Mã Code Kỹ Thuật Thừa**:
+  - Xóa bỏ hoàn toàn các phụ đề mã (`CHUA_BAT_DAU`, `DANG_THUC_HIEN`, `CHO_DUYET`, `TRE_HAN`, `HOAN_THANH`, `TAM_DUNG`, `KHAN_CAP`, `CAO`, `TRUNG_BINH`, `THAP`).
+  - Giữ lại duy nhất: **Số thứ tự badge**, **Tên tiếng Việt hiển thị**, **Color Picker** và **Ô nhập thứ tự**.
+- **Bố Cục Tinh Gọn 1 Dòng (Single-Line Chip)**:
+  - Mỗi mục trạng thái và mức độ ưu tiên nằm gọn gàng trên đúng **1 dòng ngang**, giúp giao diện cực kỳ sạch sẽ, thoáng đãng và chuyên nghiệp.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/assets/js/settings.js`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.68] - 02/09/2026: Tối Ưu Hóa & Gia Cố Toàn Vẹn Mô Hình Dữ Liệu HueIC IMP (Database Model Hardening)
+- **Sửa Lỗi Khởi Tạo Dữ Liệu (Seed Data Bug Fix)**:
+  - `init_db.py`: Khắc phục lỗi `NameError: user_map` khi khởi tạo `demo_tasks`. Thu thập `user_map = {u.username: u for u in db.query(User).all()}` sau bước tạo user để đảm bảo gán đúng khóa ngoại `assignee_id`.
+- **Ràng Buộc Khóa Ngoại & Toàn Vẹn Tham Chiếu (Foreign Key Integrity)**:
+  - `Task.workflow_template_id`: Bổ sung `ForeignKey("workflow_templates.id", ondelete="SET NULL")` và liên kết `relationship("WorkflowTemplate")`.
+  - `Task.series_id`: Bổ sung migration an toàn với `REFERENCES task_recurring_rules(id) ON DELETE SET NULL`.
+- **Ràng Buộc Toàn Vẹn Nghiệp Vụ CSDL (CHECK & UNIQUE Constraints)**:
+  - `Task`: Thêm 3 `CheckConstraint` bảo vệ mức cơ sở dữ liệu:
+    * `chk_task_progress_percent`: `progress_percent >= 0.0 AND progress_percent <= 100.0`
+    * `chk_task_escalation_level`: `escalation_level >= 0 AND escalation_level <= 3`
+    * `chk_task_weight`: `weight > 0.0`
+  - `TaskAssignment`: Thêm `UniqueConstraint('task_id', 'assigned_to_id', name='uq_task_user_assignment')` chống trùng lặp phân công cho cùng một cá nhân.
+- **Bảo Toàn Audit Trail Khi Xóa Người Dùng (Audit Preservation)**:
+  - `TaskComment.author_id`: Đổi ràng buộc từ `CASCADE` sang `ondelete="SET NULL"` và `nullable=True` để giữ nguyên toàn bộ lịch sử trao đổi, thảo luận khi tài khoản người dùng bị xóa.
+- **Cải Tiến Cây Cơ Cấu Đa Tầng & Theo Dõi Chỉnh Sửa**:
+  - `Department`: Nâng độ dài `code` lên `String(100)` và bổ sung trường `path` (Materialized Path) hỗ trợ truy vấn cấu trúc phân cấp nhanh.
+  - `TaskAssignment` & `TaskComment`: Bổ sung trường `updated_at` (DateTime timezone-aware) theo dõi thời gian cập nhật.
+- **Cập Nhật Pydantic Schemas**:
+  - `schemas/task.py`: Cập nhật `TaskCommentOut` (`author_id: Optional[int]`, `updated_at`), `TaskAssignmentOut` (`updated_at`).
+  - `schemas/department.py`: Cập nhật `DepartmentBase` bổ sung trường `path`.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] backend/app/models/task.py`
+  - `[MODIFY] backend/app/models/department.py`
+  - `[MODIFY] backend/app/schemas/task.py`
+## 📌 [Phiên bản 2.9.69] - 02/09/2026: Tự Động Hóa Materialized Path Cây Cơ Cấu & Cập Nhật Schema Department
+- **Tự Động Sinh Đường Dẫn Phân Cấp (Materialized Path Engine)**:
+  - `departments.py`: Bổ sung hàm `compute_department_path(db, code, parent_id)` tự động xây dựng chuỗi `path` phân cấp (VD: `/BGH`, `/CNTT/BM_PM`, `/CNTT/BM_PM/TO_PM1`).
+- **Bảo Vệ Chống Quan Hệ Vòng (Circular Dependency Guard)**:
+  - Ngăn chặn triệt để việc gán `parent_id` là chính nó hoặc là bất kỳ đơn vị con cháu nào trong nhánh phân cấp của chính đơn vị đó (`target_parent.path.startswith(f"{curr_path}/")`).
+- **Cascade Cập Nhật Cho Toàn Bộ Đơn Vị Con**:
+  - Khi một phòng ban đổi `code` hoặc chuyển `parent_id`, hệ thống tự động tìm và cập nhật toàn bộ các `path` của đơn vị con cháu trực thuộc theo chuỗi mới.
+- **Cập Nhật Schema `DepartmentUpdate`**:
+  - `schemas/department.py`: Bổ sung trường `code: Optional[str]` (có kiểm tra trùng lặp mã đơn vị) và `path: Optional[str]`.
+- **Đồng Bộ Dữ Liệu Gốc**:
+  - `init_db.py`: Tự động gán `path = f"/{dept.code}"` cho 12 đơn vị cốt lõi của trường HueIC.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] backend/app/schemas/department.py`
+  - `[MODIFY] backend/app/api/v1/departments.py`
+  - `[MODIFY] backend/app/db/init_db.py`
+  - `[MODIFY] .keywork.md` (Mục 49)
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.70] - 02/09/2026: Chuẩn Hóa Font Inter, Nền Slate-100 & Active Sidebar Đồng Bộ Toàn Bộ Trang
+- **Đồng Bộ Font & Nền** (`index.html`, `calendar.html`):
+  - Áp dụng font `Inter` + `Manrope` chuẩn như `tasks.html` cho cả `index.html` và `calendar.html`.
+  - Đổi nền toàn trang từ `bg-[#F6F5F1]` (kem cổ điển) sang `bg-slate-100` (xám hiện đại) đồng bộ.
+  - Header chuyển từ `bg-[#FFFFFF] border-[#E4E1D8]` sang `bg-white border-slate-200` chuẩn Tailwind.
+- **Chuẩn Hóa Sidebar** (`index.html`, `calendar.html`):
+  - Sidebar đổi từ `bg-[#16233D]` (navy custom) sang `bg-slate-900` (Tailwind chuẩn).
+  - Brand header đổi từ `bg-[#0F192C]` sang `bg-slate-950/60`, viền từ `border-[#1E2C4A]` sang `border-slate-800/80`.
+  - Logo icon đổi từ teal `bg-[#0E7C7B]` sang `bg-blue-600`.
+  - "Internal Portal" subtext đổi từ `text-[#0E7C7B]` sang `text-blue-400`.
+  - Nav labels, credits đồng bộ hoàn toàn theo chuẩn Tailwind slate.
+- **Sửa Lỗi Active Nav Sidebar** (`common.js`, `calendar.html`, `index.html`):
+  - Loại bỏ CSS cũ `nav-link:hover { background: #1E2C4A }` và `#nav-calendar { background: #0E7C7B }` khỏi `calendar.html`.
+  - Xóa hardcode class active `bg-blue-700 text-white shadow-md` từ `nav-dashboard` (index.html) và `nav-calendar` (calendar.html).
+  - Cập nhật `setActiveNav()` trong `common.js` dùng `bg-blue-700 text-white shadow-md` cho link active và `hover:bg-slate-800` cho hover — nhất quán trên mọi trang.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/index.html`
+  - `[MODIFY] frontend/calendar.html`
+  - `[MODIFY] frontend/assets/js/common.js`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.71] - 02/09/2026: Sửa Lỗi Active Nav Không Hiện Màu Dashboard & Calendar
+- **Root Cause**: `dashboard.js` và `calendar.js` không gọi `Common.init()` → `setActiveNav()` không được chạy → link Dashboard và Lịch Công Tác không bao giờ nhận màu active xanh.
+- **Fix `dashboard.js`**: Thay toàn bộ block kiểm tra user/redirect thủ công bằng `Common.init('dashboard')` — `Common.init()` đã xử lý redirect, theme, avatar, nav badge và active nav.
+- **Fix `calendar.js`**: Tương tự — thay block cũ bằng `Common.init('calendar')`. Giữ lại logic riêng sidebar user, hash/date param.
+- **Fix `index.html`**: Xóa thẻ `<style>` kép bị lồng nhau (dòng 18–19). Fix `<main>` còn `bg-[#F6F5F1]` → `bg-slate-100`.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/assets/js/dashboard.js`
+  - `[MODIFY] frontend/assets/js/calendar.js`
+  - `[MODIFY] frontend/index.html`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.72] - 02/09/2026: Áp Dụng 10 Màu Chuẩn Cho Bộ Switcher Tabs Quản Lý Công Việc
+- **Chuẩn Hóa 4 View Tabs Công Việc Theo Bảng 10 Màu**:
+  - **Tab 1 — Báo Cáo & Tiến Độ** (`tasks.html`): Áp dụng màu **1. Violet** (`bg-violet-700 text-white`).
+  - **Tab 2 — Danh Sách Việc** (`tasks-list.html` list view): Áp dụng màu **2. Indigo** (`bg-indigo-700 text-white`).
+  - **Tab 3 — Bảng Thẻ Việc** (`tasks-list.html#kanban`): Áp dụng màu **3. Blue** (`bg-blue-700 text-white`).
+  - **Tab 4 — Lịch Công Tác** (`tasks-calendar.html`): Áp dụng màu **4. Green** (`bg-green-700 text-white`).
+- **Đồng Bộ CSS & JS Switcher**:
+  - `tasks.html`: Áp dụng Violet active, hover Indigo/Blue/Green.
+  - `tasks-list.html`: Áp dụng Indigo active mặc định, hover Violet/Blue/Green.
+  - `tasks-calendar.html`: Áp dụng Green active, hover Violet/Indigo/Blue.
+  - `tasks.js` (`switchView`): Cập nhật logic đổi class động khi chuyển qua lại giữa Report, List và Kanban theo đúng bộ màu chuẩn.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/tasks.html`
+  - `[MODIFY] frontend/tasks-list.html`
+  - `[MODIFY] frontend/tasks-calendar.html`
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.73] - 02/09/2026: Nâng Cấp Toàn Diện Bảo Mật RBAC, RACI Assignments & Hoàn Thiện Kiến Trúc Task Module
+- **Kiểm Soát Truy Cập Hạt Mịn & Chống IDOR (P0-1, P0-2, P0-3)**:
+  - `backend/app/core/task_security.py`: Xây dựng module bảo mật tập trung: `can_user_read_task()`, `can_user_update_task()`, `can_user_delete_task()`, `can_user_manage_assignments()`.
+  - `tasks.py:get_task()`: Kiểm soát quyền đọc chi tiết theo Visibility Scope (PRIVATE / DEPARTMENT / ORGANIZATIONAL), ngăn chặn việc truy cập IDOR.
+  - `tasks.py:update_task()`: Kiểm soát quyền ghi theo từng trường dữ liệu (Field-level Write Permission). Cán bộ thực hiện chỉ được cập nhật tiến độ, trạng thái và mốc quy trình.
+  - `tasks.py:delete_task()`: Mở rộng quyền xóa cho Trưởng đơn vị chủ trì đối với công việc thuộc phạm vi phòng/khoa mình.
+- **Mô Hình Phân Công Trách Nhiệm RACI (P1-1)**:
+  - Bổ sung 2 endpoint RESTful: `POST /tasks/{task_id}/assignments` (gán cán bộ Responsible, Accountable, Consulted, Informed) và `DELETE /tasks/{task_id}/assignments/{assignment_id}`.
+- **Cơ Chế Leo Thang Cảnh Báo Escalation (P1-2)**:
+  - Bổ sung endpoint `POST /tasks/{task_id}/escalate`: Cho phép chuyển vụ việc lên cấp cảnh báo 1..3 và nâng `visibility = ORGANIZATIONAL` để Ban Giám Hiệu trực tiếp chỉ đạo.
+- **Nhiệm Vụ Định Kỳ & Quy Tắc Lặp Lại (P1-3)**:
+  - Bổ sung 3 endpoint: `GET /tasks/recurring-rules`, `POST /tasks/recurring-rules`, `POST /tasks/recurring-rules/{rule_id}/generate` tự động phát sinh nhiệm vụ kế tiếp từ chu kỳ mẫu.
+- **Chuẩn Hóa Thời Điểm Tiếp Nhận Thực Tế (P1-4)**:
+  - `received_at`: Chỉ được gán thời gian thực khi BGH giao trực tiếp hoặc khi đơn vị phối hợp xác nhận tiếp nhận (`accept_collaboration`).
+- **Bảo Mật Thống Kê & Tính Toán Động Quá Hạn (P2-1, P2-2)**:
+  - `stats.py:get_dashboard_summary()`: Tự động ràng buộc scope theo đơn vị của người dùng, ngăn ngừa rò rỉ số liệu toàn trường cho tài khoản STAFF.
+  - Loại bỏ hoàn toàn phụ thuộc vào enum cũ `TRE_HAN`, tính toán quá hạn động chính xác theo `due_date < now()`.
+- **An Toàn Khóa Ngoại Quy Trình Mẫu (P2-3)**:
+  - `workflows.py:delete_workflow()`: Kiểm tra và giải phóng liên kết `workflow_template_id = None` cho các nhiệm vụ đang chạy trước khi xóa template.
+- **Bảng Nhật Ký Kiểm Toán Chuyên Biệt (P2-4)**:
+  - `models/task.py`: Bổ sung model `TaskActionLog` và bảng `task_action_logs` lưu vết mọi hành động: CREATE, UPDATE_STATUS, UPDATE_PROGRESS, REASSIGN, COLLABORATE, ESCALATE, DELETE kèm dữ liệu JSON chi tiết.
+- **Files Chỉnh Sửa**:
+  - `[NEW] backend/app/core/task_security.py`
+  - `[MODIFY] backend/app/models/task.py`
+  - `[MODIFY] backend/app/schemas/task.py`
+  - `[MODIFY] backend/app/api/v1/tasks.py`
+  - `[MODIFY] backend/app/api/v1/stats.py`
+  - `[MODIFY] backend/app/api/v1/workflows.py`
+  - `[MODIFY] backend/app/api/v1/departments.py`
+  - `[MODIFY] backend/app/db/init_db.py`
+  - `[MODIFY] .keywork.md` (Mục 50)
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.74] - 02/09/2026: Tích Hợp Toàn Diện Quy Trình Tiếp Nhận / Từ Chối Nhiệm Vụ & Phê Duyệt Đề Xuất Cấp Dưới
+- **Quy Trình Tiếp Nhận & Từ Chối Nhiệm Vụ Được Giao (Task Delegation & Acceptance)**:
+  - Bổ sung 2 endpoint: `POST /tasks/{task_id}/assignment/accept` (Xác nhận tiếp nhận việc, set `received_at = now()`, chuyển `DANG_THUC_HIEN`, ghi log kiểm toán) và `POST /tasks/{task_id}/assignment/reject` (Từ chối nhận việc kèm lý do, tự động gỡ `assignee_id = null` để Lãnh đạo tái phân bổ).
+  - Tích hợp Banner hành động thông minh trên giao diện khi cán bộ mở chi tiết nhiệm vụ vừa được phân công: **`[✅ Tiếp Nhận Nhiệm Vụ]`** & **`[❌ Từ Chối Tiếp Nhận]`**.
+- **Quy Trình Phê Duyệt / Xử Lý Đề Xuất Sáng Kiến Cấp Dưới (Bottom-Up Proposals)**:
+  - Bổ sung 3 endpoint:
+    - `POST /tasks/{task_id}/proposal/approve`: Lãnh đạo/BGH duyệt đề xuất thành nhiệm vụ chính thức (`ROUTINE` hoặc `STRATEGIC`), phân công cán bộ và hạn hoàn thành.
+    - `POST /tasks/{task_id}/proposal/request-changes`: Yêu cầu cán bộ bổ sung/chỉnh sửa nội dung đề xuất (chuyển trạng thái `TU_CHOI` - Trả lại).
+    - `POST /tasks/{task_id}/proposal/reject`: Bác bỏ đề xuất (chuyển trạng thái `HUY_BO` - Bác bỏ).
+  - Tích hợp Banner phê duyệt và 2 Modal chuyên nghiệp: Modal Phê duyệt đề xuất (`modalApproveProposal`) & Modal nhập lý do đa năng (`modalReasonPrompt`).
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] backend/app/schemas/task.py`
+  - `[MODIFY] backend/app/api/v1/tasks.py`
+  - `[MODIFY] backend/app/db/init_db.py`
+  - `[MODIFY] frontend/tasks.html`
+  - `[MODIFY] frontend/tasks-list.html`
+  - `[MODIFY] frontend/assets/js/api.js`
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] .keywork.md` (Mục 51)
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.75] - 02/09/2026: Tinh Chỉnh Bảng 10 Màu Sang Tone Soft Medium 500/600 (Dịu 75% Tương Phản)
+- **Chuẩn Hóa Tone Màu Dịu Mắt Toàn Hệ Thống**:
+  - Chuyển toàn bộ 10 màu chuẩn từ tone đậm (`700/800`) sang tone **Soft Medium (`500/600`)** giúp giảm độ chói gắt mắt, tạo cảm giác nhẹ nhàng, hiện đại theo tiêu chuẩn UI/UX quốc tế.
+  - Mã màu cập nhật:
+    1. **Violet**: `#8b5cf6` (`bg-violet-500`)
+    2. **Indigo**: `#6366f1` (`bg-indigo-500`)
+    3. **Blue**: `#3b82f6` (`bg-blue-500`)
+    4. **Green**: `#10b981` (`bg-emerald-500`)
+    5. **Yellow**: `#f59e0b` (`bg-amber-500`)
+    6. **Orange**: `#f97316` (`bg-orange-500`)
+    7. **Teal**: `#14b8a6` (`bg-teal-500`)
+    8. **Red**: `#f43f5e` (`bg-rose-500`)
+    9. **Pink**: `#ec4899` (`bg-pink-500`)
+    10. **Slate**: `#64748b` (`bg-slate-500`)
+- **Đồng Bộ Hóa Toàn Diện Các Giao Diện**:
+  - Module Thiết lập: Live Preview Bar, danh mục màu tùy chỉnh, cài đặt mặc định 5 tab chính (`settings.js`).
+  - Module Quản lý Công việc: 4 Tab Multi-View Switcher trong `tasks.html`, `tasks-list.html`, `tasks-calendar.html` và hàm chuyển view động `switchView()` trong `tasks.js`.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/assets/js/settings.js`
+  - `[MODIFY] frontend/tasks.html`
+  - `[MODIFY] frontend/tasks-list.html`
+  - `[MODIFY] frontend/tasks-calendar.html`
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] .keywork.md` (Mục 48)
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.76] - 02/09/2026: Chuẩn Hóa Bảng 10 Màu Cho Thanh Lọc Nhanh (Quick Filter Pills) Trong Module Quản Lý Công Việc
+- **Áp Dụng Bảng 10 Màu Chuẩn Tuần Tự (Soft 500 Tones)**:
+  - 0. `Tất cả`: Slate `#64748b` (`bg-slate-500` active / `bg-slate-50` inactive)
+  - 1. `🎯 Việc của tôi`: **Màu #1 Violet** (`bg-violet-500` active / `bg-violet-50 text-violet-800` inactive)
+  - 2. `💡 Đề xuất chờ duyệt`: **Màu #2 Indigo** (`bg-indigo-500` active / `bg-indigo-50 text-indigo-800` inactive)
+  - 3. `🤝 Đề xuất phối hợp`: **Màu #3 Blue** (`bg-blue-500` active / `bg-blue-50 text-blue-800` inactive)
+  - 4. `🔥 Khẩn cấp`: **Màu #4 Green / Emerald** (`bg-emerald-500` active / `bg-emerald-50 text-emerald-800` inactive)
+  - 5. `🚨 Quá hạn`: **Màu #5 Yellow / Amber** (`bg-amber-500` active / `bg-amber-50 text-amber-800` inactive)
+  - 6. `⏳ Sắp đến hạn (48h)`: **Màu #6 Orange** (`bg-orange-500` active / `bg-orange-50 text-orange-800` inactive)
+  - 7. `🟢 Chưa đến hạn`: **Màu #7 Teal** (`bg-teal-500` active / `bg-teal-50 text-teal-800` inactive)
+- **Tối Ưu Trải Nghiệm Tương Tác**:
+  - `QUICK_FILTER_STYLES` trong `tasks.js` tự động điều khiển trạng thái active / inactive và màu badge tương ứng đồng bộ tuyệt đối.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/tasks-list.html`
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.77] - 02/09/2026: Khắc Phục Triệt Để Lỗi Form Validation Blocking Khi Gửi Đề Xuất Nhiệm Vụ Cho Cá Nhân
+- **Nguyên Nhân Gốc Rễ**:
+  - Thẻ `<select id="taskLeadingDept" required>` có thuộc tính HTML5 `required` cứng. Khi cán bộ ở chế độ Cá nhân (`STAFF`) gửi đề xuất, khối đơn vị bị ẩn (`hidden` / `display: none`). Trình duyệt HTML5 âm thầm chặn sự kiện `submit` form do control bị ẩn không thể focus/validate, khiến nút "Gửi Đề Xuất Cho Trưởng Phòng" không có phản hồi.
+- **Giải Pháp Khắc Phục Toàn Diện**:
+  - Bổ sung `novalidate` vào `<form id="formCreateTask" novalidate>` trong `tasks.html` và `tasks-list.html`.
+  - Bỏ thuộc tính `required` cứng ở `<select id="taskLeadingDept">`, chuyển sang cơ chế JS Validation linh hoạt và thân thiện với Toast thông báo.
+  - Tự động gán trạng thái `status: 'CHO_DUYET'` cho mọi nhiệm vụ dạng `PROPOSAL` ở cả Frontend (`handleCreateTask`) và Backend (`create_task`).
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/tasks.html`
+  - `[MODIFY] frontend/tasks-list.html`
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] backend/app/api/v1/tasks.py`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.78] - 02/09/2026: Chuẩn Hóa Ngữ Nghĩa Trạng Thái & Nút Thao Tác Cho Đề Xuất Sáng Kiến (PROPOSAL)
+- **Khắc Phục Hiển Thị Trạng Thái "Chờ Nghiệm Thu" Thành "Chờ Phê Duyệt"**:
+  - Với các nhiệm vụ thông thường (`ROUTINE`/`STRATEGIC`), `CHO_DUYET` là *"Chờ nghiệm thu"* (sau khi làm xong 100%).
+  - Nhưng với Đề xuất (`PROPOSAL`), tiến độ là 0% và nhiệm vụ chưa triển khai $\rightarrow$ Hệ thống tự động hiển thị chính xác là **`💡 Chờ Phê Duyệt`** (`bg-amber-100 text-amber-900 border-amber-300`).
+- **Chuẩn Hóa Thông Tin Cán Bộ Đề Xuất**:
+  - Khi chưa phân công người làm, cột Cán bộ hiển thị: **`💡 Đề xuất: [Tên Cán Bộ Khởi Tạo]`** thay vì nhầm thành *"🏢 Tập thể đơn vị"*.
+- **Ẩn Nút "Tiến Độ" & Thay Bằng Nút "Xem & Duyệt" Cho Cấp Quản Lý**:
+  - Đề xuất chưa được duyệt không thể cập nhật tiến độ $\rightarrow$ Ẩn nút *"Tiến độ"*.
+  - Đối với Lãnh đạo / BGH: Hiển thị trực tiếp nút **`[👑 Xem & Duyệt]`** để phê duyệt ngay; đối với cán bộ hiển thị **`[👁️ Chi Tiết]`**.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.79] - 02/09/2026: Xây Dựng Hệ Thống Dấu Vết Trách Nhiệm & Lộ Trình Điều Hành 4 Mốc (Governance Audit Trail & Reporting Readiness)
+- **Mô Hình Dữ Liệu Kiểm Toán 4 Mốc Trực Tiếp**:
+  - Bổ sung các cột kiểm toán vào CSDL `tasks`: `approved_by_id`, `approved_at`, `assigned_by_id`, `assigned_at` có Index và Foreign Key an toàn.
+  - Bổ sung quan hệ ORM `approver` và `assigned_by` vào model `Task` và `TaskOut` schema.
+- **Tự Động Lưu Vết Trong Mọi Vòng Đời Nhiệm Vụ**:
+  - Khi tạo việc có phân công $\rightarrow$ Gán `assigned_by_id`, `assigned_at`.
+  - Khi phê duyệt đề xuất $\rightarrow$ Gán `approved_by_id`, `approved_at`, `assigned_by_id`, `assigned_at`.
+  - Khi phân công lại cán bộ $\rightarrow$ Cập nhật `assigned_by_id`, `assigned_at`, `received_at = null`.
+- **Nâng Cấp Giao Diện Bảng & Modal Chi Tiết**:
+  - Bảng danh sách việc: Bổ sung dòng metadata kiểm toán: `✍️ Tạo: [Tên] ([Thời gian]) • 👑 Duyệt: [Tên] • 🎯 Giao: [Tên]`.
+  - Modal chi tiết nhiệm vụ: Tích hợp khối **Governance Audit Timeline 4 Mốc** trực quan và chuyên nghiệp.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] backend/app/models/task.py`
+  - `[MODIFY] backend/app/db/init_db.py`
+  - `[MODIFY] backend/app/schemas/task.py`
+  - `[MODIFY] backend/app/api/v1/tasks.py`
+  - `[MODIFY] frontend/tasks.html`
+  - `[MODIFY] frontend/tasks-list.html`
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] .keywork.md` (Mục 52)
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.80] - 02/09/2026: Tinh Chỉnh Cây Phân Cấp Trách Nhiệm (RACI) & Audit Timeline Thích Ứng Chuẩn Mực Cho Đề Xuất Sáng Kiến (PROPOSAL)
+- **Chuẩn Hóa Cây Phân Cấp Trách Nhiệm (`renderDetailRaciTree`)**:
+  - Đối với **Đề xuất (`PROPOSAL`)**: Tự động chuyển đổi sơ đồ RACI sang dạng **Lộ Trình Trình Duyệt Đề Xuất (Bottom-Up Proposal Governance)**:
+    - Level 1: `✍️ Người đề xuất: [Tên Cán Bộ] ([Đơn vị])`.
+    - Level 2: `👑 Thẩm quyền phê duyệt: [Đơn vị] Trưởng đơn vị / BGH` *(kèm badge trạng thái Chờ duyệt)*.
+    - Level 3: `🎯 Phân công thực thi: 🟡 Sẽ chỉ định nhân sự sau khi duyệt chủ trương`.
+  - Đối với **Việc cá nhân (`SELF`)**: Hiển thị sơ đồ **Việc Cá Nhân Tự Quản Lý (Self To-Do Task)**.
+  - Đối với **Nhiệm vụ thông thường (`ROUTINE`/`STRATEGIC`)**: Hiển thị đúng Người giao việc thực tế (`assigned_by`), không còn hardcode cố định "Ban Giám Hiệu".
+- **Tinh Chỉnh Audit Timeline & Khối Thông Tin Meta**:
+  - Mốc 3 trong Audit Timeline hiển thị: `🟡 Sẽ phân công sau khi duyệt` thay vì nhầm thành "Tập thể đơn vị" hay "Chưa tiếp nhận".
+  - Trường Trạng thái hiển thị nhãn tiếng Việt rõ ràng: `💡 Chờ phê duyệt chủ trương` (thay vì mã thô `CHO_DUYET`).
+  - Trường Đơn vị chủ trì và Cán bộ phụ trách hiển thị đúng đơn vị và cán bộ đề xuất sáng kiến.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.81] - 02/09/2026: Tường Minh Hóa Đơn Vị Đề Xuất & Cấp Thẩm Quyền Trình Duyệt
+- **Hiển Thị Tường Minh Trên Bảng Danh Sách**:
+  - Đơn vị: Hiển thị đơn vị thực tế của người đề xuất (ví dụ `QTĐT`, `CNTT`).
+  - Cán bộ & Trình duyệt: Hiển thị đầy đủ 2 tầng thông tin:
+    - `💡 Đề xuất: Nguyễn Đình Lê Trung (QTĐT)`
+    - `🏢 Trình duyệt: Trưởng Phòng QTĐT` (nếu `visibility = 'DEPARTMENT'`) hoặc `🏛️ Trình duyệt: Ban Giám Hiệu` (nếu `visibility = 'ORGANIZATIONAL'`).
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.82] - 02/09/2026: Chuẩn Hóa Mã Đơn Vị Người Đề Xuất (QTĐT) Thay Vì Nhầm Lẫn BGH
+- **Khắc Phục Hiển Thị Mã Đơn Vị Trên Bảng & Mobile Cards**:
+  - Đối với Đề xuất (`PROPOSAL`): Hệ thống ưu tiên trích xuất đơn vị trực thuộc của người đề xuất (`t.creator.department.code` $\rightarrow$ `QTĐT`).
+  - Đồng bộ CSDL của Task #45 sang `leading_dept_id = 15` (Phòng Quản trị - Đầu tư).
+  - Cột Đơn vị & Cán bộ hiển thị hoàn chỉnh:
+    ```
+    QTĐT
+    💡 Đề xuất: Nguyễn Đình Lê Trung
+    🏢 Trình duyệt: Trưởng Phòng QTĐT
+    ```
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.83] - 02/09/2026: Triệt Tiêu Hardcode — Cơ Chế Tự Động Xác Định Danh Xưng Lãnh Đạo & Cấp Thẩm Quyền Theo CSDL
+- **Thiết Kế Cơ Chế Phân Giải Danh Xưng Động (Zero Hardcode)**:
+  - Xây dựng 2 hàm tổng quát: `TasksPage.getDeptLeaderTitle(deptOrCode)` và `TasksPage.getProposalApproverInfo(task)`.
+  - Tự động phân tích thuộc tính thực trong CSDL (`type` và `name`):
+    - Đơn vị dạng `FACULTY` / tên chứa "Khoa" $\rightarrow$ **`Trưởng Khoa [Code]`** (VD: *Trưởng Khoa CNTT*).
+    - Đơn vị dạng `CENTER` / tên chứa "Trung tâm" $\rightarrow$ **`Giám Đốc [Code]`** (VD: *Giám Đốc TTGD*).
+    - Đơn vị dạng `UNION` / tên chứa "Công đoàn" $\rightarrow$ **`Chủ Tịch Công Đoàn`**.
+    - Đơn vị dạng `DEPARTMENT` / tên chứa "Phòng" $\rightarrow$ **`Trưởng Phòng [Code]`** (VD: *Trưởng Phòng QTĐT*).
+    - Cấp trường (`ORGANIZATIONAL`) $\rightarrow$ **`Ban Giám Hiệu (BGH)`**.
+- **Đồng Bộ Nhất Quán Trong Toàn Bộ Hệ Thống**:
+  - Bảng danh sách công việc (`renderTasksTable`): Dòng trình duyệt tự động hiển thị chính xác (`🏢 Trình duyệt: Trưởng Phòng QTĐT`).
+  - Sơ đồ RACI (`renderDetailRaciTree`): Level 2 hiển thị chuẩn chức danh (`Trưởng Phòng QTĐT` hoặc `Ban Giám Hiệu`).
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.84] - 02/09/2026: Quán Triệt Kiến Trúc Hướng Dữ Liệu Thực — Tự Động Đồng Bộ Với Quản Trị Hệ Thống
+- **Tự Động Thích Ứng Mọi Thay Đổi Trong CSDL Thiết Lập**:
+  - Toàn bộ danh mục phòng ban, chức vụ, quy trình mẫu và danh xưng lãnh đạo được liên kết động 100% với CSDL PostgreSQL.
+  - Khi quản trị viên thay đổi tên phòng ban trong `settings.html` (ví dụ: đổi *"Phòng Quản trị - Đầu tư"* sang *"Phòng Cơ Sở Vật Chất"* hoặc *"Khoa Công Nghệ Số"*), toàn bộ hệ thống tự động cập nhật danh xưng và giao diện tức thì mà không cần can thiệp mã nguồn.
+- **Ghi Nhận Nguyên Tắc 53 Vào `.keywork.md`**:
+  - Xác lập quy chuẩn kiến trúc *Dynamic Governance & Zero-Hardcode Standard*.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] .keywork.md` (Mục 53)
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.85] - 02/09/2026: Nâng Cấp Quyền & Nút Phê Duyệt Đề Xuất Trực Diện Cho Trưởng Phòng
+- **Xác Định Quyền Phê Duyệt Thông Minh (`canUserApproveProposal`)**:
+  - Trưởng / Phó phòng tự động có quyền phê duyệt đề xuất của cán bộ thuộc đơn vị mình (dựa trên `creator.department_id` hoặc `leading_dept_id`), ngay cả khi task chưa đồng bộ `leading_dept_id`.
+- **Hiển Thị Nút Thao Tác Nổi Bật Trên Bảng**:
+  - Đối với Lãnh đạo có thẩm quyền: Cột Thao tác hiển thị trực tiếp nút màu tím **`[👑 Phê duyệt]`** thay vì chỉ hiện nút xám *"Chi tiết"*.
+  - Trong Modal Chi Tiết: Hiển thị ngay Banner Điều Hành với **3 nút hành động**: `[✅ Phê Duyệt Đề Xuất]`, `[🔄 Yêu Cầu Bổ Sung]`, `[❌ Bác Bỏ Đề Xuất]`.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.86] - 02/09/2026: Tích Hợp Nút Phê Duyệt Thông Minh Với Dropdown 3 Quyết Định Ngay Trên Bảng
+- **Nâng Cấp UX Phê Duyệt Trực Diện (Fast Action Dropdown)**:
+  - Cột Thao tác của dòng Đề xuất đang chờ duyệt xuất hiện nút **`👑 Phê duyệt ▾`** (màu tím phong cách Tailwind hiện đại).
+  - Khi click, menu popup xổ xuống ngay tại bảng với 3 quyết định dứt khoát:
+    - 🟢 **`✅ Phê duyệt đề xuất`** (Chuyển việc chính thức & phân công cán bộ).
+    - 🟡 **`🔄 Yêu cầu bổ sung`** (Yêu cầu cán bộ sửa lại kèm ý kiến chỉ đạo).
+    - 🔴 **`❌ Bác bỏ đề xuất`** (Từ chối chủ trương kèm lý do).
+  - Tự động đóng menu khi click ra ngoài (`click outside`).
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.87] - 02/09/2026: Tinh Chỉnh & Hoàn Thiện Toàn Diện Nhiệm Vụ Khi Phê Duyệt (Proposal Refinement)
+- **Trao Quyền Tinh Chỉnh Cho Lãnh Đạo Khi Phê Duyệt (`modalApproveProposal`)**:
+  - Lãnh đạo (Trưởng/Phó đơn vị, Ban Giám Hiệu) có thể chỉnh sửa trực tiếp: Tiêu đề nhiệm vụ (`title`), Mô tả chi tiết (`description`), Mức độ ưu tiên (`priority`), Đơn vị phối hợp (`assisting_dept_id`), Cán bộ phụ trách (`assignee_id`), Hạn hoàn thành (`due_date`) và Ý kiến chỉ đạo (`note`).
+  - Giúp Lãnh đạo hoàn thiện ngay văn phong và kế hoạch nhiệm vụ mà không cần trả về yêu cầu cấp dưới làm lại, tối ưu hóa năng suất vận hành.
+- **Đồng Bộ Schema & Endpoint Backend**:
+  - Nâng cấp `ProposalApproveRequest` và `approve_task_proposal` trong FastAPI hỗ trợ cập nhật tiêu đề, mô tả, ưu tiên và đơn vị phối hợp.
+- **Ghi Nhận Nguyên Tắc 54 Vào `.keywork.md`**.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] backend/app/schemas/task.py`
+  - `[MODIFY] backend/app/api/v1/tasks.py`
+  - `[MODIFY] frontend/tasks-list.html`
+  - `[MODIFY] frontend/tasks.html`
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] .keywork.md` (Mục 54)
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.88] - 02/09/2026: Triển Khai Trung Tâm Thông Báo Điều Hành & Chu Trình Trình Duyệt Lại Đề Xuất
+- **Chu Trình Trình Duyệt Lại Đề Xuất (Proposal Resubmission Flow)**:
+  - Khi Đề xuất bị yêu cầu chỉnh sửa (`TU_CHOI`): Cán bộ đề xuất thấy nút **`[🔄 Sửa & Gửi lại]`** trên bảng nhiệm vụ và modal chi tiết.
+  - Tích hợp Modal `modalResubmitProposal` hiển thị toàn văn phản hồi của Lãnh đạo, cho phép Cán bộ cập nhật Tiêu đề, Mô tả, Mức ưu tiên, Deadline và nhập nội dung giải trình tiếp thu.
+  - Sau khi gửi lại (`POST /tasks/{id}/proposal/resubmit`), trạng thái chuyển về `CHO_DUYET`, ghi nhận `TaskActionLog` (`RESUBMIT_PROPOSAL`) và bắn thông báo ngay đến Lãnh đạo.
+- **Bảo Toàn Toàn Vẹn Dấu Vết Đánh Giá Năng Lực (Competency Evaluation Trail)**:
+  - Lưu trữ đầy đủ lịch sử mọi giai đoạn: Khởi tạo $\rightarrow$ Yêu cầu bổ sung $\rightarrow$ Sửa đổi gửi lại $\rightarrow$ Phê duyệt / Bác bỏ, làm căn cứ đánh giá KPI và năng lực sáng kiến của cán bộ.
+- **Trung Tâm Thông Báo Thời Gian Thực (Notification Center 🔔)**:
+  - Tạo model `TaskNotification` và migration DDL an toàn trong PostgreSQL.
+  - Tích hợp **Chuông thông báo 🔔 trên Header** của toàn bộ các trang với Badge đếm số lượng chưa đọc, tự động làm mới mỗi 20 giây và 1-click mở chi tiết nhiệm vụ.
+- **Ghi Nhận Nguyên Tắc 55 Vào `.keywork.md`**.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] backend/app/models/task.py`
+  - `[MODIFY] backend/app/db/init_db.py`
+  - `[MODIFY] backend/app/schemas/task.py`
+  - `[MODIFY] backend/app/api/v1/tasks.py`
+  - `[MODIFY] frontend/tasks-list.html`
+  - `[MODIFY] frontend/tasks.html`
+  - `[MODIFY] frontend/assets/js/api.js`
+  - `[MODIFY] frontend/assets/js/common.js`
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] .keywork.md` (Mục 55)
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.89] - 02/09/2026: Nâng Cấp Toàn Diện Ma Trận Phân Quyền Tạo Việc & Cơ Chế Soft-Delete RACI
+- **Ma Trận Phân Quyền Tạo Việc Hạt Mịn (`can_user_create_task`)**:
+  - `SUPERADMIN`/`BGH`: Toàn quyền tạo mọi loại nhiệm vụ.
+  - `DEPT_HEAD`/`DEPT_VICE`: Tạo và phân công `ROUTINE`/`STRATEGIC` trong đơn vị mình, gửi `PROPOSAL` cấp trường/phòng, tạo việc cá nhân `SELF`.
+  - `STAFF`: Chỉ được tạo `SELF` hoặc `PROPOSAL`, chặn tự tạo `ROUTINE`/`STRATEGIC` trái thẩm quyền.
+- **Bảo Toàn Dấu Vết RACI Bằng Soft-Delete (`is_active`)**:
+  - Thêm cột `is_active` vào bảng `task_assignments` và migration an toàn trong `init_db.py`.
+  - Khi cán bộ từ chối việc, chuyển các bản ghi RACI `TRANSFERRING` sang `is_active=False` kèm ghi chú lý do thay vì xóa cứng (`DELETE`).
+- **Giới Hạn & Trực Quan Hóa Số Lần Resubmit Proposal (Tối Đa 3 Lần)**:
+  - Backend chặn 400 khi `resubmit_count >= 3`.
+  - Modal Frontend hiển thị rõ ràng: `(Gửi lại lần 1/3)`, `(Gửi lại lần 2/3)`, `(Gửi lại lần 3/3 - Lần cuối cùng)`.
+- **Tự Động Phân Công & Bắn Thông Báo Khi Escalate Lên BGH**:
+  - Khi BGH chỉ đạo phối hợp bắt buộc $\rightarrow$ Tự động gán Trưởng phòng phối hợp làm đầu mối, tạo RACI assignment và bắn thông báo tức thì đến Trưởng đơn vị phối hợp cùng Ban Giám Hiệu.
+- **Ghi Nhận Nguyên Tắc 56 Vào `.keywork.md`**.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] backend/app/core/task_security.py`
+  - `[MODIFY] backend/app/models/task.py`
+  - `[MODIFY] backend/app/db/init_db.py`
+  - `[MODIFY] backend/app/api/v1/tasks.py`
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] .keywork.md` (Mục 56)
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.90] - 02/09/2026: Tối Giản Modal Chi Tiết & Tích Hợp Dual-Mode Feed Lịch Sử Trao Đổi
+- **Loại Bỏ Khối Governance Audit Trail (Dấu Vết Trách Nhiệm)**:
+  - Loại bỏ khối 4 mốc tĩnh gây trùng lặp khỏi Modal Chi Tiết Nhiệm Vụ trong `tasks-list.html` và `tasks.html`.
+  - Giúp giao diện thông thoáng, tập trung tối đa vào nội dung công việc và quy trình thực hiện.
+- **Nâng Cấp Khu Vực "Lịch Sử Cập Nhật & Ý Kiến Trao Đổi" Với Chế Độ Kép (Dual-Mode Tabs)**:
+  - **Mặc định (`💬 Ý kiến trao đổi`)**: Chỉ hiển thị các ý kiến trao đổi, thảo luận, chỉ đạo và phản hồi của những người có tên trong nhiệm vụ (Creator, Assignee, Approver, Leader). Có gắn badge vai trò và highlight màu sắc nổi bật.
+  - **Chế độ mở rộng (`📜 Xem tất cả lịch sử`)**: Khi click chọn, hiển thị toàn diện cả các bản ghi Action Logs hệ thống (tạo việc, chuyển trạng thái, phân công, duyệt, trả lại) kết hợp với ý kiến trao đổi theo thứ tự thời gian mới nhất lên trên.
+- **Ghi Nhận Nguyên Tắc 57 Vào `.keywork.md`**.
 - **Files Chỉnh Sửa**:
   - `[MODIFY] frontend/tasks-list.html`
   - `[MODIFY] frontend/tasks.html`
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] .keywork.md` (Mục 57)
   - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.91] - 02/09/2026: Tối Ưu Hóa Quyền Phê Duyệt & Hiển Thị Đầy Đủ Nút Tác Nghiệp Cấp Trên
+- **Nâng Cấp `canUserApproveProposal`**:
+  - Hỗ trợ so sánh kiểu dữ liệu ID số chuẩn xác (`Number(userDeptId) === Number(taskDeptId)`).
+  - Cho phép toàn quyền với `SUPERADMIN`, `BGH` hoặc tài khoản có quyền `task:approve_proposal`.
+  - Cho phép Trưởng / Phó phòng duyệt đề xuất của đơn vị mình hoặc đề xuất do cán bộ thuộc đơn vị mình tạo ra.
+- **Tối Ưu Hiển Thị Cột Thao Tác (`getActionButtons`)**:
+  - Đối với Đề xuất (`PROPOSAL`): Hiển thị nút **`👑 Phê duyệt ▾`** (Chấp thuận, Yêu cầu bổ sung, Bác bỏ) cho Lãnh đạo cấp trên ở cả 2 trạng thái `CHO_DUYET` và `CHUA_BAT_DAU`.
+  - Đối với Nhiệm vụ thường chờ nghiệm thu (`status = CHO_DUYET`, `type != PROPOSAL`): Hiển thị nút **`✅ Nghiệm thu`** (Phê duyệt hoàn thành) cho Lãnh đạo cấp trên / BGH.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.92] - 02/09/2026: Chuyển Sang Cơ Chế Đánh Số Thứ Tự Lần Trình Duyệt Lại Đề Xuất
+- **Bỏ Chặn Cứng Giới Hạn 3 Lần Resubmit**:
+  - Không giới hạn số lần gửi lại đề xuất ở backend, tạo điều kiện thuận lợi nhất để cán bộ liên tục tiếp thu và hoàn thiện phương án/dự toán.
+- **Đánh Số Thứ Tự Lần Gửi Lại Chuẩn Xác (`Trình duyệt lại lần X`)**:
+  - Backend tự động tính toán `resubmit_times = resubmit_count + 1`.
+  - Ghi nhận `🔄 [TRÌNH DUYỆT LẠI ĐỀ XUẤT - LẦN X]` vào Action Log và Comment giải trình.
+  - Bắn thông báo `Đề xuất đã được gửi lại (Lần X) 🔄` đến Lãnh đạo phụ trách.
+  - Modal Frontend hiển thị huy hiệu trang trọng: `🕒 [Trình duyệt lại lần 1]`, `[Trình duyệt lại lần 2]`, `[Trình duyệt lại lần 3]`...
+- **Cập Nhật Mục 56.3 Trong `.keywork.md`**.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] backend/app/api/v1/tasks.py`
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] .keywork.md` (Mục 56.3)
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.93] - 02/09/2026: Tự Động Đóng Nhiệm Vụ 100% & Bắn Thông Báo Tiến Độ Thời Gian Thực
+- **Tự Động Đóng Nhiệm Vụ Khi Đạt 100%**:
+  - Khi hoàn thành tất cả các bước mốc (steps) hoặc cập nhật tiến độ đạt 100%, hệ thống tự động chuyển trạng thái sang `HOAN_THANH` và gán `completed_at = now()`, đóng nhiệm vụ dứt khoát mà không cần bước nghiệm thu thủ công.
+  - Khi tiến độ > 0%, hệ thống tự động kích hoạt trạng thái `DANG_THUC_HIEN`.
+- **Hệ Thống Bắn Thông Báo Tiến Độ Thời Gian Thực (Real-time Progress Dispatcher 🔔)**:
+  - Khi cán bộ cập nhật tiến độ ở bất kỳ bước nào: Bắn thông báo `PROGRESS_UPDATE` (kèm % tiến độ và nội dung thay đổi) đến Người giao việc/Khởi tạo, Cán bộ phối hợp và Lãnh đạo đơn vị.
+  - Khi đạt 100%: Bắn thông báo chúc mừng `TASK_COMPLETED` (`🎉 Nhiệm vụ đã hoàn thành 100%!`) đến toàn bộ các bên liên quan.
+- **Ghi Nhận Nguyên Tắc 58 Vào `.keywork.md`**.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] backend/app/api/v1/tasks.py`
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] .keywork.md` (Mục 58)
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.94] - 02/09/2026: Khắc Phục 4 Điểm Logic & UX Trong Quản Trị Đề Xuất
+- **Chặn Tự Duyệt Đề Xuất (No Self-Approval Rule)**:
+  - Cập nhật `canUserApproveProposal`: Người khởi tạo (`created_by_id == user.id`) tuyệt đối không nhìn thấy các nút phê duyệt đề xuất của chính mình.
+  - Phân định rõ thẩm quyền: Đề xuất cấp trường (`ORGANIZATIONAL`) chỉ dành riêng cho BGH & SuperAdmin; Đề xuất cấp phòng (`DEPARTMENT`) do Trưởng/Phó phòng duyệt cho cấp dưới.
+- **Chuẩn Hóa Nhãn Vai Trò (Badge Hierarchy Priority)**:
+  - Đảo thứ tự ưu tiên kiểm tra trong `renderSingleCommentCard`: Ưu tiên `✍️ Người khởi tạo` và `🎯 Người thực hiện` trước vai trò chức vụ chung (`🏢 Lãnh đạo đơn vị`).
+- **Tách Biệt Tuyệt Đối Log Hệ Thống Khỏi Bình Luận**:
+  - Loại bỏ hoàn toàn việc chèn log tự động `"Đã khởi tạo..."` và `"Cập nhật..."` vào bảng `TaskComment`.
+  - Dọn sạch 28 bản ghi log hệ thống cũ khỏi DB. Tab `💬 Ý kiến trao đổi` chỉ hiển thị ý kiến trao đổi thuần túy.
+- **Bắt Buộc Nhập Mô Tả & Hạn Hoàn Thành Khi Tạo Đề Xuất**:
+  - Frontend và Backend Guard: Đề xuất sáng kiến (`PROPOSAL`) bắt buộc phải có nội dung mô tả (tối thiểu 10 ký tự) và Hạn hoàn thành dự kiến.
+- **Ghi Nhận Nguyên Tắc 59 Vào `.keywork.md`**.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] backend/app/api/v1/tasks.py`
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] .keywork.md` (Mục 59)
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.95] - 02/09/2026: Tùy Chọn Checkbox "Không Đặt Hạn Hoàn Thành" Linh Hoạt
+- **Bổ Sung Checkbox "Không Đặt Hạn" Trực Quan**:
+  - Giao diện form tạo nhiệm vụ / đề xuất (`tasks.html`, `tasks-list.html`) tích hợp checkbox: `[ ] Không đặt hạn hoàn thành`.
+  - Tự động làm mờ và disable các ô nhập ngày khi được chọn, khôi phục ngày mặc định khi bỏ chọn.
+- **Linh Hoạt Hạn Chót Trong Backend & Frontend**:
+  - Cho phép lưu `due_date = null` khi người dùng chủ động chọn không đặt hạn (áp dụng cho cả nhiệm vụ thường xuyên và đề xuất dài hạn).
+  - Vẫn bảo toàn yêu cầu bắt buộc đối với Mô tả chi tiết đề xuất (tối thiểu 10 ký tự) để cấp trên có đủ dữ liệu duyệt.
+- **Cập Nhật Mục 59.4 Trong `.keywork.md`**.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] backend/app/api/v1/tasks.py`
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] .keywork.md` (Mục 59.4)
+  - `[MODIFY] HISTORY.md`
+
+## 📌 [Phiên bản 2.9.96] - 02/09/2026: Nâng Cấp Toàn Diện Bảo Mật, Phân Quyền Đề Xuất & Cách Ly Nhiệm Vụ Tuyệt Đối
+- **Phân Định Thẩm Quyền Phê Duyệt Đề Xuất (Bottom-Up Proposal Governance)**:
+  - **Đề xuất cấp Phòng (`DEPARTMENT`)**: Thẩm quyền phê duyệt độc quyền thuộc **Trưởng/Phó phòng của đơn vị đó**. Ban Giám Hiệu & SuperAdmin chỉ có quyền **Quan sát (Read-only)**, ẩn hoàn toàn các nút phê duyệt để tôn trọng quyền tự chủ của đơn vị.
+  - **Đề xuất cấp Trường / Đề xuất Vượt cấp (`ORGANIZATIONAL`)**: Thẩm quyền phê duyệt độc quyền thuộc **Ban Giám Hiệu (`BGH`) và `SUPERADMIN`**.
+  - **Cấm tự phê duyệt (No Self-Approval)**: Người khởi tạo đề xuất tuyệt đối không có nút duyệt đề xuất của chính mình.
+- **Triệt Để Cách Ly Nhiệm Vụ Nhân Viên (STAFF Task Isolation)**:
+  - "Người này không thấy việc người kia": STAFF chỉ thấy các nhiệm vụ có tên mình (Creator, Assignee, Collaborator RACI). Khóa hoàn toàn leak việc toàn trường/toàn khoa.
+- **Triệt Để Cách Ly Liên Khoa / Phòng (Inter-Department Isolation)**:
+  - "Khoa này không thấy việc Khoa kia": Lãnh đạo đơn vị chỉ xem các công việc thuộc khoa/phòng mình hoặc do mình tạo/thực hiện.
+- **Bảo Mật Zero-Trust Cho Toàn Bộ Endpoints Backend**:
+  - `POST /tasks/{id}/escalate`: Chỉ Creator, Assignee hoặc Lãnh đạo đơn vị chủ trì/BGH mới được phép leo thang.
+  - `GET /tasks/workload`: Phân vùng theo Scope (STAFF/Trưởng khoa chỉ thấy đơn vị mình, BGH thấy toàn trường).
+  - `POST /workflows` & `PUT /workflows/{id}`: Bắt buộc quyền `workflow:manage` hoặc vai trò Lãnh đạo.
+  - `GET /permissions/users/{id}`: Chỉ xem quyền của chính mình hoặc người có quyền `perm:manage` / BGH.
+- **Đồng Bộ Hoàn Hảo RBAC Presets Frontend & Backend**:
+  - Khớp 100% các bộ quyền chuẩn giữa `permissions.py`, `common.js` và `settings.js`.
+  - Tích hợp bảo vệ `pagePermissionGuards` cho tất cả các phân hệ.
+- **Di Chuyển Checkbox "Không Đặt Hạn" Lên Cạnh "Mức Độ Ưu Tiên"**:
+  - Tối ưu UI trực quan, cân đối và thanh thoát trên form tạo việc (`tasks.html`, `tasks-list.html`).
+- **Khóa Nút Cập Nhật Tiến Độ Khi Hoàn Thành / Hủy Bỏ**:
+  - Khi nhiệm vụ ở trạng thái `HOAN_THANH` (100%) hoặc `HUY_BO`, hệ thống tự động ẩn nút `[ Tiến độ ]` trên Table View & Mobile Touch Cards, chỉ giữ lại nút `[ Chi tiết ]`.
+  - Hàm `openUpdateModal()` chủ động chặn việc cập nhật thêm tiến độ cho các công việc đã kết thúc.
+- **Phân Định Trực Quan Rành Mạch Giữa Ý Kiến Trao Đổi & Nhật Ký Hệ Thống**:
+  - Tab `💬 Ý kiến trao đổi`: Gắn badge phân loại trực quan (`💬 Ý kiến trao đổi`, `✅ Quyết định phê duyệt`, `🔄 Yêu cầu bổ sung`, `❌ Quyết định bác bỏ`, `📤 Trình duyệt lại`).
+  - Tab `📜 Xem tất cả lịch sử`: Gắn tag `⚙️ Hệ thống` rõ ràng cho các sự kiện audit tự động.
+- **Ghi Nhận Nguyên Tắc 60 Vào `.keywork.md`**.
+- **Files Chỉnh Sửa**:
+  - `[MODIFY] backend/app/core/task_security.py`
+  - `[MODIFY] backend/app/api/v1/tasks.py`
+  - `[MODIFY] backend/app/api/v1/stats.py`
+  - `[MODIFY] backend/app/api/v1/workflows.py`
+  - `[MODIFY] backend/app/api/v1/permissions.py`
+  - `[MODIFY] frontend/tasks-list.html`
+  - `[MODIFY] frontend/tasks.html`
+  - `[MODIFY] frontend/assets/js/tasks.js`
+  - `[MODIFY] frontend/assets/js/common.js`
+  - `[MODIFY] frontend/assets/js/settings.js`
+  - `[NEW] cachtinhKPI.md` (Sổ tay hướng dẫn & Đặc tả chi tiết cách tính điểm KPI)
+  - `[MODIFY] .keywork.md` (Mục 60)
+  - `[MODIFY] HISTORY.md`
+
+---
+
+## [2026-09-02] - Phiên bản 2.9.97 (Triển Khai Hoàn Tất Hệ Thống Đo Lường Hiệu Suất Tác Nghiệp KpiEngine v1.0)
+- **Triển khai Trọn vẹn Khung Kiến Trúc KpiEngine v1.0**:
+  - **Database Migration & Schema**: Tạo các bảng `kpi_formula_versions`, `workload_snapshots`, `request_extensions`, `kpi_logs`. Bổ sung các cột `base_score`, `actual_score`, `quality_reject_count`, `assignment_reject_count`, `is_escalated`, `formula_version_id`, `is_final`, `effective_deadline` vào bảng `tasks`. Seed bản ghi công thức chuẩn `v1.0`.
+  - **Xây dựng Package `backend/app/kpi_engine/` độc lập**:
+    - `base_scorer.py`: Tính Base Score, Time Factor (sớm/đúng hạn/trễ hạn/chặn sàn 50%), Quality Factor (multiplicative $0.85^n$), Actual Score.
+    - `workload_engine.py`: Chụp ảnh Snapshot tải công việc bất biến tại thời điểm phân công; tự động kích hoạt **Khiên Quá Tải (Overload Shield)** khi tải $> 120\%$.
+    - `parent_scorer.py`: Tính điểm Weighted Parent Score theo Base Score của các Task con kèm Row-Level Lock (`with_for_update()`) chống Race Condition.
+    - `governance_engine.py`: Tính Điểm Điều phối (30% KPI Trưởng đơn vị) với cơ chế trừ ngâm việc 24h/48h/72h, trừ dồn tải và thưởng phân công cân bằng đến +15%.
+    - `period_kpi_engine.py`: Tính KPI cá nhân (kèm thưởng đề xuất +15đ), KPI Trưởng đơn vị (70% Thực thi + 30% Điều phối) và Chỉ số SPI Toàn trường (40% On-time + 25% Completion + 20% Quality + 15% Responsiveness).
+  - **Tích hợp Tự động & API Endpoints**:
+    - Gắn trigger tự động tính điểm và chụp snapshot trong `create_task`, `update_task`, `reject_task_assignment`, `request_proposal_changes`.
+    - Tạo Router `backend/app/api/v1/kpi.py` với các route `/personal`, `/department/{id}`, `/spi`, `/formula-version`, `/extensions` (quy trình xin & duyệt gia hạn deadline).
+  - **Giao diện Dashboard**: Tích hợp hiển thị Chỉ số SPI Toàn trường, KPI Cá nhân, Khối lượng Base Score và Trạng thái Khiên Quá Tải trên `index.html` và `dashboard.js`.
+  - **Sổ tay Hướng dẫn**: Tạo tài liệu chi tiết `cachtinhKPI.md` ở thư mục gốc để giải thích cho người dùng.
+- **Kiểm Thử Toàn Diện (Adversarial Testing)**: 5/5 Test Suites đều PASS 100%.
+- **Files Chỉnh Sửa & Tạo Mới**:
+  - `[NEW] backend/app/models/kpi.py`
+  - `[NEW] backend/app/kpi_engine/__init__.py`
+  - `[NEW] backend/app/kpi_engine/base_scorer.py`
+  - `[NEW] backend/app/kpi_engine/parent_scorer.py`
+  - `[NEW] backend/app/kpi_engine/workload_engine.py`
+  - `[NEW] backend/app/kpi_engine/governance_engine.py`
+  - `[NEW] backend/app/kpi_engine/period_kpi_engine.py`
+  - `[NEW] backend/app/api/v1/kpi.py`
+  - `[NEW] cachtinhKPI.md`
+  - `[MODIFY] backend/app/models/task.py`
+  - `[MODIFY] backend/app/db/init_db.py`
+  - `[MODIFY] backend/app/main.py`
+  - `[MODIFY] backend/app/api/v1/tasks.py`
+  - `[MODIFY] frontend/assets/js/api.js`
+  - `[MODIFY] frontend/assets/js/dashboard.js`
+  - `[MODIFY] frontend/index.html`
+  - `[MODIFY] frontend/login.html`
+  - `[MODIFY] .keywork.md` (Mục 61)
+  - `[MODIFY] HISTORY.md`
+- **Đồng Bộ & Xác Thực Mật Khẩu Đăng Nhập Tài Khoản Mẫu**:
+  - Đã chuẩn hóa và đồng bộ lại 100% mật khẩu cho toàn bộ tài khoản mẫu (`admin`, `thcgiang`, `qtdt`, `ndltrung`) về mật khẩu chuẩn: **`HueIC@123`** (Lưu ý chữ `IC` viết hoa).
+  - Đã cập nhật nút bấm Quick Login trên trang `login.html` và kiểm thử đăng nhập API thành công 100%.
+- **Tích Hợp Dải Widget KPI Engine Phân Quyền Vào Module Công Việc (`tasks.html` & `tasks-list.html`)**:
+  - Thêm container `#tasksKpiStripContainer` và hàm `TasksPage.renderKpiWidget()` tự động thích ứng với vai trò của người dùng:
+    - **Ban Giám Hiệu & SuperAdmin**: Xem Chỉ số SPI Toàn Trường (Đúng hạn, Hoàn thành, Chất lượng) + Dropdown chọn soi KPI chi tiết của 12 đơn vị.
+    - **Trưởng / Phó Đơn Vị**: Xem KPI Đơn vị (70% Thực thi việc cha + 30% Điểm điều phối lãnh đạo) + Chi tiết kỷ luật trừ ngâm việc / thưởng cân bằng tải + KPI Cá nhân.
+    - **Cán Bộ Nhân Viên**: Xem KPI Cá nhân của chính mình (% Điểm, Xếp loại $A^+, A, B, C, D$, Tỷ lệ Điểm thực nhận / Base Score, Thưởng đề xuất sáng kiến $+15$đ, Trạng thái Khiên Quá Tải 🛡️).
+  - **Khắc Phục Tận Gốc Lỗi Nạp KPI Widget**:
+    - Bổ sung endpoint backend `GET /api/v1/kpi/department` tự động lấy `current_user.department_id` của chính Lãnh đạo đơn vị mà không cần truyền tham số cứng qua URL.
+    - Chuẩn hóa việc lưu `department_id` trong `localStorage` tại trang đăng nhập `login.html`.
+    - Bọc `try...catch` độc lập từng phân đoạn API trong `renderKpiWidget()` để tránh lỗi cascading và đảm bảo widget luôn hiển thị mượt mà.
+  - **Đóng Băng & Chuẩn Hóa Chiến Lược Kích Hoạt KPI Engine (Hybrid Event-Driven)**:
+    - Ghi nhận cơ chế vận hành 3 tầng vào Mục 61.6 của `.keywork.md`: Tầng 1 (Sự kiện tác nghiệp $O(1)$) $\rightarrow$ Tầng 2 (Truy vấn tổng hợp $<2\text{ms}$) $\rightarrow$ Tầng 3 (Chốt sổ thi đua cuối kỳ bất biến). Không chạy quét định kỳ vô nghĩa, triệt tiêu nguy cơ nghẽn DB và bảo toàn 8 Bất biến toán học.
+  - **Chuẩn Hóa Thuật Ngữ Hành Chính & Tinh Gọn Quy Trình Hoàn Thành 1-Chạm**:
+    - Chuẩn hóa cụm từ *"Thưởng cân bằng tải"* $\rightarrow$ **`Thưởng Phân Công Hợp Lý`** trên toàn bộ giao diện và tài liệu.
+    - Chuẩn hóa *"Nghiệm thu lần 1"* $\rightarrow$ **`Hoàn Thành Lần 1`** *(Đạt Chuẩn Lần 1)*.
+    - Tinh gọn quy trình tác nghiệp: Nhân viên khi cập nhật tiến độ đạt **`100%`** có thể chuyển thẳng trạng thái sang **`HOAN_THANH (Đã hoàn thành)`** để tự động chốt KPI tức thì, loại bỏ rào cản "Chờ duyệt" đối với các nhiệm vụ giao việc thông thường; duy trì cơ chế **Hậu kiểm** cho Lãnh đạo khi cần yêu cầu làm lại sản phẩm.
+    - Trạng thái **`CHO_DUYET`** đổi tên chuẩn hóa thành **`Chờ Phê Duyệt`** (ưu tiên dùng cho các Đề xuất sáng kiến từ cấp dưới và Phiếu xin gia hạn deadline).
+  - **Nâng Cấp Giao Diện KPI Strip Thành Modern Executive Dashboard Siêu Nét**:
+    - Thiết kế hàm dựng biểu đồ SVG động `_getCircularGauge()` tạo vòng tròn Radial Progress Ring 72px với chuyển màu động (Xanh Emerald $\ge 100\%$, Xanh Blue $80-99\%$, Vàng Amber $50-79\%$, Đỏ Rose $<50\%$).
+    - Bố cục 4 Thẻ chỉ huy chuyên nghiệp phong cách SaaS Enterprise:
+      1. **Thẻ 1 (KPI 70/30)**: Vòng tròn Radial Gauge lớn + 2 Thanh Tiến Trình Phân Rã (Dual Split Bars) đo Thực thi 70% và Điều phối 30%.
+      2. **Thẻ 2 (Kỷ Luật Điều Phối)**: Bảng thước đo trừ điểm ngâm việc và cộng thưởng phân công hợp lý (+15%).
+      3. **Thẻ 3 (KPI Cá Nhân)**: Vòng tròn Radial Gauge tiến độ trực tiếp + Chip đếm số việc + Huy hiệu thưởng sáng kiến.
+      4. **Thẻ 4 (Quản Trị Tải & Khiên Bảo Vệ)**: Bản đồ kiểm soát tải nhân lực chống dồn việc quá 120% và trạng thái Khiên Quá Tải 🛡️.
+  - **Khắc Phục Lỗi Cú Pháp JS Render Widget**:
+    - Đã loại bỏ dấu ngoặc nhọn thừa tại `tasks.js` và xác thực cú pháp đạt 100% bằng `node -c`. Dải Dashboard KPI nạp tức thì mượt mà.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

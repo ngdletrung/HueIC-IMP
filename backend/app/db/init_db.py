@@ -18,63 +18,254 @@ def init_db(db: Session) -> None:
     # 1.1 Tự động bổ sung các cột nếu bảng đã tạo từ trước
     try:
         with engine.connect() as conn:
+            conn.execute(text("DO $$ BEGIN ALTER TYPE userrole ADD VALUE IF NOT EXISTS 'BGH'; EXCEPTION WHEN duplicate_object THEN null; END $$;"))
+            conn.execute(text("DO $$ BEGIN ALTER TYPE userrole ADD VALUE IF NOT EXISTS 'DEPT_VICE'; EXCEPTION WHEN duplicate_object THEN null; END $$;"))
+            conn.execute(text("DO $$ BEGIN ALTER TYPE taskstatus ADD VALUE IF NOT EXISTS 'TU_CHOI'; EXCEPTION WHEN duplicate_object THEN null; END $$;"))
+            conn.execute(text("DO $$ BEGIN ALTER TYPE tasktype ADD VALUE IF NOT EXISTS 'PROPOSAL'; EXCEPTION WHEN duplicate_object THEN null; END $$;"))
+            conn.execute(text("DO $$ BEGIN ALTER TYPE tasktype ADD VALUE IF NOT EXISTS 'ESCALATION'; EXCEPTION WHEN duplicate_object THEN null; END $$;"))
+            conn.execute(text("ALTER TABLE departments ALTER COLUMN code TYPE VARCHAR(100);"))
+            conn.execute(text("ALTER TABLE departments ADD COLUMN IF NOT EXISTS parent_id INTEGER REFERENCES departments(id) ON DELETE SET NULL;"))
+            conn.execute(text("ALTER TABLE departments ADD COLUMN IF NOT EXISTS path VARCHAR(255);"))
+            conn.execute(text("ALTER TABLE departments ADD COLUMN IF NOT EXISTS type VARCHAR(50) DEFAULT 'DEPARTMENT';"))
+            conn.execute(text("ALTER TABLE departments ADD COLUMN IF NOT EXISTS order_index INTEGER DEFAULT 0;"))
             conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS permissions JSON DEFAULT '[]'::json;"))
             conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS workflow_steps JSON DEFAULT '[]'::json;"))
             conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS workflow_name VARCHAR(255);"))
-            conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS workflow_template_id INTEGER;"))
+            conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS workflow_template_id INTEGER REFERENCES workflow_templates(id) ON DELETE SET NULL;"))
             conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS parent_id INTEGER REFERENCES tasks(id) ON DELETE CASCADE;"))
             conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS type VARCHAR(50) DEFAULT 'ROUTINE';"))
             conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS visibility VARCHAR(50) DEFAULT 'DEPARTMENT';"))
             conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS progress_rule VARCHAR(50) DEFAULT 'AVERAGE';"))
             conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS weight FLOAT DEFAULT 1.0;"))
-            conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS series_id INTEGER;"))
+            conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS series_id INTEGER REFERENCES task_recurring_rules(id) ON DELETE SET NULL;"))
             conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS escalation_level INTEGER DEFAULT 0;"))
             conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS received_at TIMESTAMP WITH TIME ZONE;"))
+            conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS collaboration_status VARCHAR(50) DEFAULT 'NONE';"))
+            conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS collaboration_reject_reason TEXT;"))
+            conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS assisting_assignee_id INTEGER REFERENCES users(id) ON DELETE SET NULL;"))
+            conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS collaboration_accepted_at TIMESTAMP WITH TIME ZONE;"))
+            conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS collaboration_rejected_at TIMESTAMP WITH TIME ZONE;"))
+            conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS approved_by_id INTEGER REFERENCES users(id) ON DELETE SET NULL;"))
+            conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS approved_at TIMESTAMP WITH TIME ZONE;"))
+            conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS assigned_by_id INTEGER REFERENCES users(id) ON DELETE SET NULL;"))
+            conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS assigned_at TIMESTAMP WITH TIME ZONE;"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_tasks_approved_by_id ON tasks(approved_by_id);"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_tasks_assigned_by_id ON tasks(assigned_by_id);"))
+            conn.execute(text("ALTER TABLE task_assignments ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE;"))
+            conn.execute(text("ALTER TABLE task_assignments ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_task_assignments_is_active ON task_assignments(is_active);"))
+            conn.execute(text("ALTER TABLE task_comments ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();"))
+            conn.execute(text("ALTER TABLE task_comments ALTER COLUMN author_id DROP NOT NULL;"))
+            
+            # Tạo bảng Audit Log: task_action_logs
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS task_action_logs (
+                    id SERIAL PRIMARY KEY,
+                    task_id INTEGER REFERENCES tasks(id) ON DELETE CASCADE,
+                    actor_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+                    action VARCHAR(50) NOT NULL,
+                    details JSON DEFAULT '{}'::json,
+                    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+                );
+                CREATE INDEX IF NOT EXISTS ix_task_action_logs_task_id ON task_action_logs(task_id);
+                CREATE INDEX IF NOT EXISTS ix_task_action_logs_action ON task_action_logs(action);
+            """))
+
+            # Tạo bảng Thông báo Điều hành: task_notifications
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS task_notifications (
+                    id SERIAL PRIMARY KEY,
+                    task_id INTEGER REFERENCES tasks(id) ON DELETE CASCADE,
+                    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+                    type VARCHAR(50) NOT NULL,
+                    title VARCHAR(255) NOT NULL,
+                    message TEXT NOT NULL,
+                    is_read BOOLEAN DEFAULT FALSE,
+                    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+                );
+                CREATE INDEX IF NOT EXISTS ix_task_notifications_user_id ON task_notifications(user_id);
+                CREATE INDEX IF NOT EXISTS ix_task_notifications_task_id ON task_notifications(task_id);
+                CREATE INDEX IF NOT EXISTS ix_task_notifications_is_read ON task_notifications(is_read);
+                CREATE INDEX IF NOT EXISTS ix_task_notifications_created_at ON task_notifications(created_at);
+            """))
+
+            # Cập nhật các cột phục vụ KpiEngine v1.0
+            conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS effective_deadline TIMESTAMP WITH TIME ZONE;"))
+            conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS base_score FLOAT;"))
+            conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS actual_score FLOAT;"))
+            conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS quality_reject_count INTEGER DEFAULT 0;"))
+            conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS assignment_reject_count INTEGER DEFAULT 0;"))
+            conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS is_escalated BOOLEAN DEFAULT FALSE;"))
+            conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS formula_version_id INTEGER;"))
+            conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS is_final BOOLEAN DEFAULT FALSE;"))
+            conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS last_calculated_at TIMESTAMP WITH TIME ZONE;"))
+
+            # Tạo các bảng KPI Engine nếu chưa có
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS kpi_formula_versions (
+                    id SERIAL PRIMARY KEY,
+                    version_name VARCHAR(50) NOT NULL DEFAULT 'v1.0',
+                    version_number INTEGER NOT NULL DEFAULT 1,
+                    late_penalty_rate NUMERIC(5, 2) DEFAULT 0.15,
+                    early_bonus_rate NUMERIC(5, 2) DEFAULT 0.10,
+                    early_bonus_cap NUMERIC(5, 2) DEFAULT 0.15,
+                    late_severe_floor NUMERIC(5, 2) DEFAULT 0.50,
+                    reject_penalty_rate NUMERIC(5, 2) DEFAULT 0.15,
+                    assignment_reject_factor NUMERIC(5, 2) DEFAULT 0.50,
+                    proposal_bonus_points NUMERIC(5, 2) DEFAULT 15.0,
+                    proposal_bonus_cap NUMERIC(5, 2) DEFAULT 30.0,
+                    escalation_penalty_24h NUMERIC(5, 2) DEFAULT 0.05,
+                    escalation_penalty_48h NUMERIC(5, 2) DEFAULT 0.10,
+                    escalation_penalty_72h NUMERIC(5, 2) DEFAULT 0.15,
+                    coordination_penalty_cap NUMERIC(5, 2) DEFAULT 0.30,
+                    workload_overload_threshold NUMERIC(5, 2) DEFAULT 1.20,
+                    workload_warning_threshold NUMERIC(5, 2) DEFAULT 1.00,
+                    kpi_floor NUMERIC(5, 2) DEFAULT 0.0,
+                    kpi_ceiling NUMERIC(5, 2) DEFAULT 1.20,
+                    is_active BOOLEAN DEFAULT TRUE,
+                    effective_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+                );
+
+                CREATE TABLE IF NOT EXISTS workload_snapshots (
+                    id SERIAL PRIMARY KEY,
+                    task_id INTEGER REFERENCES tasks(id) ON DELETE CASCADE NOT NULL,
+                    assignee_id INTEGER REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+                    workload_index NUMERIC(5, 2) NOT NULL DEFAULT 1.0,
+                    overload_status VARCHAR(20) NOT NULL DEFAULT 'NORMAL',
+                    formula_version_id INTEGER REFERENCES kpi_formula_versions(id) ON DELETE SET NULL,
+                    captured_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+                );
+                CREATE INDEX IF NOT EXISTS ix_workload_snapshots_task_id ON workload_snapshots(task_id);
+                CREATE INDEX IF NOT EXISTS ix_workload_snapshots_assignee_id ON workload_snapshots(assignee_id);
+
+                CREATE TABLE IF NOT EXISTS request_extensions (
+                    id SERIAL PRIMARY KEY,
+                    task_id INTEGER REFERENCES tasks(id) ON DELETE CASCADE NOT NULL,
+                    requested_by_id INTEGER REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+                    original_deadline TIMESTAMP WITH TIME ZONE,
+                    requested_new_deadline TIMESTAMP WITH TIME ZONE NOT NULL,
+                    reason TEXT NOT NULL,
+                    approved_by_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+                    status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+                    note TEXT,
+                    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                    resolved_at TIMESTAMP WITH TIME ZONE
+                );
+                CREATE INDEX IF NOT EXISTS ix_request_extensions_task_id ON request_extensions(task_id);
+
+                CREATE TABLE IF NOT EXISTS kpi_logs (
+                    id SERIAL PRIMARY KEY,
+                    subject_type VARCHAR(20) NOT NULL,
+                    subject_id INTEGER NOT NULL,
+                    period VARCHAR(20) NOT NULL,
+                    kpi_value NUMERIC(6, 2) NOT NULL,
+                    base_score_total NUMERIC(8, 2) DEFAULT 0.0,
+                    actual_score_total NUMERIC(8, 2) DEFAULT 0.0,
+                    is_final BOOLEAN DEFAULT FALSE,
+                    formula_version_id INTEGER REFERENCES kpi_formula_versions(id) ON DELETE SET NULL,
+                    evidence_task_id INTEGER REFERENCES tasks(id) ON DELETE SET NULL,
+                    details TEXT,
+                    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+                );
+                CREATE INDEX IF NOT EXISTS ix_kpi_logs_subject ON kpi_logs(subject_type, subject_id);
+                CREATE INDEX IF NOT EXISTS ix_kpi_logs_period ON kpi_logs(period);
+            """))
+
+            # Ràng buộc toàn vẹn nâng cao (Constraints & Index)
+            conn.execute(text("""
+                DO $$ BEGIN
+                    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'uq_task_user_assignment') THEN
+                        ALTER TABLE task_assignments ADD CONSTRAINT uq_task_user_assignment UNIQUE (task_id, assigned_to_id);
+                    END IF;
+                    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_task_progress_percent') THEN
+                        ALTER TABLE tasks ADD CONSTRAINT chk_task_progress_percent CHECK (progress_percent >= 0.0 AND progress_percent <= 100.0);
+                    END IF;
+                    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_task_escalation_level') THEN
+                        ALTER TABLE tasks ADD CONSTRAINT chk_task_escalation_level CHECK (escalation_level >= 0 AND escalation_level <= 3);
+                    END IF;
+                    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_task_weight') THEN
+                        ALTER TABLE tasks ADD CONSTRAINT chk_task_weight CHECK (weight > 0.0);
+                    END IF;
+                END $$;
+            """))
             conn.commit()
     except Exception as e:
         print(f"⚠️ Kiểm tra cập nhật cột CSDL: {e}")
 
+    # Seed KpiFormulaVersion v1.0 nếu chưa có
+    try:
+        from app.models.kpi import KpiFormulaVersion
+        existing_version = db.query(KpiFormulaVersion).first()
+        if not existing_version:
+            v1 = KpiFormulaVersion(
+                version_name="v1.0 (Quy chuẩn Blueprint)",
+                version_number=1,
+                late_penalty_rate=0.15,
+                early_bonus_rate=0.10,
+                early_bonus_cap=0.15,
+                late_severe_floor=0.50,
+                reject_penalty_rate=0.15,
+                assignment_reject_factor=0.50,
+                proposal_bonus_points=15.0,
+                proposal_bonus_cap=30.0,
+                escalation_penalty_24h=0.05,
+                escalation_penalty_48h=0.10,
+                escalation_penalty_72h=0.15,
+                coordination_penalty_cap=0.30,
+                workload_overload_threshold=1.20,
+                workload_warning_threshold=1.00,
+                kpi_floor=0.0,
+                kpi_ceiling=1.20,
+                is_active=True
+            )
+            db.add(v1)
+            db.commit()
+            print("✅ Đã khởi tạo KpiFormulaVersion v1.0 chuẩn hóa thành công.")
+    except Exception as e:
+        db.rollback()
+        print(f"⚠️ Không thể seed KpiFormulaVersion: {e}")
+
     # 2. Khởi tạo danh sách Phòng/Khoa/Ban chuẩn của HueIC
     default_departments = [
-        {"code": "BGH", "name": "Ban Giám hiệu", "phone": "0234.3822123", "email": "bgh@hueic.edu.vn", "description": "Lãnh đạo và chỉ đạo chung toàn trường"},
-        {"code": "HCTH", "name": "Phòng Hành chính - Tổng hợp", "phone": "0234.3822124", "email": "hcth@hueic.edu.vn", "description": "Công tác hành chính, văn thư lưu trữ, tổng hợp và pháp chế"},
-        {"code": "ĐT", "name": "Phòng Đào tạo", "phone": "0234.3822125", "email": "daotao@hueic.edu.vn", "description": "Quản lý công tác đào tạo, kế hoạch giảng dạy, thi cử và chuẩn đầu ra"},
-        {"code": "QTĐT", "name": "Phòng Quản trị - Đầu tư", "phone": "0234.3822126", "email": "qtdt@hueic.edu.vn", "description": "Quản lý tài sản, cơ sở vật chất, đầu tư xây dựng và thiết bị"},
-        {"code": "TSDV", "name": "Trung tâm Tuyển sinh - dịch vụ & Công tác sinh viên", "phone": "0234.3822127", "email": "tsdv@hueic.edu.vn", "description": "Công tác tuyển sinh, dịch vụ hỗ trợ sinh viên và rèn luyện"},
-        {"code": "CKOT", "name": "Khoa Cơ khí - Ô tô", "phone": "0234.3822128", "email": "ckot@hueic.edu.vn", "description": "Đào tạo Công nghệ Chế tạo máy, Kỹ thuật Ô tô, Hàn"},
-        {"code": "DC", "name": "Khoa Điện - Điện tử", "phone": "0234.3822129", "email": "diendientu@hueic.edu.vn", "description": "Đào tạo Kỹ thuật Điện, Điện tử công nghiệp, Tự động hóa"},
-        {"code": "CNTT", "name": "Khoa Công nghệ thông tin và Kinh tế số", "phone": "0234.3822130", "email": "cntt@hueic.edu.vn", "description": "Đào tạo CNTT, An ninh mạng, Phần mềm, Thương mại điện tử & Kinh tế số"},
-        {"code": "NL", "name": "Khoa Nhiệt lạnh", "phone": "0234.3822131", "email": "nhietlanh@hueic.edu.vn", "description": "Đào tạo Kỹ thuật Nhiệt lạnh, Điều hòa không khí"},
-        {"code": "KHCB", "name": "Khoa Khoa học cơ bản", "phone": "0234.3822132", "email": "khcb@hueic.edu.vn", "description": "Giảng dạy các môn khoa học đại cương, toán học, ngoại ngữ"},
-        {"code": "TTGD", "name": "Tổ Thanh tra giáo dục", "phone": "0234.3822133", "email": "ttgd@hueic.edu.vn", "description": "Thanh tra, giám sát chất lượng đào tạo và nền nếp chuyên môn"},
-        {"code": "CĐ", "name": "Ban Chuyển đổi số", "phone": "0234.3822134", "email": "cds@hueic.edu.vn", "description": "Xây dựng hạ tầng số, phần mềm quản trị và ứng dụng CNTT toàn trường"}
+        {"code": "BGH", "name": "Ban Giám hiệu", "type": "BGH", "order_index": 1, "phone": "0234.3822123", "email": "bgh@hueic.edu.vn", "description": "Lãnh đạo và chỉ đạo chung toàn trường"},
+        {"code": "HCTH", "name": "Phòng Hành chính - Tổng hợp", "type": "DEPARTMENT", "order_index": 2, "phone": "0234.3822124", "email": "hcth@hueic.edu.vn", "description": "Công tác hành chính, văn thư lưu trữ, tổng hợp và pháp chế"},
+        {"code": "ĐT", "name": "Phòng Đào tạo", "type": "DEPARTMENT", "order_index": 3, "phone": "0234.3822125", "email": "daotao@hueic.edu.vn", "description": "Quản lý công tác đào tạo, kế hoạch giảng dạy, thi cử và chuẩn đầu ra"},
+        {"code": "QTĐT", "name": "Phòng Quản trị - Đầu tư", "type": "DEPARTMENT", "order_index": 4, "phone": "0234.3822126", "email": "qtdt@hueic.edu.vn", "description": "Quản lý tài sản, cơ sở vật chất, đầu tư xây dựng và thiết bị"},
+        {"code": "TSDV", "name": "Trung tâm Tuyển sinh - dịch vụ & Công tác sinh viên", "type": "CENTER", "order_index": 5, "phone": "0234.3822127", "email": "tsdv@hueic.edu.vn", "description": "Công tác tuyển sinh, dịch vụ hỗ trợ sinh viên và rèn luyện"},
+        {"code": "CKOT", "name": "Khoa Cơ khí - Ô tô", "type": "FACULTY", "order_index": 6, "phone": "0234.3822128", "email": "ckot@hueic.edu.vn", "description": "Đào tạo Công nghệ Chế tạo máy, Kỹ thuật Ô tô, Hàn"},
+        {"code": "DC", "name": "Khoa Điện - Điện tử", "type": "FACULTY", "order_index": 7, "phone": "0234.3822129", "email": "diendientu@hueic.edu.vn", "description": "Đào tạo Kỹ thuật Điện, Điện tử công nghiệp, Tự động hóa"},
+        {"code": "CNTT", "name": "Khoa Công nghệ thông tin và Kinh tế số", "type": "FACULTY", "order_index": 8, "phone": "0234.3822130", "email": "cntt@hueic.edu.vn", "description": "Đào tạo CNTT, An ninh mạng, Phần mềm, Thương mại điện tử & Kinh tế số"},
+        {"code": "NL", "name": "Khoa Nhiệt lạnh", "type": "FACULTY", "order_index": 9, "phone": "0234.3822131", "email": "nhietlanh@hueic.edu.vn", "description": "Đào tạo Kỹ thuật Nhiệt lạnh, Điều hòa không khí"},
+        {"code": "KHCB", "name": "Khoa Khoa học cơ bản", "type": "FACULTY", "order_index": 10, "phone": "0234.3822132", "email": "khcb@hueic.edu.vn", "description": "Giảng dạy các môn khoa học đại cương, toán học, ngoại ngữ"},
+        {"code": "TTGD", "name": "Tổ Thanh tra giáo dục", "type": "SECTION", "order_index": 11, "phone": "0234.3822133", "email": "ttgd@hueic.edu.vn", "description": "Thanh tra, giám sát chất lượng đào tạo và nền nếp chuyên môn"},
+        {"code": "CĐ", "name": "Ban Chuyển đổi số", "type": "SECTION", "order_index": 12, "phone": "0234.3822134", "email": "cds@hueic.edu.vn", "description": "Xây dựng hạ tầng số, phần mềm quản trị và ứng dụng CNTT toàn trường"}
     ]
 
     # Đồng bộ / Cập nhật bảng departments
     dept_map = {}
     
-    # 2.1 Cập nhật hoặc thêm mới
+    # 2.1 Cập nhật hoặc thêm mới các đơn vị cốt lõi
     for d_data in default_departments:
         dept = db.query(Department).filter((Department.code == d_data["code"]) | (Department.name == d_data["name"])).first()
         if dept:
             dept.code = d_data["code"]
             dept.name = d_data["name"]
+            dept.type = d_data.get("type", "DEPARTMENT")
+            dept.order_index = d_data.get("order_index", 0)
             dept.phone = d_data["phone"]
             dept.email = d_data["email"]
             dept.description = d_data["description"]
+            if not dept.path:
+                dept.path = f"/{dept.code}"
         else:
-            dept = Department(**d_data)
+            dept_dict = dict(d_data)
+            dept_dict["path"] = f"/{d_data['code']}"
+            dept = Department(**dept_dict)
             db.add(dept)
         db.commit()
         db.refresh(dept)
         dept_map[dept.code] = dept
-
-    # 2.2 Xóa các phòng ban cũ không còn trong danh sách chuẩn (nếu có)
-    valid_codes = [d["code"] for d in default_departments]
-    old_depts = db.query(Department).filter(~Department.code.in_(valid_codes)).all()
-    for od in old_depts:
-        db.delete(od)
-    db.commit()
 
     # 3. Tạo tài khoản SuperAdmin
     admin_user = db.query(User).filter(User.username == settings.FIRST_SUPERADMIN_USERNAME).first()
@@ -108,6 +299,7 @@ def init_db(db: Session) -> None:
     if total_non_admin_users == 0:
         demo_users = [
             {"username": "qtdt", "email": "qtdt@hueic.edu.vn", "full_name": "ThS. Trưởng Phòng QTĐT", "role": UserRole.DEPT_HEAD, "dept": "QTĐT", "position": "Trưởng Phòng Quản trị - Đầu tư", "phone": "0914.111.222"},
+            {"username": "ndltrung", "email": "ndltrung@hueic.edu.vn", "full_name": "Nguyễn Đình Lê Trung", "role": UserRole.STAFF, "dept": "QTĐT", "position": "Nhân viên Phòng Quản trị - Đầu tư", "phone": "0914.888.999"},
             {"username": "cv_cntt", "email": "cv_cntt@hueic.edu.vn", "full_name": "KST. Phạm Hoàng Dũng", "role": UserRole.STAFF, "dept": "CNTT", "position": "Chuyên viên Khoa CNTT & KTS", "phone": "0914.777.888"},
         ]
 
@@ -127,6 +319,9 @@ def init_db(db: Session) -> None:
             )
             db.add(user_obj)
         db.commit()
+
+    # Thu thập map toàn bộ User theo username để gán đúng ID cho demo tasks
+    user_map = {u.username: u for u in db.query(User).all()}
 
     # 5. Cập nhật hoặc tạo Công việc mẫu
     existing_tasks = db.query(Task).count()

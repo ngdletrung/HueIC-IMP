@@ -16,16 +16,14 @@ const CalendarPage = {
     departments: [],
 
     async init() {
-        if (typeof Common !== 'undefined') {
-            Common.detectAndApplyDeviceClasses();
-        }
+        Common.init('calendar');
+
+        // Cập nhật thông tin user trong sidebar (Common.init đã xử lý header)
         const user = API.getCurrentUser();
-        if (!user) { window.location.href = 'login.html'; return; }
-        
         const unEl = document.getElementById('sidebarUserName');
-        if (unEl) unEl.innerText = user.full_name || user.username;
+        if (unEl && user) unEl.innerText = user.full_name || user.username;
         const avEl = document.getElementById('sidebarUserAvatar');
-        if (avEl) avEl.innerText = (user.full_name || user.username).charAt(0).toUpperCase();
+        if (avEl && user) avEl.innerText = (user.full_name || user.username).charAt(0).toUpperCase();
 
         const hash = window.location.hash.replace('#', '');
         if (['month', 'week', 'day', 'agenda'].includes(hash)) this.currentView = hash;
@@ -49,13 +47,14 @@ const CalendarPage = {
     },
 
     populateDepartmentSelects() {
+        const count = Array.isArray(this.departments) ? this.departments.length : 0;
         const selects = [
             document.getElementById('calendarFilterDept'),
             document.getElementById('calendarFilterDept-m')
         ];
         selects.forEach(sel => {
             if (!sel) return;
-            sel.innerHTML = '<option value="">🏢 Tất Cả Đơn Vị (12 Đơn Vị)</option>' +
+            sel.innerHTML = `<option value="">🏢 Tất Cả Đơn Vị (${count} Đơn Vị)</option>` +
                 this.departments.map(d => `<option value="${d.id}">[${d.code}] ${d.name}</option>`).join('');
         });
     },

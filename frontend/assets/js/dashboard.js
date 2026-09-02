@@ -8,20 +8,7 @@ const DashboardHub = {
     selectedDeptId: null,
 
     async init() {
-        if (typeof Common !== 'undefined') {
-            Common.detectAndApplyDeviceClasses();
-        }
-
-        const user = API.getCurrentUser();
-        if (!user) {
-            window.location.href = 'login.html';
-            return;
-        }
-
-        const unEl = document.getElementById('headerUserName');
-        if (unEl) unEl.innerText = user.full_name || user.username;
-        const avEl = document.getElementById('headerUserAvatar');
-        if (avEl) avEl.innerText = (user.full_name || user.username).charAt(0).toUpperCase();
+        Common.init('dashboard');
 
         await this.loadDepartments();
         await this.loadData();
@@ -30,10 +17,15 @@ const DashboardHub = {
     async loadDepartments() {
         try {
             this.departments = await API.getDepartments();
+            const count = Array.isArray(this.departments) ? this.departments.length : 0;
             const sel = document.getElementById('portalDeptFilter');
             if (sel) {
-                sel.innerHTML = '<option value="">🏢 Cấp Toàn Trường (12 Đơn vị)</option>' +
+                sel.innerHTML = `<option value="">🏢 Cấp Toàn Trường (${count} Đơn vị)</option>` +
                     this.departments.map(d => `<option value="${d.id}">[${d.code}] ${d.name}</option>`).join('');
+            }
+            const textEl = document.getElementById('portalScopeText');
+            if (textEl && !this.selectedDeptId) {
+                textEl.innerText = `Cấp Toàn Trường (${count} Đơn vị)`;
             }
         } catch (e) {
             console.error('[DashboardHub] Error loading departments:', e);
@@ -57,6 +49,50 @@ const DashboardHub = {
         this.renderActionQueue();
         this.renderDeptProgress();
         this.renderUpcomingCalendar();
+        this.loadKpiMetrics();
+    },
+
+    async loadKpiMetrics() {
+        try {
+            // 1. Chỉ số SPI Toàn trường
+            const spiRes = await API.getSchoolSPI();
+            if (spiRes) {
+                const elSpi = document.getElementById('spiValue');
+                const elOnTime = document.getElementById('spiOnTime');
+                const elQuality = document.getElementById('spiQuality');
+                if (elSpi) elSpi.innerText = `${spiRes.spi || 0}%`;
+                if (elOnTime) elOnTime.innerText = `${spiRes.on_time_rate || 0}%`;
+                if (elQuality) elQuality.innerText = `${spiRes.quality_rate || 0}%`;
+            }
+
+            // 2. KPI Cá Nhân
+            const kpiRes = await API.getPersonalKPI();
+            if (kpiRes) {
+                const elVal = document.getElementById('userKpiValue');
+                const elRank = document.getElementById('userKpiRank');
+                const elExec = document.getElementById('userExecRate');
+                const elBonus = document.getElementById('userProposalBonus');
+                const elBase = document.getElementById('userActualBase');
+                const elTotal = document.getElementById('userTotalTasks');
+                const elDone = document.getElementById('userCompletedTasks');
+
+                if (elVal) elVal.innerText = `${kpiRes.kpi || 0}%`;
+                if (elRank) {
+                    elRank.innerText = kpiRes.rank || 'Chưa chốt';
+                    if (kpiRes.kpi >= 110) elRank.className = 'text-[11px] font-bold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-900';
+                    else if (kpiRes.kpi >= 95) elRank.className = 'text-[11px] font-bold px-1.5 py-0.2 rounded bg-green-100 text-green-900';
+                    else if (kpiRes.kpi >= 80) elRank.className = 'text-[11px] font-bold px-1.5 py-0.2 rounded bg-blue-100 text-blue-900';
+                    else elRank.className = 'text-[11px] font-bold px-1.5 py-0.2 rounded bg-amber-100 text-amber-900';
+                }
+                if (elExec) elExec.innerText = `${kpiRes.execution_rate || 0}%`;
+                if (elBonus) elBonus.innerText = `+${kpiRes.proposal_bonus || 0}đ`;
+                if (elBase) elBase.innerText = `${kpiRes.total_actual_score || 0} / ${kpiRes.total_base_score || 0}`;
+                if (elTotal) elTotal.innerText = kpiRes.total_tasks || 0;
+                if (elDone) elDone.innerText = kpiRes.completed_tasks || 0;
+            }
+        } catch (e) {
+            console.warn('[DashboardHub] Could not load KPI metrics:', e);
+        }
     },
 
     handleScopeChange() {
@@ -70,7 +106,8 @@ const DashboardHub = {
                 const d = this.departments.find(item => item.id === this.selectedDeptId);
                 textEl.innerText = d ? `Đơn vị: ${d.name} (${d.code})` : 'Đơn vị đã chọn';
             } else {
-                textEl.innerText = 'Cấp Toàn Trường (12 Đơn vị)';
+                const count = Array.isArray(this.departments) ? this.departments.length : 0;
+                textEl.innerText = `Cấp Toàn Trường (${count} Đơn vị)`;
             }
         }
         this.loadData();

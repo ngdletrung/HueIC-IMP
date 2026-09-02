@@ -21,3 +21,7 @@ You are working in the **HueIC IMP (HueIC Internal Management Portal)** reposito
 
 4. **MANDATORY README.MD UPDATE ON ARCHITECTURAL / STRUCTURAL CHANGES**:
    - Whenever you change project architecture, directory structure, port allocations, or add new modules, you **MUST** update `README.md` to keep documentation 100% accurate.
+
+5. **MANDATORY PLANNING-FIRST & APPROVAL-GATED EXECUTION**:
+   - Always propose a comprehensive Implementation Plan and wait for explicit User approval before writing code or running modifying commands. If the user requests refinements, continue discussing until the plan is perfect.
+

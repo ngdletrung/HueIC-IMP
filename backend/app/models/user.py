@@ -5,9 +5,11 @@ import enum
 from app.db.session import Base
 
 class UserRole(str, enum.Enum):
-    SUPERADMIN = "SUPERADMIN"       # Ban Giám hiệu / Quản trị viên cấp cao
-    DEPT_HEAD = "DEPT_HEAD"         # Trưởng đơn vị / Trưởng Khoa / Trưởng Phòng
-    STAFF = "STAFF"                 # Chuyên viên / Giảng viên / Cán bộ
+    SUPERADMIN = "SUPERADMIN"       # 1/ Nhóm Quản trị (Quản trị hệ thống toàn quyền)
+    BGH = "BGH"                     # 2/ BGH (Ban Giám Hiệu)
+    DEPT_HEAD = "DEPT_HEAD"         # 3/ Quản Lý (Trưởng đơn vị / Trưởng Khoa / Trưởng Phòng / Tổ trưởng)
+    DEPT_VICE = "DEPT_VICE"         # 3/ Quản Lý (Phó Trưởng đơn vị / Phó Khoa / Phó Phòng)
+    STAFF = "STAFF"                 # 4/ Nhân viên (Chuyên viên / Giảng viên / Cán bộ)
 
 class User(Base):
     __tablename__ = "users"

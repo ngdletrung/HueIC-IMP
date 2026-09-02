@@ -10,7 +10,7 @@ from app.core.config import settings
 from app.core.logging_config import setup_logging
 from app.db.session import SessionLocal
 from app.db.init_db import init_db
-from app.api.v1 import auth, departments, users, tasks, stats, permissions, workflows
+from app.api.v1 import auth, departments, users, tasks, stats, permissions, workflows, database, kpi
 
 # Khởi tạo logging tập trung
 logger = setup_logging()
@@ -35,7 +35,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.PROJECT_NAME,
     description="Hệ thống Cổng Quản lý và Điều hành Nội bộ - Trường Cao đẳng Công nghiệp Huế (HueIC)",
-    version="2.4.2",
+    version="2.9.29",
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     docs_url="/docs",
     redoc_url="/redoc",
@@ -72,6 +72,8 @@ app.include_router(tasks.router, prefix=f"{settings.API_V1_STR}/tasks", tags=["Q
 app.include_router(workflows.router, prefix=f"{settings.API_V1_STR}/workflows", tags=["Danh Mục Quy Trình Mẫu (Workflows)"])
 app.include_router(stats.router, prefix=f"{settings.API_V1_STR}/stats", tags=["Báo cáo & Thống kê"])
 app.include_router(permissions.router, prefix=f"{settings.API_V1_STR}/permissions", tags=["Phân Quyền Chi Tiết (RBAC)"])
+app.include_router(kpi.router, prefix=f"{settings.API_V1_STR}/kpi", tags=["Đo Lường Hiệu Suất & KPI (KpiEngine)"])
+app.include_router(database.router, prefix=f"{settings.API_V1_STR}/database", tags=["Quản Trị Cơ Sở Dữ Liệu (Database Studio)"])
 
 @app.get("/health", tags=["Hệ thống"])
 def health_check():

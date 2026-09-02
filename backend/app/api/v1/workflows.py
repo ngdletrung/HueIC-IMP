@@ -1,10 +1,10 @@
-﻿from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, joinedload
 from typing import Any, List, Optional
 
 from app.db.session import get_db
 from app.models.workflow import WorkflowTemplate
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.schemas.workflow import WorkflowTemplateCreate, WorkflowTemplateUpdate, WorkflowTemplateOut
 from app.api.v1.auth import get_current_user
 
@@ -48,6 +48,14 @@ def create_workflow(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ) -> Any:
+    # Kiểm tra quyền quản lý quy trình (RBAC workflow:manage)
+    can_manage = (
+        current_user.role in [UserRole.SUPERADMIN, UserRole.BGH, UserRole.DEPT_HEAD] or
+        (current_user.permissions and "workflow:manage" in current_user.permissions)
+    )
+    if not can_manage:
+        raise HTTPException(status_code=403, detail="Bạn không có quyền tạo quy trình mẫu mới (Yêu cầu quyền workflow:manage hoặc Lãnh đạo).")
+
     # Kiểm tra mã trùng lặp
     existing = db.query(WorkflowTemplate).filter(WorkflowTemplate.code == wf_in.code.upper().strip()).first()
     if existing:
@@ -69,6 +77,14 @@ def update_workflow(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ) -> Any:
+    # Kiểm tra quyền quản lý quy trình (RBAC workflow:manage)
+    can_manage = (
+        current_user.role in [UserRole.SUPERADMIN, UserRole.BGH, UserRole.DEPT_HEAD] or
+        (current_user.permissions and "workflow:manage" in current_user.permissions)
+    )
+    if not can_manage:
+        raise HTTPException(status_code=403, detail="Bạn không có quyền chỉnh sửa quy trình mẫu này (Yêu cầu quyền workflow:manage hoặc Lãnh đạo).")
+
     wf = db.query(WorkflowTemplate).filter(WorkflowTemplate.id == workflow_id).first()
     if not wf:
         raise HTTPException(status_code=404, detail="Không tìm thấy quy trình mẫu.")
@@ -93,10 +109,20 @@ def delete_workflow(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ) -> Any:
+    # 1. Kiểm tra quyền xóa quy trình
+    if current_user.role not in [UserRole.SUPERADMIN, UserRole.BGH, UserRole.DEPT_HEAD]:
+        raise HTTPException(status_code=403, detail="Chỉ Ban Giám Hiệu, Trưởng đơn vị hoặc Quản trị viên mới được xóa quy trình mẫu.")
+
     wf = db.query(WorkflowTemplate).filter(WorkflowTemplate.id == workflow_id).first()
     if not wf:
         raise HTTPException(status_code=404, detail="Không tìm thấy quy trình mẫu.")
 
+    # 2. Xử lý Foreign Key an toàn (FIX P2-3): Ngắt liên kết các task đang tham chiếu đến workflow này
+    from app.models.task import Task
+    linked_tasks = db.query(Task).filter(Task.workflow_template_id == workflow_id).all()
+    for t in linked_tasks:
+        t.workflow_template_id = None
+    
     db.delete(wf)
     db.commit()
-    return {"message": "Đã xóa quy trình mẫu thành công."}
+    return {"message": f"Đã xóa quy trình mẫu thành công. Đã giải phóng liên kết cho {len(linked_tasks)} nhiệm vụ liên quan."}
