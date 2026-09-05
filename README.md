@@ -21,7 +21,7 @@
 7. [🛡️ Ma Trận Phân Quyền Thông Minh & Kiểm Soát Phân Hệ (Smart RBAC)](#-7-ma-trận-phân-quyền-thông-minh--kiểm-soát-phân-hệ-smart-rbac)
 8. [🎯 Trung Tâm Lọc Nhận Thức 8 Mục (Cognitive Quick Filter Bar)](#-8-trung-tâm-lọc-nhận-thức-8-mục-cognitive-quick-filter-bar)
 9. [📋 Phân Hệ Quản Lý Danh Mục Quy Trình Chuẩn (SOP Engine)](#-9-phân-hệ-quản-lý-danh-mục-quy-trình-chuẩn-sop-engine)
-10. [⚡ Không Gian Làm Việc Đa Chế Độ & Quản Trị Deadline MISA AMIS](#-10-không-gian-làm-việc-đa-chế-độ--quản-trị-deadline-misa-amis)
+10. [⚡ Không Gian Làm Việc Đa Chế Độ & Quản Trị Deadline Thông Minh](#-10-không-gian-làm-việc-đa-chế-độ--quản-trị-deadline-thông-minh)
 11. [🏗️ Bản Đặc Tả Kỹ Thuật Tổng Thể & Sơ Đồ Luồng End-to-End](#-11-bản-đặc-tả-kỹ-thuật-tổng-thể--sơ-đồ-luồng-end-to-end)
 12. [🔄 Đặc Tả Tách Biệt: Giao Việc (Tasks) vs Lịch Công Tác (Calendar)](#-12-đặc-tả-tách-biệt-giao-việc-tasks-vs-lịch-công-tác-calendar)
 13. [🚀 Hướng Dẫn Khởi Chạy Local & Triển Khai Ubuntu Server](#-13-hướng-dẫn-khởi-chạy-local--triển-khai-ubuntu-server)
@@ -249,9 +249,9 @@ Hệ thống cung cấp một **Phân hệ Quản lý Quy trình Chuẩn hóa đ
 
 ---
 
-## ⚡ 10. Không Gian Làm Việc Đa Chế Độ & Quản Trị Deadline MISA AMIS
+## ⚡ 10. Không Gian Làm Việc Đa Chế Độ & Quản Trị Deadline Thông Minh
 
-HueIC IMP tích hợp 4 tính năng đột phá được chắt lọc theo tinh hoa từ nền tảng MISA AMIS Công Việc:
+HueIC IMP tích hợp 4 tính năng đột phá theo chuẩn quản trị công việc doanh nghiệp & đại học tiên tiến:
 - 📊 **Không gian làm việc Đa chế độ (Multi-View Workspace)**:
   * **Chế độ Danh sách (List View)**: Màn hình PC hiển thị bảng 8 cột chuyên sâu với deadline badges và phân bổ cán bộ; Mobile hiển thị Touch Cards to rõ.
   * **Chế độ Bảng Thẻ Kanban Kéo Thả (Kanban Board Drag & Drop)**: 4 cột trạng thái (*Chưa bắt đầu, Đang thực hiện, Chờ nghiệm thu, Đã hoàn thành*), hỗ trợ kéo thả HTML5 siêu mượt để chuyển trạng thái và tự động cập nhật % bước mốc tức thì.

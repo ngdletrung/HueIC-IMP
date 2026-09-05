@@ -126,6 +126,7 @@ const SettingsPage = {
         if (subTabId === 'permissions') this.loadPermissionsView();
         if (subTabId === 'workflows') this.loadWorkflows();
         if (subTabId === 'themes') this.renderThemesConfig();
+        if (subTabId === 'working-hours') this.loadWorkingHoursConfig();
     },
 
     // 1. Department Logic
@@ -1825,6 +1826,67 @@ const SettingsPage = {
         this.renderTabColorConfig();
     },
 
+    // 6. Cấu hình Khung Giờ Làm Việc & SLA Hành Chính
+    async loadWorkingHoursConfig() {
+        try {
+            const cfg = await API.getWorkingHoursConfig();
+            if (cfg) {
+                const elMs = document.getElementById('cfgMorningStart');
+                const elMe = document.getElementById('cfgMorningEnd');
+                const elAs = document.getElementById('cfgAfternoonStart');
+                const elAe = document.getElementById('cfgAfternoonEnd');
+                const elWk = document.getElementById('cfgWeekendPause');
+                const elOt = document.getElementById('cfgOtBonus');
+                const elBadge = document.getElementById('workingHoursBadgeSummary');
+
+                if (elMs) elMs.value = cfg.morning_start || '07:30';
+                if (elMe) elMe.value = cfg.morning_end || '11:30';
+                if (elAs) elAs.value = cfg.afternoon_start || '13:00';
+                if (elAe) elAe.value = cfg.afternoon_end || '17:00';
+                if (elWk) elWk.checked = cfg.weekend_pause !== false;
+                if (elOt) elOt.checked = cfg.ot_bonus !== false;
+
+                if (elBadge) {
+                    elBadge.innerText = `${cfg.morning_start}-${cfg.morning_end} & ${cfg.afternoon_start}-${cfg.afternoon_end} • Nghỉ T7 & CN`;
+                }
+            }
+        } catch (e) {
+            console.error('Lỗi khi tải cấu hình lịch làm việc:', e);
+        }
+    },
+
+    async saveWorkingHoursConfig() {
+        try {
+            const morning_start = document.getElementById('cfgMorningStart')?.value || '07:30';
+            const morning_end = document.getElementById('cfgMorningEnd')?.value || '11:30';
+            const afternoon_start = document.getElementById('cfgAfternoonStart')?.value || '13:00';
+            const afternoon_end = document.getElementById('cfgAfternoonEnd')?.value || '17:00';
+            const weekend_pause = document.getElementById('cfgWeekendPause')?.checked ?? true;
+            const ot_bonus = document.getElementById('cfgOtBonus')?.checked ?? true;
+
+            const res = await API.updateWorkingHoursConfig({
+                morning_start,
+                morning_end,
+                afternoon_start,
+                afternoon_end,
+                weekend_pause,
+                ot_bonus
+            });
+
+            if (res && res.success) {
+                Common.showToast('✅ Đã lưu cấu hình khung giờ làm việc & SLA thành công!', 'success');
+                const elBadge = document.getElementById('workingHoursBadgeSummary');
+                if (elBadge) {
+                    elBadge.innerText = `${morning_start}-${morning_end} & ${afternoon_start}-${afternoon_end} • Nghỉ T7 & CN`;
+                }
+            } else {
+                Common.showToast(res?.detail || 'Không thể lưu cấu hình', 'error');
+            }
+        } catch (err) {
+            console.error('Lỗi lưu cấu hình lịch làm việc:', err);
+            Common.showToast(err.message || 'Lỗi khi lưu cấu hình lịch làm việc', 'error');
+        }
+    }
 };
 
 document.addEventListener('DOMContentLoaded', () => {

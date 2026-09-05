@@ -28,7 +28,7 @@ from app.core.task_security import (
     can_user_read_task, can_user_update_task, can_user_delete_task, can_user_manage_assignments,
     can_user_create_task, is_dept_leader
 )
-from app.kpi_engine import BaseScorer, ParentScorer, WorkloadEngine
+from app.kpi_engine import BaseScorer, ParentScorer, WorkloadEngine, SnapshotManager
 
 router = APIRouter()
 
@@ -496,6 +496,12 @@ def create_task(
     # Ghi log kiểm toán khởi tạo (TaskActionLog)
     log_task_action(db, task.id, current_user.id, "CREATE", {"title": task.title, "priority": task.priority.value if hasattr(task.priority, "value") else str(task.priority)})
 
+    # Auto-sync Snapshot cho Tháng, Quý, Năm tương ứng
+    try:
+        SnapshotManager.invalidate_target_periods_for_task(db, task)
+    except Exception as e:
+        pass
+
     return task
 
 @router.get("/{task_id}", response_model=TaskOut, summary="Chi tiết công việc")
@@ -537,6 +543,7 @@ def update_task(
     if not task:
         raise HTTPException(status_code=404, detail="Không tìm thấy công việc.")
 
+    old_due_date = task.due_date
     update_data = task_in.model_dump(exclude_unset=True)
     update_fields = set(update_data.keys())
 

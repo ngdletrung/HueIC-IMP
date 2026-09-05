@@ -811,5 +811,23 @@ const Common = {
                 Common.showToast('Không thể cập nhật thông báo', 'error');
             }
         }
+    },
+
+    // ----------------------------------------------------
+    // CHUẨN HÓA BỘ THANG XẾP LOẠI TOÀN HỆ THỐNG (5 MỨC DUY NHẤT)
+    // ----------------------------------------------------
+    getRankInfo(score) {
+        const s = typeof score === 'number' ? score : parseFloat(score || 0);
+        if (s >= 110) {
+            return { code: 'A+', label: 'A+ (Xuất sắc vượt mức)', badgeClass: 'bg-emerald-100 text-emerald-900 border border-emerald-300 font-black', color: '#059669' };
+        } else if (s >= 95) {
+            return { code: 'A', label: 'A (Xuất sắc)', badgeClass: 'bg-green-100 text-green-900 border border-green-300 font-bold', color: '#16a34a' };
+        } else if (s >= 80) {
+            return { code: 'B', label: 'B (Tốt - Đạt chuẩn)', badgeClass: 'bg-blue-100 text-blue-900 border border-blue-300 font-bold', color: '#2563eb' };
+        } else if (s >= 50) {
+            return { code: 'C', label: 'C (Cần cải thiện)', badgeClass: 'bg-amber-100 text-amber-900 border border-amber-300 font-bold', color: '#d97706' };
+        } else {
+            return { code: 'D', label: 'D (Chưa đạt chuẩn)', badgeClass: 'bg-rose-100 text-rose-900 border border-rose-300 font-bold', color: '#e11d48' };
+        }
     }
 };

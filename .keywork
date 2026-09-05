@@ -125,7 +125,7 @@
 
 ---
 
-## 12. 🚀 KHÔNG GIAN LÀM VIỆC ĐA CHẾ ĐỘ (MULTI-VIEW WORKSPACE) & CẢNH BÁO HẠN CHÓT THỜI GIAN THỰC (MISA AMIS WORK ENGINE)
+## 12. 🚀 KHÔNG GIAN LÀM VIỆC ĐA CHẾ ĐỘ (MULTI-VIEW WORKSPACE) & CẢNH BÁO HẠN CHÓT THỜI GIAN THỰC (HUEIC WORK ENGINE)
 - **3 Chế độ Xem Linh Hoạt (Multi-View Workspace)**:
   - 📊 **Dạng Bảng Danh Sách (List View)**: Màn hình PC hiển thị bảng 8 cột chuyên sâu (kèm Badges Deadline & Cán bộ phụ trách); Màn hình Mobile hiển thị Thẻ Touch to bản.
   - 📌 **Bảng Thẻ Kanban Kéo Thả (Kanban Board Drag & Drop)**: 4 cột trạng thái (*Chưa bắt đầu, Đang thực hiện, Chờ nghiệm thu, Đã hoàn thành*). Cho phép kéo thả thẻ nhiệm vụ HTML5 trực quan, tự động gọi API cập nhật trạng thái và tính toán lại % bước mốc tức thì.

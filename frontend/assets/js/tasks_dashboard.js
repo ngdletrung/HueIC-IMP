@@ -501,7 +501,7 @@
           value: done,
           iconClass: "fa-regular fa-circle-check",
           tone: done > 0 ? "green" : "grey",
-          note: `${completionRate}% đã nghiệm thu`,
+          note: `${completionRate}% đã hoàn thành`,
           onClick: () => {
             const qs = selectedDept ? `status=hoan-thanh&dept_id=${selectedDept.id}` : "status=hoan-thanh";
             window.location.href = `tasks-list.html?${qs}`;

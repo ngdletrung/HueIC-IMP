@@ -199,52 +199,14 @@
                 </div>
 
                 <!-- KPI ENGINE STRIP (PHÂN TẦNG THEO QUYỀN HẠN: BGH / TRƯỞNG PHÒNG / NHÂN VIÊN) -->
-                <div id="tasksKpiStripContainer" class="bg-gradient-to-r from-blue-900/5 via-slate-50 to-emerald-900/5 border border-blue-200/80 rounded-xl p-3.5 sm:p-4 shadow-xs">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-2 text-xs text-slate-500">
-                            <i class="fa-solid fa-spinner fa-spin text-blue-700"></i>
-                            <span>Đang tải dữ liệu chỉ số hiệu suất KPI Engine...</span>
-                        </div>
+                <div id="tasksKpiStripContainer" class="rounded-2xl border border-slate-200/80 bg-white shadow-sm overflow-hidden">
+                    <div class="flex items-center justify-center gap-2 py-6 text-xs text-slate-400">
+                        <i class="fa-solid fa-spinner fa-spin text-indigo-500"></i>
+                        <span>Đang tải dữ liệu hiệu suất KPI...</span>
                     </div>
                 </div>
 
-                <!-- Detailed Filter & Search Bar for Dashboard Scope -->
-                <div id="tasksFilterBar" class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3 text-xs">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <select id="filterStatus" onchange="TasksPage.loadTasks(); window.dispatchEvent(new CustomEvent('taskFiltersChanged'));" class="border border-slate-200 rounded-lg px-3 py-1.5 bg-slate-50 text-slate-700 font-semibold focus:outline-none focus:border-blue-800">
-                            <option value="">Tất cả trạng thái</option>
-                            <option value="CHUA_BAT_DAU">Chưa bắt đầu</option>
-                            <option value="DANG_THUC_HIEN">Đang thực hiện</option>
-                            <option value="CHO_DUYET">Chờ phê duyệt</option>
-                            <option value="HOAN_THANH">Đã hoàn thành</option>
-                            <option value="TAM_DUNG">Tạm dừng</option>
-                            <option value="HUY_BO">Hủy bỏ</option>
-                        </select>
 
-                        <select id="filterPriority" onchange="TasksPage.loadTasks(); window.dispatchEvent(new CustomEvent('taskFiltersChanged'));" class="border border-slate-200 rounded-lg px-3 py-1.5 bg-slate-50 text-slate-700 font-semibold focus:outline-none focus:border-blue-800">
-                            <option value="">Tất cả mức độ</option>
-                            <option value="KHAN_CAP">🔥 Khẩn cấp</option>
-                            <option value="CAO">Cao</option>
-                            <option value="TRUNG_BINH">Trung bình</option>
-                            <option value="THAP">Thấp</option>
-                        </select>
-
-                        <select id="filterDept" onchange="TasksPage.loadTasks(); window.dispatchEvent(new CustomEvent('taskFiltersChanged'));" class="border border-slate-200 rounded-lg px-3 py-1.5 bg-slate-50 text-slate-700 font-semibold focus:outline-none focus:border-blue-800">
-                            <option value="">Tất cả đơn vị</option>
-                        </select>
-                    </div>
-
-                    <div class="relative flex-1 min-w-[200px] max-w-xs">
-                        <input type="text" id="taskSearchInput" oninput="window.dispatchEvent(new CustomEvent('taskFiltersChanged'))" onkeyup="if(event.key === 'Enter') TasksPage.loadTasks()" placeholder="Tìm kiếm theo tiêu đề..." 
-                            class="w-full pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-800">
-                        <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-400 text-xs"></i>
-                    </div>
-                </div>
-
-                <!-- ==================== EXECUTIVE OPERATIONAL DASHBOARD ==================== -->
-                <div id="viewReportContainer" class="space-y-4">
-                    <div id="tasks-react-dashboard"></div>
-                </div>
 
                 <!-- ==================== VIEW 3: LỊCH CÔNG TÁC & DEADLINE (CALENDAR VIEW) ==================== -->
                 <div id="viewCalendarContainer" class="hidden bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
@@ -1102,10 +1064,64 @@
         </div>
     </div>
 
+    <!-- MODAL 6: TRA CỨU VẾT TÍNH ĐIỂM KPI (AUDIT LOGS) -->
+    <div id="modalKpiAuditLogs" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-3 sm:p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden border border-slate-200">
+            <div class="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <div class="flex items-center space-x-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-sm">
+                        <i class="fa-solid fa-receipt"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-black text-sm text-slate-900 leading-tight">Nhật Ký Vết Tính Điểm KPI (Audit Trail)</h3>
+                        <p class="text-[10.5px] text-slate-500">Minh bạch 100% công thức, sự kiện tác nghiệp và bằng chứng chốt điểm</p>
+                    </div>
+                </div>
+                <button onclick="TasksPage.closeKpiAuditModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-200 transition cursor-pointer">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+            <div id="kpiAuditLogsContainer" class="p-4 overflow-y-auto flex-1 text-xs space-y-2.5">
+                <div class="flex items-center justify-center py-8 text-slate-400">
+                    <i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải dữ liệu kiểm toán...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 7: CHI TIẾT CẢNH BÁO QUÁ TẢI & ĐIỀU PHỐI (WORKLOAD & ESCALATE HUB) -->
+    <div id="modalWorkloadAlertsDetail" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-3 sm:p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden border border-slate-200">
+            <div class="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <div class="flex items-center space-x-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-amber-600 text-white flex items-center justify-center text-sm">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-black text-sm text-slate-900 leading-tight">Trung Tâm Cảnh Báo Quá Tải & Hàng Đợi Điều Phối</h3>
+                        <p class="text-[10.5px] text-slate-500">Phát hiện điểm nghẽn nhân sự và cảnh báo trễ hạn 24h/48h/72h</p>
+                    </div>
+                </div>
+                <button onclick="TasksPage.closeWorkloadAlertsModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-200 transition cursor-pointer">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+            <div id="workloadAlertsModalContent" class="p-4 overflow-y-auto flex-1 text-xs space-y-4">
+                <div class="flex items-center justify-center py-8 text-slate-400">
+                    <i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải danh sách cảnh báo...
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
-    <script src="assets/js/api.js?v=2.9.50"></script>
-    <script src="assets/js/common.js?v=2.9.50"></script>
-    <script src="assets/js/tasks_dashboard.js?v=2.9.50"></script>
-    <script src="assets/js/tasks.js?v=2.9.50"></script>
+    <script src="assets/js/api.js?v=4.6.9"></script>
+    <script src="assets/js/common.js?v=4.6.9"></script>
+    <script src="assets/js/tasks/tasks-store.js?v=4.6.9"></script>
+    <script src="assets/js/tasks/tasks-service.js?v=4.6.9"></script>
+    <script src="assets/js/tasks/tasks-kpi-renderer.js?v=4.6.9"></script>
+    <script src="assets/js/tasks/tasks-view-renderer.js?v=4.6.9"></script>
+    <script src="assets/js/tasks/tasks-modal-manager.js?v=4.6.9"></script>
+    <script src="assets/js/tasks.js?v=4.6.9"></script>
 </body>
 </html>

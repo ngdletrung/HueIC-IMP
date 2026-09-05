@@ -10,7 +10,7 @@ from app.core.config import settings
 from app.core.logging_config import setup_logging
 from app.db.session import SessionLocal
 from app.db.init_db import init_db
-from app.api.v1 import auth, departments, users, tasks, stats, permissions, workflows, database, kpi
+from app.api.v1 import auth, departments, users, tasks, stats, permissions, workflows, database, kpi, dashboard, system_settings
 
 # Khởi tạo logging tập trung
 logger = setup_logging()
@@ -73,6 +73,8 @@ app.include_router(workflows.router, prefix=f"{settings.API_V1_STR}/workflows", 
 app.include_router(stats.router, prefix=f"{settings.API_V1_STR}/stats", tags=["Báo cáo & Thống kê"])
 app.include_router(permissions.router, prefix=f"{settings.API_V1_STR}/permissions", tags=["Phân Quyền Chi Tiết (RBAC)"])
 app.include_router(kpi.router, prefix=f"{settings.API_V1_STR}/kpi", tags=["Đo Lường Hiệu Suất & KPI (KpiEngine)"])
+app.include_router(dashboard.router, prefix=f"{settings.API_V1_STR}/dashboard", tags=["BGH Executive Dashboard"])
+app.include_router(system_settings.router, prefix=f"{settings.API_V1_STR}/settings", tags=["Cấu Hình Hệ Thống & Lịch Làm Việc"])
 app.include_router(database.router, prefix=f"{settings.API_V1_STR}/database", tags=["Quản Trị Cơ Sở Dữ Liệu (Database Studio)"])
 
 @app.get("/health", tags=["Hệ thống"])

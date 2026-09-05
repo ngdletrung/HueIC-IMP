@@ -9,6 +9,8 @@ from app.models.task import Task, TaskStatus, TaskPriority, VisibilityScope, Tas
 from app.models.department import Department
 from app.models.user import User, UserRole
 from app.api.deps import get_current_user
+from app.kpi_engine.period_kpi_engine import PeriodKpiEngine
+from app.kpi_engine.snapshot_manager import SnapshotManager
 
 router = APIRouter()
 
@@ -16,6 +18,8 @@ router = APIRouter()
 def get_dashboard_summary(
     dept_id: Optional[int] = Query(None, description="Lọc theo ID phòng ban/khoa"),
     user_id: Optional[int] = Query(None, description="Lọc theo ID cán bộ"),
+    start_date: Optional[datetime] = Query(None, description="Ngày bắt đầu chu kỳ lọc"),
+    end_date: Optional[datetime] = Query(None, description="Ngày kết thúc chu kỳ lọc"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
@@ -68,6 +72,12 @@ def get_dashboard_summary(
     if effective_user_id:
         query = query.filter((Task.assignee_id == effective_user_id) | (Task.created_by_id == effective_user_id))
 
+    # Lọc theo chu kỳ thời gian nếu có
+    if start_date:
+        query = query.filter((Task.created_at >= start_date) | (Task.due_date >= start_date))
+    if end_date:
+        query = query.filter((Task.created_at <= end_date) | (Task.due_date <= end_date))
+
     all_tasks = query.all()
     total_tasks = len(all_tasks)
     
@@ -86,7 +96,7 @@ def get_dashboard_summary(
     in_progress_tasks = sum(1 for t in all_tasks if t.status == TaskStatus.DANG_THUC_HIEN)
     review_tasks = sum(1 for t in all_tasks if t.status == TaskStatus.CHO_DUYET)
     not_started_tasks = sum(1 for t in all_tasks if t.status == TaskStatus.CHUA_BAT_DAU)
-    paused_tasks = sum(1 for t in all_tasks if t.status == TaskStatus.TAM_DUNG)
+    paused_tasks = sum(1 for t in all_tasks if t.status in [TaskStatus.TAM_DUNG, TaskStatus.HUY_BO])
     overdue_tasks = sum(1 for t in all_tasks if check_overdue(t))
 
     total_departments = db.query(Department).count()
@@ -289,12 +299,13 @@ def get_dashboard_summary(
 @router.get("/analytics", summary="Dữ liệu biểu đồ phân tích quản trị chuyên sâu 6 nhóm")
 def get_analytics_dashboard(
     dept_id: Optional[int] = Query(None, description="Lọc theo phòng ban/khoa"),
+    period: Optional[str] = Query("month", description="Chu kỳ: month, quarter, year"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """
     Cung cấp dữ liệu phục vụ 6 nhóm biểu đồ trực quan hóa quản trị:
-    1. Line Chart: Xu hướng SPI (BGH) hoặc Thực thi 70% vs Điều phối 30% (Lãnh đạo).
+    1. Line Chart: Xu hướng SPI (BGH) hoặc Thực thi 70% vs Điều phối 30% (Lãnh đạo) tính toán động từ CSDL.
     2. Stacked Bar Chart: Tiến độ 12 đơn vị theo Tổng Base Score có trọng số.
     3. Metric Cards: Cơ cấu công việc theo 4 mức ưu tiên (Khẩn cấp 5 -> Thấp 1).
     4. Donut Chart: Sức khỏe Nhiệm vụ Trọng tâm / Task Cha (Weighted Parent).
@@ -303,32 +314,88 @@ def get_analytics_dashboard(
     is_leader = current_user.role in [UserRole.DEPT_HEAD, UserRole.DEPT_VICE]
     target_dept_id = dept_id or current_user.department_id
 
-    # ----------------------------------------------------
-    # 1. LINE CHART: DỮ LIỆU XU HƯỚNG 6 THÁNG
-    # ----------------------------------------------------
     now = datetime.now(timezone.utc)
-    month_labels = []
-    for i in range(5, -1, -1):
-        # Tính lùi tháng
-        m = (now.month - i - 1) % 12 + 1
-        y = now.year - ((now.month - i - 1) // 12 if (now.month - i - 1) < 0 else 0)
-        month_labels.append(f"T{m}/{str(y)[2:]}")
 
-    # Dữ liệu mẫu tích hợp tăng trưởng chuẩn
+    # ----------------------------------------------------
+    # 1. LINE CHART: DỮ LIỆU XU HƯỚNG TÍNH TOÁN ĐỘNG TỪ CSDL
+    # ----------------------------------------------------
     if is_bgh:
-        line_chart_data = {
-            "type": "SPI_SCHOOL",
-            "title": "Xu Hướng Chỉ Số SPI Toàn Trường Qua 6 Tháng",
-            "labels": month_labels,
-            "datasets": [
-                {
-                    "label": "Chỉ Số SPI Toàn Trường (%)",
-                    "data": [68.0, 70.5, 72.0, 71.5, 73.0, 75.0],
-                    "borderColor": "#1d4ed8",
-                    "backgroundColor": "rgba(29, 78, 216, 0.1)"
-                }
-            ]
-        }
+        if period == "quarter":
+            labels = ["Q1/26", "Q2/26", "Q3/26", "Q4/26"]
+            quarter_data = []
+            for q_idx in range(1, 5):
+                m_start = (q_idx - 1) * 3 + 1
+                m_end = q_idx * 3
+                start_d = datetime(now.year, m_start, 1, tzinfo=timezone.utc)
+                end_d = datetime(now.year + 1, 1, 1, tzinfo=timezone.utc) if m_end == 12 else datetime(now.year, m_end + 1, 1, tzinfo=timezone.utc)
+                spi_calc = PeriodKpiEngine.calculate_school_spi(start_d, end_d, db)
+                quarter_data.append(spi_calc["spi"])
+
+            line_chart_data = {
+                "type": "SPI_SCHOOL",
+                "title": f"Chỉ Số SPI Các Quý Năm {now.year}",
+                "labels": labels,
+                "datasets": [
+                    {
+                        "label": "Chỉ Số SPI Toàn Trường (%)",
+                        "data": quarter_data,
+                        "borderColor": "#4f46e5",
+                        "backgroundColor": "rgba(79, 70, 229, 0.1)"
+                    }
+                ]
+            }
+        elif period == "year":
+            # Năm học 2025-2026 và tháng hiện tại
+            months_seq = [(9, 2025), (10, 2025), (11, 2025), (12, 2025),
+                          (1, 2026), (2, 2026), (3, 2026), (4, 2026),
+                          (5, 2026), (6, 2026), (7, 2026), (8, 2026), (9, 2026)]
+            labels = [f"T{m}/{str(y)[2:]}" for m, y in months_seq]
+            year_data = []
+            for m, y in months_seq:
+                start_d = datetime(y, m, 1, tzinfo=timezone.utc)
+                end_d = datetime(y + 1, 1, 1, tzinfo=timezone.utc) if m == 12 else datetime(y, m + 1, 1, tzinfo=timezone.utc)
+                spi_calc = PeriodKpiEngine.calculate_school_spi(start_d, end_d, db)
+                year_data.append(spi_calc["spi"])
+
+            line_chart_data = {
+                "type": "SPI_SCHOOL",
+                "title": f"Chỉ Số SPI Năm Học 2025-2026 & T9/{str(now.year)[2:]}",
+                "labels": labels,
+                "datasets": [
+                    {
+                        "label": "Chỉ Số SPI Toàn Trường (%)",
+                        "data": year_data,
+                        "borderColor": "#4f46e5",
+                        "backgroundColor": "rgba(79, 70, 229, 0.1)"
+                    }
+                ]
+            }
+        else:
+            # 6 Tháng gần nhất
+            labels = []
+            month_data = []
+            for i in range(5, -1, -1):
+                m = (now.month - i - 1) % 12 + 1
+                y = now.year - ((now.month - i - 1) // 12 if (now.month - i - 1) < 0 else 0)
+                labels.append(f"T{m}/{str(y)[2:]}")
+                start_d = datetime(y, m, 1, tzinfo=timezone.utc)
+                end_d = datetime(y + 1, 1, 1, tzinfo=timezone.utc) if m == 12 else datetime(y, m + 1, 1, tzinfo=timezone.utc)
+                spi_calc = PeriodKpiEngine.calculate_school_spi(start_d, end_d, db)
+                month_data.append(spi_calc["spi"])
+
+            line_chart_data = {
+                "type": "SPI_SCHOOL",
+                "title": "Xu Hướng Chỉ Số SPI Toàn Trường 6 Tháng Gần Nhất",
+                "labels": labels,
+                "datasets": [
+                    {
+                        "label": "Chỉ Số SPI Toàn Trường (%)",
+                        "data": month_data,
+                        "borderColor": "#4f46e5",
+                        "backgroundColor": "rgba(79, 70, 229, 0.1)"
+                    }
+                ]
+            }
     elif is_leader:
         line_chart_data = {
             "type": "DEPT_DUAL",
@@ -581,3 +648,63 @@ def get_workload_alerts(
         "total_unassigned": len(escalate_queue),
         "total_overloaded_staff": len([o for o in overload_alerts if o["is_overload"]])
     }
+
+
+@router.get("/period-snapshot", summary="Lấy dữ liệu snapshot siêu tốc theo chu kỳ Tháng / Quý / Năm (Zero-Lag)")
+def get_period_snapshot(
+    period_type: str = Query("MONTH", description="Loại chu kỳ: MONTH, QUARTER, YEAR"),
+    period_key: Optional[str] = Query(None, description="Khóa chu kỳ: 2026-09, 2026-Q3, 2025-2026"),
+    dept_id: Optional[int] = Query(None, description="ID đơn vị lọc (None = Toàn trường)"),
+    force_refresh: bool = Query(False, description="Bắt buộc làm mới (bỏ qua cache)"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> Dict[str, Any]:
+    """
+    API tối ưu hiệu năng: Phục vụ Zero-Lag (< 2ms) cho dữ liệu quá khứ và Event-driven cache cho hiện tại.
+    """
+    effective_dept_id = dept_id
+    if current_user.role == UserRole.STAFF:
+        effective_dept_id = current_user.department_id
+
+    return SnapshotManager.get_or_compute_snapshot(
+        db=db,
+        period_type=period_type,
+        period_key=period_key,
+        dept_id=effective_dept_id,
+        force_refresh=force_refresh
+    )
+
+
+@router.get("/period-snapshots-list", summary="Lấy danh sách các kỳ theo Sheet Tháng / Quý / Năm")
+def get_period_snapshots_list(
+    period_type: str = Query("MONTH", description="Loại chu kỳ: MONTH, QUARTER, YEAR"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> List[Dict[str, Any]]:
+    return SnapshotManager.list_period_snapshots(db=db, period_type=period_type)
+
+
+@router.post("/recalculate-period", summary="Tính toán lại và đồng bộ Snapshot của một kỳ cụ thể")
+def recalculate_period_snapshot(
+    period_type: str = Query(..., description="MONTH, QUARTER, YEAR"),
+    period_key: str = Query(..., description="2026-09, 2026-Q3, 2025-2026"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> Dict[str, Any]:
+    if current_user.role not in [UserRole.SUPERADMIN, UserRole.BGH]:
+        raise HTTPException(status_code=403, detail="Chỉ BGH hoặc Admin mới có quyền ép tính lại Snapshot kỳ")
+    return SnapshotManager.get_or_compute_snapshot(db=db, period_type=period_type, period_key=period_key, force_refresh=True)
+
+
+@router.post("/toggle-lock-period", summary="Khóa sổ / Mở khóa một kỳ đánh giá")
+def toggle_lock_period(
+    period_type: str = Query(..., description="MONTH, QUARTER, YEAR"),
+    period_key: str = Query(..., description="2026-09, 2026-Q3, 2025-2026"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> Dict[str, Any]:
+    if current_user.role not in [UserRole.SUPERADMIN, UserRole.BGH]:
+        raise HTTPException(status_code=403, detail="Chỉ BGH hoặc Admin mới có quyền khóa/mở khóa kỳ")
+    return SnapshotManager.toggle_period_lock(db=db, period_type=period_type, period_key=period_key)
+
+

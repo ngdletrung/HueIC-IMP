@@ -7,12 +7,13 @@ from app.models.task import (
     TaskAssignment, TaskRecurringRule, TaskAssignmentRole, TaskAssignmentStatus
 )
 from app.models.workflow import WorkflowTemplate
+from app.models.system_setting import SystemSetting
 
 __all__ = [
     "Base", "Department", "User", "UserRole",
     "Task", "TaskPriority", "TaskStatus", "TaskComment",
     "TaskType", "VisibilityScope", "ProgressRule",
     "TaskAssignment", "TaskRecurringRule", "TaskAssignmentRole", "TaskAssignmentStatus",
-    "WorkflowTemplate"
+    "WorkflowTemplate", "SystemSetting"
 ]
 

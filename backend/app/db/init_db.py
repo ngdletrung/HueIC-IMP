@@ -71,6 +71,24 @@ def init_db(db: Session) -> None:
                 CREATE INDEX IF NOT EXISTS ix_task_action_logs_action ON task_action_logs(action);
             """))
 
+            # Tạo bảng System Settings (Cấu hình hệ thống & Lịch làm việc)
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS system_settings (
+                    key VARCHAR(100) PRIMARY KEY,
+                    value TEXT NOT NULL,
+                    description TEXT,
+                    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+                );
+                INSERT INTO system_settings (key, value, description) VALUES
+                    ('working_morning_start', '07:30', 'Giờ bắt đầu ca sáng'),
+                    ('working_morning_end', '11:30', 'Giờ kết thúc ca sáng'),
+                    ('working_afternoon_start', '13:00', 'Giờ bắt đầu ca chiều'),
+                    ('working_afternoon_end', '17:00', 'Giờ kết thúc ca chiều'),
+                    ('working_weekend_pause', 'true', 'Đóng băng SLA Thứ 7 & CN'),
+                    ('working_ot_bonus', 'true', 'Thưởng DPI khi hoàn thành ngoài giờ')
+                ON CONFLICT (key) DO NOTHING;
+            """))
+
             # Tạo bảng Thông báo Điều hành: task_notifications
             conn.execute(text("""
                 CREATE TABLE IF NOT EXISTS task_notifications (

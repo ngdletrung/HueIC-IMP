@@ -65,6 +65,8 @@ const API = {
         const q = new URLSearchParams();
         if (params.dept_id) q.append('dept_id', params.dept_id);
         if (params.user_id) q.append('user_id', params.user_id);
+        if (params.start_date) q.append('start_date', params.start_date);
+        if (params.end_date) q.append('end_date', params.end_date);
         const qs = q.toString() ? `?${q.toString()}` : '';
         return this.request(`/stats/summary${qs}`);
     },
@@ -325,9 +327,12 @@ const API = {
             body: JSON.stringify({ status, note })
         });
     },
-    getAnalyticsDashboard(deptId = null) {
+    getAnalyticsDashboard(deptId = null, period = null) {
         let url = '/stats/analytics';
-        if (deptId) url += `?dept_id=${deptId}`;
+        const q = [];
+        if (deptId) q.push(`dept_id=${deptId}`);
+        if (period) q.push(`period=${period}`);
+        if (q.length) url += `?${q.join('&')}`;
         return this.request(url);
     },
     getWorkloadAlerts(deptId = null) {
@@ -343,5 +348,56 @@ const API = {
         if (params.limit) q.push(`limit=${params.limit}`);
         if (q.length) url += `?${q.join('&')}`;
         return this.request(url);
+    },
+
+    // 10. BGH Executive Dashboard & Snapshot APIs (v4.0.0 Zero-Lag)
+    getDashboardOverview(params = {}) {
+        const q = [];
+        if (params.period_type) q.push(`period_type=${encodeURIComponent(params.period_type)}`);
+        if (params.period_key) q.push(`period_key=${encodeURIComponent(params.period_key)}`);
+        if (params.dept_id) q.push(`dept_id=${encodeURIComponent(params.dept_id)}`);
+        if (params.force_refresh) q.push(`force_refresh=true`);
+        const qs = q.length ? `?${q.join('&')}` : '';
+        return this.request(`/dashboard/overview${qs}`);
+    },
+
+    getDashboardTrend(params = {}) {
+        const q = [];
+        if (params.period_type) q.push(`period_type=${encodeURIComponent(params.period_type)}`);
+        if (params.count) q.push(`count=${encodeURIComponent(params.count)}`);
+        const qs = q.length ? `?${q.join('&')}` : '';
+        return this.request(`/dashboard/trend${qs}`);
+    },
+
+    getDashboardAlerts(deptId = null) {
+        const qs = deptId ? `?dept_id=${encodeURIComponent(deptId)}` : '';
+        return this.request(`/dashboard/alerts${qs}`);
+    },
+
+    getPeriodSnapshotsList(periodType = 'MONTH') {
+        return this.request(`/stats/period-snapshots-list?period_type=${encodeURIComponent(periodType)}`);
+    },
+
+    recalculatePeriodSnapshot(periodType, periodKey) {
+        return this.request(`/stats/recalculate-period?period_type=${encodeURIComponent(periodType)}&period_key=${encodeURIComponent(periodKey)}`, {
+            method: 'POST'
+        });
+    },
+
+    toggleLockPeriod(periodType, periodKey) {
+        return this.request(`/stats/toggle-lock-period?period_type=${encodeURIComponent(periodType)}&period_key=${encodeURIComponent(periodKey)}`, {
+            method: 'POST'
+        });
+    },
+
+    getWorkingHoursConfig() {
+        return this.request('/settings/working-hours');
+    },
+
+    updateWorkingHoursConfig(data) {
+        return this.request('/settings/working-hours', {
+            method: 'PUT',
+            body: JSON.stringify(data)
+        });
     }
 };
